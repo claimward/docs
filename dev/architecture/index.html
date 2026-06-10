@@ -785,13 +785,14 @@ your OIDC identity provider; Claimward never sees the user's password.</p>
 <a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a> └──────────┘
 </code></pre></div>
 <ol>
-<li>The client runs the OIDC PKCE flow in the system browser and receives an
-   <strong>ID token</strong>.</li>
+<li>The client signs in with the configured provider — <strong>GitHub</strong> by default
+   (OAuth device flow) or any <strong>OIDC</strong> issuer (PKCE) — and receives a bearer
+   credential (a GitHub access token or an OIDC ID token).</li>
 <li>It generates (once) a WireGuard key pair and calls <code>POST /api/v1/enroll</code>,
-   sending its <strong>public key</strong> with the ID token as a bearer credential.</li>
-<li>The server <strong>verifies</strong> the token against the issuer, applies any
-   email-domain allowlist, <strong>allocates</strong> a VPN address, and <strong>programs the
-   gateway</strong> (<code>wgctrl</code>) with a peer whose only allowed IP is that <code>/32</code>.</li>
+   sending its <strong>public key</strong> with that bearer.</li>
+<li>The server <strong>verifies</strong> the bearer (GitHub API call or OIDC verification),
+   applies any org/email allowlist, <strong>allocates</strong> a VPN address, and <strong>programs
+   the gateway</strong> (<code>wgctrl</code>) with a peer whose only allowed IP is that <code>/32</code>.</li>
 <li>The server returns the tunnel parameters (assigned IP, its own public key,
    the public endpoint, routes, DNS, keepalive).</li>
 <li>The client brings up a userspace tunnel with <code>wireguard-go</code>.</li>

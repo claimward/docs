@@ -827,9 +827,11 @@ off automatically. To force-revoke now, deregister the peer (or remove it with
 clients simply re-enroll on their next heartbeat. For multiple gateways or
 durable audit, back the <code>store</code> and <code>ipam</code> packages with a database.</p>
 <h2 id="identity-provider">Identity provider<a class="headerlink" href="#identity-provider" title="Permanent link">&para;</a></h2>
-<p>Register Claimward as a <strong>native/public</strong> OIDC client with PKCE and the loopback
-redirect. Use <code>OIDC_ALLOWED_DOMAINS</code> to restrict access to your organization's
-email domains, or add group/claim checks in <code>internal/auth</code>.</p>
+<p>By default Claimward authenticates with <strong>GitHub</strong> via the OAuth device flow:
+create a GitHub OAuth App with <strong>Device Flow</strong> enabled and restrict access with
+<code>GITHUB_ALLOWED_ORGS</code>. To use <strong>OIDC</strong> instead, set <code>AUTH_PROVIDER=oidc</code> and
+register a native/public client with PKCE; restrict with <code>OIDC_ALLOWED_DOMAINS</code>.
+Providers are pluggable — add one by implementing <code>Verifier</code> in <code>internal/auth</code>.</p>
 
 
 

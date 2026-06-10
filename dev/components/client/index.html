@@ -805,14 +805,16 @@ cross-platform <strong><code>claimward</code> CLI</strong>.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>go<span class="w"> </span>build<span class="w"> </span>-o<span class="w"> </span>bin/claimward<span class="w"> </span>./cmd/claimward
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CLAIMWARD_SERVER</span><span class="o">=</span>https://vpn.example.com
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CLAIMWARD_OIDC_ISSUER</span><span class="o">=</span>https://your-issuer.example.com
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CLAIMWARD_OIDC_CLIENT_ID</span><span class="o">=</span>claimward
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># GitHub is the default provider (device flow):</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nb">export</span><span class="w"> </span><span class="nv">CLAIMWARD_GITHUB_CLIENT_ID</span><span class="o">=</span>Iv1.0123456789abcdef
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>claimward<span class="w"> </span>login<span class="w">            </span><span class="c1"># browser OIDC login (no root)</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>claimward<span class="w"> </span>login<span class="w">            </span><span class="c1"># GitHub device flow: open the URL, enter the code (no root)</span>
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>sudo<span class="w"> </span>-E<span class="w"> </span>claimward<span class="w"> </span>connect<span class="w">  </span><span class="c1"># enroll + bring up the tunnel (root; -E keeps env)</span>
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>claimward<span class="w"> </span>status
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>claimward<span class="w"> </span><span class="nb">logout</span>
 </code></pre></div>
+<p>To use OIDC instead: <code>--provider oidc</code> (or <code>CLAIMWARD_AUTH_PROVIDER=oidc</code>) with
+<code>CLAIMWARD_OIDC_ISSUER</code> / <code>CLAIMWARD_OIDC_CLIENT_ID</code>.</p>
 <p><code>connect</code> runs in the foreground and tears the tunnel down (and deregisters the
 peer) on <code>Ctrl-C</code>. Creating the tunnel interface and routes requires root, hence
 <code>sudo</code>; <code>login</code>/<code>status</code> do not.</p>

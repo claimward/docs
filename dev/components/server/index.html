@@ -483,6 +483,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#authentication-providers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Authentication providers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#how-it-programs-the-gateway" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -728,6 +739,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#authentication-providers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Authentication providers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#how-it-programs-the-gateway" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -808,14 +830,32 @@ to run co-located on the Linux gateway host.</p>
 </thead>
 <tbody>
 <tr>
+<td><code>AUTH_PROVIDER</code></td>
+<td></td>
+<td><code>github</code></td>
+<td>identity provider: <code>github</code> or <code>oidc</code></td>
+</tr>
+<tr>
+<td><code>GITHUB_ALLOWED_ORGS</code></td>
+<td></td>
+<td>—</td>
+<td>CSV org allowlist (github); members of any are allowed</td>
+</tr>
+<tr>
+<td><code>GITHUB_API_URL</code></td>
+<td></td>
+<td><code>https://api.github.com</code></td>
+<td>set for GitHub Enterprise</td>
+</tr>
+<tr>
 <td><code>OIDC_ISSUER</code></td>
-<td>✅</td>
+<td>when <code>oidc</code></td>
 <td>—</td>
 <td>issuer URL (discovery)</td>
 </tr>
 <tr>
 <td><code>OIDC_CLIENT_ID</code></td>
-<td>✅</td>
+<td>when <code>oidc</code></td>
 <td>—</td>
 <td>expected token audience</td>
 </tr>
@@ -823,7 +863,7 @@ to run co-located on the Linux gateway host.</p>
 <td><code>OIDC_ALLOWED_DOMAINS</code></td>
 <td></td>
 <td>—</td>
-<td>CSV email-domain allowlist</td>
+<td>CSV email-domain allowlist (oidc)</td>
 </tr>
 <tr>
 <td><code>WG_ENDPOINT</code></td>
@@ -893,6 +933,18 @@ to run co-located on the Linux gateway host.</p>
 </tr>
 </tbody>
 </table>
+<h2 id="authentication-providers">Authentication providers<a class="headerlink" href="#authentication-providers" title="Permanent link">&para;</a></h2>
+<p>Auth is pluggable behind a <code>Verifier</code> interface (<code>internal/auth</code>):</p>
+<ul>
+<li><strong><code>github</code> (default)</strong> — clients sign in with the GitHub OAuth <strong>device flow</strong>
+  and send the resulting access token. The server validates it against the
+  GitHub API (<code>/user</code>) and, if <code>GITHUB_ALLOWED_ORGS</code> is set, requires active
+  membership in one of those orgs. No client secret is involved.</li>
+<li><strong><code>oidc</code></strong> — clients send an OIDC ID token, verified against the issuer with
+  the audience and optional email-domain allowlist.</li>
+</ul>
+<p>The bearer is opaque on the wire, so adding a provider is server-local: implement
+<code>Verifier</code> and register it in the factory.</p>
 <h2 id="how-it-programs-the-gateway">How it programs the gateway<a class="headerlink" href="#how-it-programs-the-gateway" title="Permanent link">&para;</a></h2>
 <p>The server uses <a href="https://pkg.go.dev/golang.zx2c4.com/wireguard/wgctrl"><code>wgctrl</code></a>
 to add and remove peers on an existing interface. On enrollment it sets a peer

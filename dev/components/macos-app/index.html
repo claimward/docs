@@ -808,13 +808,16 @@ unprivileged.</p>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nv">CGO_ENABLED</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>go<span class="w"> </span>build<span class="w"> </span>-o<span class="w"> </span>bin/claimward-helper<span class="w">  </span>./cmd/claimward-helper
 </code></pre></div>
 <h2 id="configure">Configure<a class="headerlink" href="#configure" title="Permanent link">&para;</a></h2>
-<p><code>~/Library/Application Support/Claimward/config.json</code>:</p>
+<p><code>~/Library/Application Support/Claimward/config.json</code> (GitHub is the default):</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">&quot;server_url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://vpn.example.com&quot;</span><span class="p">,</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nt">&quot;oidc_issuer&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://your-issuer.example.com&quot;</span><span class="p">,</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nt">&quot;oidc_client_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;claimward&quot;</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nt">&quot;provider&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;github&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nt">&quot;github_client_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Iv1.0123456789abcdef&quot;</span>
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="p">}</span>
 </code></pre></div>
+<p>The app uses the GitHub <strong>device flow</strong>: clicking <strong>Connect</strong> shows a code to
+enter at the displayed URL. For OIDC, set <code>"provider": "oidc"</code> with
+<code>"oidc_issuer"</code> / <code>"oidc_client_id"</code>.</p>
 <h2 id="install-the-helper-and-run">Install the helper and run<a class="headerlink" href="#install-the-helper-and-run" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>sudo<span class="w"> </span>./scripts/install-helper.sh<span class="w">   </span><span class="c1"># installs the root LaunchDaemon</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>./bin/claimward-app<span class="w">                </span><span class="c1"># tray app → click Connect</span>
