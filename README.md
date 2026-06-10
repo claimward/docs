@@ -1,5 +1,7 @@
 # Claimward documentation
 
+[![Docs](https://github.com/claimward/docs/actions/workflows/docs.yml/badge.svg)](https://github.com/claimward/docs/actions/workflows/docs.yml) [![Site](https://img.shields.io/website?url=https%3A%2F%2Fclaimward.github.io%2Fdocs%2F&label=docs)](https://claimward.github.io/docs/)
+
 Source for the Claimward documentation site, built with
 [MkDocs Material](https://squidfunk.github.io/mkdocs-material/) and versioned with
 [mike](https://github.com/jimporter/mike). Published at
