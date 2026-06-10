@@ -39,6 +39,6 @@ jobs:
       - name: Deploy development version
         if: github.ref == 'refs/heads/main'
         run: |
-          mike deploy --push --update-aliases dev
-          # Make sure a default exists on first run.
-          mike set-default --push --allow-undefined latest || true
+          mike deploy --push dev
+          # Root (/docs/) redirects here until the first tagged release.
+          mike set-default --push dev
