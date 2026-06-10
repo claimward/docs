@@ -31,6 +31,8 @@ durable audit, back the `store` and `ipam` packages with a database.
 
 ## Identity provider
 
-Register Claimward as a **native/public** OIDC client with PKCE and the loopback
-redirect. Use `OIDC_ALLOWED_DOMAINS` to restrict access to your organization's
-email domains, or add group/claim checks in `internal/auth`.
+By default Claimward authenticates with **GitHub** via the OAuth device flow:
+create a GitHub OAuth App with **Device Flow** enabled and restrict access with
+`GITHUB_ALLOWED_ORGS`. To use **OIDC** instead, set `AUTH_PROVIDER=oidc` and
+register a native/public client with PKCE; restrict with `OIDC_ALLOWED_DOMAINS`.
+Providers are pluggable — add one by implementing `Verifier` in `internal/auth`.

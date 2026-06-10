@@ -15,8 +15,8 @@ It is written in Go, with a small Svelte UI for the desktop app.
 - :material-laptop: **Clients**
   A cross-platform CLI and native desktop apps (macOS first).
 
-- :material-key-chain: **Standards-based auth**
-  Any compliant OIDC provider — Google, Okta, Entra, Keycloak, Dex…
+- :material-key-chain: **Auth you already have**
+  GitHub by default (device flow), or any OIDC provider — Google, Okta, Entra…
 
 - :material-shield-lock: **Least privilege**
   One peer per device, leases that expire, scoped routes.

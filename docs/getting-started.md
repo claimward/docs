@@ -25,9 +25,8 @@ sudo sysctl -w net.ipv4.ip_forward=1   # if you route beyond the VPN subnet
 ## 2. Run the control plane
 
 ```sh
-export OIDC_ISSUER=https://your-issuer.example.com
-export OIDC_CLIENT_ID=claimward
-export OIDC_ALLOWED_DOMAINS=example.com        # optional authz
+export AUTH_PROVIDER=github                     # default
+export GITHUB_ALLOWED_ORGS=claimward            # optional authz (recommended)
 export WG_ENDPOINT=vpn.example.com:51820
 export WG_PRIVATE_KEY_FILE=/etc/wireguard/server.key
 export VPN_CIDR=10.80.0.0/24
@@ -38,13 +37,21 @@ go run github.com/claimward/claimward-vpn-server/cmd/claimward-server@latest
 ```
 
 See the [server reference](components/server.md) for every variable. For local
-experiments without a real interface, set `WG_DRYRUN=true`.
+experiments without a real interface, set `WG_DRYRUN=true`. To use OIDC instead
+of GitHub, set `AUTH_PROVIDER=oidc` with `OIDC_ISSUER` / `OIDC_CLIENT_ID`.
 
-## 3. Register an OIDC client
+## 3. Register the OAuth client
 
-In your IdP, create a **native/public** client with PKCE enabled and the
-loopback redirect `http://127.0.0.1:<port>/callback` (the client uses a random
-loopback port). No client secret is required.
+=== "GitHub (default)"
+
+    Create a GitHub **OAuth App** (org or personal) and **enable Device Flow**
+    in its settings. Only the **client id** is needed by clients — no secret.
+    Scopes used: `read:user`, `user:email`, `read:org`.
+
+=== "OIDC"
+
+    In your IdP, create a **native/public** client with PKCE enabled and the
+    loopback redirect `http://127.0.0.1:<port>/callback`. No client secret.
 
 ## 4. Connect a device
 
@@ -52,10 +59,9 @@ loopback port). No client secret is required.
 
     ```sh
     export CLAIMWARD_SERVER=https://vpn.example.com
-    export CLAIMWARD_OIDC_ISSUER=https://your-issuer.example.com
-    export CLAIMWARD_OIDC_CLIENT_ID=claimward
+    export CLAIMWARD_GITHUB_CLIENT_ID=Iv1.0123456789abcdef   # GitHub OAuth app
 
-    claimward login            # browser sign-in
+    claimward login            # GitHub device flow: open the URL, enter the code
     sudo -E claimward connect  # enroll + bring up the tunnel
     ```
 

@@ -21,9 +21,12 @@ See the [enrollment protocol](../reference/protocol.md) for payloads.
 
 | Variable | Required | Default | Notes |
 |----------|----------|---------|-------|
-| `OIDC_ISSUER` | ✅ | — | issuer URL (discovery) |
-| `OIDC_CLIENT_ID` | ✅ | — | expected token audience |
-| `OIDC_ALLOWED_DOMAINS` | | — | CSV email-domain allowlist |
+| `AUTH_PROVIDER` | | `github` | identity provider: `github` or `oidc` |
+| `GITHUB_ALLOWED_ORGS` | | — | CSV org allowlist (github); members of any are allowed |
+| `GITHUB_API_URL` | | `https://api.github.com` | set for GitHub Enterprise |
+| `OIDC_ISSUER` | when `oidc` | — | issuer URL (discovery) |
+| `OIDC_CLIENT_ID` | when `oidc` | — | expected token audience |
+| `OIDC_ALLOWED_DOMAINS` | | — | CSV email-domain allowlist (oidc) |
 | `WG_ENDPOINT` | ✅ | — | public `host:port` advertised to clients |
 | `WG_PRIVATE_KEY` / `WG_PRIVATE_KEY_FILE` | ✅ | — | base64 server key |
 | `WG_INTERFACE` | | `wg0` | kernel interface to manage |
@@ -35,6 +38,20 @@ See the [enrollment protocol](../reference/protocol.md) for payloads.
 | `LEASE_TTL` | | `24h` | lease duration without heartbeat |
 | `LISTEN_ADDR` | | `:8443` | bind address |
 | `TLS_CERT` / `TLS_KEY` | | — | enable HTTPS (else terminate TLS at a proxy) |
+
+## Authentication providers
+
+Auth is pluggable behind a `Verifier` interface (`internal/auth`):
+
+- **`github` (default)** — clients sign in with the GitHub OAuth **device flow**
+  and send the resulting access token. The server validates it against the
+  GitHub API (`/user`) and, if `GITHUB_ALLOWED_ORGS` is set, requires active
+  membership in one of those orgs. No client secret is involved.
+- **`oidc`** — clients send an OIDC ID token, verified against the issuer with
+  the audience and optional email-domain allowlist.
+
+The bearer is opaque on the wire, so adding a provider is server-local: implement
+`Verifier` and register it in the factory.
 
 ## How it programs the gateway
 

@@ -31,15 +31,19 @@ CGO_ENABLED=1 go build -o bin/claimward-helper  ./cmd/claimward-helper
 
 ## Configure
 
-`~/Library/Application Support/Claimward/config.json`:
+`~/Library/Application Support/Claimward/config.json` (GitHub is the default):
 
 ```json
 {
   "server_url": "https://vpn.example.com",
-  "oidc_issuer": "https://your-issuer.example.com",
-  "oidc_client_id": "claimward"
+  "provider": "github",
+  "github_client_id": "Iv1.0123456789abcdef"
 }
 ```
+
+The app uses the GitHub **device flow**: clicking **Connect** shows a code to
+enter at the displayed URL. For OIDC, set `"provider": "oidc"` with
+`"oidc_issuer"` / `"oidc_client_id"`.
 
 ## Install the helper and run
 

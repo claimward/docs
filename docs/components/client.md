@@ -20,14 +20,17 @@ cross-platform **`claimward` CLI**.
 go build -o bin/claimward ./cmd/claimward
 
 export CLAIMWARD_SERVER=https://vpn.example.com
-export CLAIMWARD_OIDC_ISSUER=https://your-issuer.example.com
-export CLAIMWARD_OIDC_CLIENT_ID=claimward
+# GitHub is the default provider (device flow):
+export CLAIMWARD_GITHUB_CLIENT_ID=Iv1.0123456789abcdef
 
-claimward login            # browser OIDC login (no root)
+claimward login            # GitHub device flow: open the URL, enter the code (no root)
 sudo -E claimward connect  # enroll + bring up the tunnel (root; -E keeps env)
 claimward status
 claimward logout
 ```
+
+To use OIDC instead: `--provider oidc` (or `CLAIMWARD_AUTH_PROVIDER=oidc`) with
+`CLAIMWARD_OIDC_ISSUER` / `CLAIMWARD_OIDC_CLIENT_ID`.
 
 `connect` runs in the foreground and tears the tunnel down (and deregisters the
 peer) on `Ctrl-C`. Creating the tunnel interface and routes requires root, hence
