@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -33,7 +33,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -819,9 +819,9 @@ cross-platform <strong><code>claimward</code> CLI</strong>.</p>
 peer) on <code>Ctrl-C</code>. Creating the tunnel interface and routes requires root, hence
 <code>sudo</code>; <code>login</code>/<code>status</code> do not.</p>
 <h2 id="reuse-in-your-own-tooling">Reuse in your own tooling<a class="headerlink" href="#reuse-in-your-own-tooling" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nx">cl</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">client</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span><span class="s">&quot;https://vpn.example.com&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nx">cl</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">client</span><span class="p">.</span><span class="nx">New</span><span class="p">(</span><span class="s">"https://vpn.example.com"</span><span class="p">)</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nx">resp</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">cl</span><span class="p">.</span><span class="nx">Enroll</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">idToken</span><span class="p">,</span><span class="w"> </span><span class="nx">pair</span><span class="p">.</span><span class="nx">Public</span><span class="p">,</span><span class="w"> </span><span class="nx">protocol</span><span class="p">.</span><span class="nx">DeviceInfo</span><span class="p">{</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nx">Name</span><span class="p">:</span><span class="w"> </span><span class="nx">host</span><span class="p">,</span><span class="w"> </span><span class="nx">OS</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;linux&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">Platform</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;cli&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nx">Name</span><span class="p">:</span><span class="w"> </span><span class="nx">host</span><span class="p">,</span><span class="w"> </span><span class="nx">OS</span><span class="p">:</span><span class="w"> </span><span class="s">"linux"</span><span class="p">,</span><span class="w"> </span><span class="nx">Platform</span><span class="p">:</span><span class="w"> </span><span class="s">"cli"</span><span class="p">,</span>
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="p">})</span>
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="nx">cfg</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">client</span><span class="p">.</span><span class="nx">TunnelConfig</span><span class="p">(</span><span class="nx">resp</span><span class="p">,</span><span class="w"> </span><span class="nx">pair</span><span class="p">.</span><span class="nx">Private</span><span class="p">)</span>
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="nx">tun</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">wgtun</span><span class="p">.</span><span class="nx">Up</span><span class="p">(</span><span class="nx">cfg</span><span class="p">)</span>
@@ -901,7 +901,7 @@ peer) on <code>Ctrl-C</code>. Creating the tunnel interface and routes requires 
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.top", "navigation.tracking", "content.code.copy", "content.action.edit", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>
