@@ -1,0 +1,134 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Claimward – Svelte</title><link>https://claimward.github.io/docs/v0.3.0/fr/tags/svelte/</link><description>Recent content in Svelte on Claimward</description><generator>Hugo -- gohugo.io</generator><language>fr</language><atom:link href="https://claimward.github.io/docs/v0.3.0/fr/tags/svelte/index.xml" rel="self" type="application/rss+xml"/><item><title>Application macOS</title><link>https://claimward.github.io/docs/v0.3.0/fr/components/macos-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/v0.3.0/fr/components/macos-app/</guid><description>
+&lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-osx" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-osx&lt;/code&gt;&lt;/a&gt;
+&lt;strong&gt;v0.2.0&lt;/strong&gt; est une application de la barre des menus (zone de notification) écrite en Go dont &lt;strong&gt;toute l&amp;rsquo;interface
+utilisateur est une application monopage Svelte rendue dans une webview&lt;/strong&gt;. Sa logique (connexion,
+choix du locataire, connexion au VPN) et son helper sont les composants partagés
+&lt;a href="https://claimward.github.io/docs/v0.3.0/fr/components/client/"&gt;&lt;code&gt;pkg/appcore&lt;/code&gt; et &lt;code&gt;pkg/helper&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="design"&gt;Conception&lt;span class="hx:absolute hx:-mt-20" id="design"&gt;&lt;/span&gt;
+&lt;a href="#design" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; claimward-app (tray process, as you)
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ├─ systray menu: status / Open Claimward… / Configuration… / Connect / Disconnect / Quit
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ├─ uiserver loopback HTTP: embedded Svelte SPA + token-guarded JSON API
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; └─ appcore sign-in, tenant choice, session; drives the helper
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ spawns &amp;#34;claimward-app ui &amp;lt;url&amp;gt;&amp;#34; │ Unix socket (JSON), 0660 root:admin
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ▼ ▼
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; webview (WKWebView) claimward-helper (root LaunchDaemon)
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; renders the Svelte UI enrolls with the server, wireguard-go: utunN,
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; route pushes&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copier le code"
+aria-label="Copier le code"
+data-copied-label="Copié !"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;Le processus de la zone de notification détient tout l&amp;rsquo;état et sert à la fois l&amp;rsquo;interface et une petite API JSON sur
+&lt;code&gt;127.0.0.1&lt;/code&gt;, protégée par un jeton propre à chaque lancement, comparé en temps constant. La
+webview est une fenêtre minimale pointée sur cette URL de bouclage, dans un processus distinct,
+car une seule boucle d&amp;rsquo;exécution Cocoa peut posséder le fil principal. Le
+&lt;a href="https://claimward.github.io/docs/v0.3.0/fr/components/helper/"&gt;helper&lt;/a&gt; s&amp;rsquo;enrôle auprès du serveur et
+détient le tunnel ; l&amp;rsquo;application n&amp;rsquo;est pas privilégiée.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="build"&gt;Compilation&lt;span class="hx:absolute hx:-mt-20" id="build"&gt;&lt;/span&gt;
+&lt;a href="#build" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Avec &lt;a href="https://taskfile.dev" target="_blank" rel="noopener"&gt;go-task&lt;/a&gt; :&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;task config:init &lt;span class="c1"&gt;# a starter config.json (local Dex)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;task install-helper &lt;span class="nv"&gt;SERVER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;https://vpn.example.org &lt;span class="c1"&gt;# build and install the helper (sudo)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;task start:bundle &lt;span class="c1"&gt;# build Claimward.app and open it&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copier le code"
+aria-label="Copier le code"
+data-copied-label="Copié !"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;Lancez le bundle plutôt que le binaire nu : un binaire nu démarré depuis un
+agent de la barre des menus ne peut pas amener sa fenêtre au premier plan. À la main :&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;cd&lt;/span&gt; frontend &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; npm install &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; npm run build &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="nb"&gt;cd&lt;/span&gt; .. &lt;span class="c1"&gt;# the Svelte UI, embedded with go:embed&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;CGO_ENABLED&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt; go build -o bin/claimward-app ./cmd/claimward-app
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;CGO_ENABLED&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt; go build -o bin/claimward-helper ./cmd/claimward-helper&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copier le code"
+aria-label="Copier le code"
+data-copied-label="Copié !"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;h2 data-hextra-search-id="configure"&gt;Configuration&lt;span class="hx:absolute hx:-mt-20" id="configure"&gt;&lt;/span&gt;
+&lt;a href="#configure" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;~/Library/Application Support/Claimward/config.json&lt;/code&gt;, également modifiable depuis
+&lt;strong&gt;Configuration…&lt;/strong&gt; (GitHub est la valeur par défaut) :&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;server_url&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;https://vpn.example.com&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;provider&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;github&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;github_client_id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;Iv1.0123456789abcdef&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copier le code"
+aria-label="Copier le code"
+data-copied-label="Copié !"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;Pour OIDC, définissez &lt;code&gt;&amp;quot;provider&amp;quot;: &amp;quot;oidc&amp;quot;&lt;/code&gt;, pour go-authn &lt;code&gt;&amp;quot;provider&amp;quot;: &amp;quot;go-authn&amp;quot;&lt;/code&gt;, avec
+&lt;code&gt;&amp;quot;oidc_issuer&amp;quot;&lt;/code&gt; et &lt;code&gt;&amp;quot;oidc_client_id&amp;quot;&lt;/code&gt;. Avec GitHub et go-authn, un clic sur
+&lt;strong&gt;Connect&lt;/strong&gt; affiche un code à saisir sur la page indiquée ; avec OIDC, le navigateur
+ouvre la page de connexion du fournisseur.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="install-the-helper-and-run"&gt;Installer le helper et lancer l&amp;rsquo;application&lt;span class="hx:absolute hx:-mt-20" id="install-the-helper-and-run"&gt;&lt;/span&gt;
+&lt;a href="#install-the-helper-and-run" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo ./scripts/install-helper.sh https://vpn.example.org &lt;span class="c1"&gt;# more servers may follow&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;open dist/Claimward.app &lt;span class="c1"&gt;# then click Connect&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copier le code"
+aria-label="Copier le code"
+data-copied-label="Copié !"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;L&amp;rsquo;installateur copie le helper dans &lt;code&gt;/Library/PrivilegedHelperTools/&lt;/code&gt;, écrit
+&lt;code&gt;/Library/Application Support/Claimward/helper.json&lt;/code&gt; (appartenant à root, mode &lt;code&gt;0644&lt;/code&gt;)
+avec les serveurs indiqués, et charge le LaunchDaemon &lt;code&gt;com.claimward.helper&lt;/code&gt;.
+Le socket du helper est &lt;code&gt;/var/run/claimward-helper.sock&lt;/code&gt;, &lt;code&gt;0660&lt;/code&gt;,
+&lt;code&gt;root:admin&lt;/code&gt; ; il journalise dans &lt;code&gt;/var/log/claimward-helper.log&lt;/code&gt;.
+&lt;code&gt;sudo ./scripts/uninstall-helper.sh&lt;/code&gt; le supprime.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="tenants"&gt;Locataires&lt;span class="hx:absolute hx:-mt-20" id="tenants"&gt;&lt;/span&gt;
+&lt;a href="#tenants" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Une personne appartenant à plusieurs locataires en choisit un dans la fenêtre (« Choose a tenant… »),
+qui les propose dès que le serveur indique qu&amp;rsquo;un choix est possible, ou sur demande. Le
+choix vaut pour la session ; une nouvelle connexion l&amp;rsquo;oublie. Un &lt;strong&gt;Connect&lt;/strong&gt; depuis la
+barre des menus que le serveur refuse faute de choix ouvre la fenêtre.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="release"&gt;Publication&lt;span class="hx:absolute hx:-mt-20" id="release"&gt;&lt;/span&gt;
+&lt;a href="#release" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;.github/workflows/release.yml&lt;/code&gt; construit &lt;code&gt;Claimward.dmg&lt;/code&gt; sur les tags &lt;code&gt;v*&lt;/code&gt; et
+le joint à la version publiée. Lorsque les secrets de signature sont définis, il signe l&amp;rsquo;application
+avec un Developer ID, puis notarise et agrafe le DMG ; sans eux, il se rabat
+sur une signature ad hoc, que Gatekeeper bloque sur un DMG téléchargé. Le
+dépôt ne contient aucun secret de signature, si bien que les DMG publiés (v0.1.0 et
+v0.2.0) sont &lt;strong&gt;signés ad hoc et non notarisés&lt;/strong&gt;. Le DMG contient l&amp;rsquo;application (avec le binaire du helper à l&amp;rsquo;intérieur) ; le
+helper s&amp;rsquo;installe comme ci-dessus.&lt;/p&gt;
+&lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-blue-200 hx:bg-blue-100 hx:text-blue-900 hx:dark:border-blue-200/30 hx:dark:bg-blue-900/30 hx:dark:text-blue-200"&gt;
+&lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/&gt;&lt;/svg&gt;&lt;/div&gt;
+&lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Reste à faire :&lt;/strong&gt; le jeton de session dans le Keychain (c&amp;rsquo;est aujourd&amp;rsquo;hui un fichier
+&lt;code&gt;0600&lt;/code&gt;), le helper installé avec SMJobBless, une version signée avec un
+Developer ID, et le DNS appliqué sur macOS.&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description></item></channel></rss>
