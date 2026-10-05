@@ -29,7 +29,7 @@ alcanzan el RouteService, con un nombre que cubra el certificado.
 
 ## Concesiones {#leases}
 
-`LEASE_TTL` (24 horas por defecto) equilibra seguridad y rotación. El recolector
+`LEASE_TTL` (24 horas por defecto) equilibra seguridad y rotación. El proceso de limpieza
 elimina los pares caducados cada minuto, de modo que los dispositivos revocados o desconectados desaparecen
 por sí solos. Para revocar uno de inmediato, anule el registro de su par, o elimínelo con
 `wg set wg0 peer <key> remove`.
