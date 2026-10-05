@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://claimward.github.io/docs/v0.1.0/</loc>
+         <lastmod>2026-10-05</lastmod>
+    </url>
+    <url>
+         <loc>https://claimward.github.io/docs/v0.1.0/architecture/</loc>
+         <lastmod>2026-10-05</lastmod>
+    </url>
+    <url>
+         <loc>https://claimward.github.io/docs/v0.1.0/getting-started/</loc>
+         <lastmod>2026-10-05</lastmod>
+    </url>
+    <url>
+         <loc>https://claimward.github.io/docs/v0.1.0/operations/</loc>
+         <lastmod>2026-10-05</lastmod>
+    </url>
+    <url>
+         <loc>https://claimward.github.io/docs/v0.1.0/components/client/</loc>
+         <lastmod>2026-10-05</lastmod>
+    </url>
+    <url>
+         <loc>https://claimward.github.io/docs/v0.1.0/components/macos-app/</loc>
+         <lastmod>2026-10-05</lastmod>
+    </url>
+    <url>
+         <loc>https://claimward.github.io/docs/v0.1.0/components/server/</loc>
+         <lastmod>2026-10-05</lastmod>
+    </url>
+    <url>
+         <loc>https://claimward.github.io/docs/v0.1.0/reference/protocol/</loc>
+         <lastmod>2026-10-05</lastmod>
+    </url>
+</urlset>
