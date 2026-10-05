@@ -7,7 +7,7 @@ tags: [windows, app, helper, wintun]
 ---
 
 [`claimward-vpn-app-windows`](https://github.com/claimward/claimward-vpn-app-windows)
-**v0.2.0** is a desktop app with a notification-area (tray) icon. Everything is
+**v0.3.0** is a desktop app with a notification-area (tray) icon. Everything is
 Go with `CGO_ENABLED=0`: the window and the tray are drawn by
 [go-widgets](https://github.com/go-widgets) (no webview, no HTTP server in the
 app), and the tunnel is [wireguard-go](https://git.zx2c4.com/wireguard-go) on a
@@ -38,6 +38,17 @@ tenant**; the settings, saved to `%AppData%\Claimward\config.json`; and the
 connection log. The status is polled every 2 seconds. The tray menu offers
 the status, Connect, Disconnect, Open and Quit. Closing the window quits the
 app; the tunnel belongs to the service and stays up until Disconnect.
+
+The tray icon appears from **v0.3.0**. Before it, the tray library had no
+Windows implementation of the call the app makes, and the app ignored the
+error, so v0.1.0 and v0.2.0 showed **no tray icon**. v0.3.0 is built with the
+tray library that implements it (go-widgets/tray v0.14.0). That is checked by
+compilation and the library's own tests, not yet on a Windows desktop. Two
+known gaps: an icon that cannot be added is reported on stderr, which a
+windowed build does not show
+([#6](https://github.com/claimward/claimward-vpn-app-windows/issues/6)), and
+quitting may leave a ghost icon until the pointer passes over it
+([go-widgets/tray#37](https://github.com/go-widgets/tray/issues/37)).
 
 ## Install
 
