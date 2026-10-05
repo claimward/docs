@@ -86,6 +86,7 @@ jobs:
         with:
           args: >-
             --offline --no-progress --include-fragments
+            --index-files index.html
             --root-dir ${{ github.workspace }}/_check
             '_check/docs/**/*.html'
           fail: true
