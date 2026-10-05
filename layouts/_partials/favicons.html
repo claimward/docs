@@ -1,0 +1,7 @@
+{{- /* The favicons are the Claimward brand's (submodule branding/, mounted
+  under /images/brand/favicon/ by hugo.yaml) rather than files copied into
+  static/. Replaces Hextra's favicons.html, which expects them at the root. */ -}}
+<link rel="icon" href="{{ "images/brand/favicon/claimward-favicon.svg" | relURL }}" type="image/svg+xml" id="favicon-svg" />
+<link rel="icon" href="{{ "images/brand/favicon/favicon-32.png" | relURL }}" type="image/png" sizes="32x32" />
+<link rel="icon" href="{{ "images/brand/favicon/favicon-16.png" | relURL }}" type="image/png" sizes="16x16" />
+<link rel="apple-touch-icon" href="{{ "images/brand/favicon/apple-touch-180.png" | relURL }}" sizes="180x180" />

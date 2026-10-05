@@ -1,0 +1,7 @@
+{{- /* Inter Medium and Bold from the Claimward brand (hugo.yaml mounts them
+  under /fonts/inter/). Here rather than in custom.css so that the URL follows
+  the version's baseURL, whatever path the CSS bundle is served at. */ -}}
+<style>
+  @font-face { font-family: "Claimward Inter"; src: url("{{ "fonts/inter/Inter-Medium.woff2" | relURL }}") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; }
+  @font-face { font-family: "Claimward Inter"; src: url("{{ "fonts/inter/Inter-Bold.woff2" | relURL }}") format("woff2"); font-weight: 600 800; font-style: normal; font-display: swap; }
+</style>

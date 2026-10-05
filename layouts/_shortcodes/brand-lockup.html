@@ -1,0 +1,9 @@
+{{- /* The Claimward lockup (mark + wordmark), inlined from the brand
+  repository so that custom.css can recolour it for the dark theme: the
+  wordmark's deep teal (#134E4A) would vanish on a dark background, and the
+  brand ships no dark variant. Usage: {{< brand-lockup >}} */ -}}
+{{- with resources.Get "brand/logo/claimward-lockup.svg" -}}
+<div class="cw-lockup" role="img" aria-label="Claimward">{{ .Content | safeHTML }}</div>
+{{- else -}}
+{{- errorf "brand-lockup: branding/logo/claimward-lockup.svg not found; run git submodule update --init" -}}
+{{- end -}}

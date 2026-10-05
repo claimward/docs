@@ -1,6 +1,5 @@
-site/
-.cache/
-__pycache__/
-.venv/
-venv/
+/public/
+/resources/
+/_check/
+.hugo_build.lock
 .DS_Store

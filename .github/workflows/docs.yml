@@ -1,5 +1,11 @@
 name: docs
 
+# Every documentation version is a separate Hugo build, published under
+# https://claimward.github.io/docs/<version>/ on the gh-pages branch:
+#   - a strict semver tag vX.Y.Z  -> /docs/vX.Y.Z/   (a release; /docs/latest/ follows the newest)
+#   - the main branch             -> /docs/dev/
+# Pull requests build and check, and publish nothing.
+
 on:
   push:
     branches: [main]
@@ -13,40 +19,92 @@ on:
 permissions:
   contents: read
 
+env:
+  HUGO_VERSION: "0.167.0"
+  # sha256 of hugo_${HUGO_VERSION}_linux-amd64.tar.gz, from the release's checksums.txt.
+  HUGO_SHA256: "4d84519b9f619e6d4c3fb45a50157abeabeb724f859c60605f44c23def6e1169"
+  DOCS_URL: "https://claimward.github.io/docs"
+
 jobs:
-  # Build on every pull request as well as on main, so a change to the docs
-  # or to the toolchain in requirements.txt has to prove it still builds
-  # before it lands. Without this the workflow ran only on main, which meant
-  # a dependency bump had no signal at all.
   build:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-
-      - name: Set up Python
-        uses: actions/setup-python@v7
         with:
-          python-version: "3.14"
+          # themes/hextra (imfing/hextra, pinned to a release tag) and
+          # branding (claimward/brand) are submodules.
+          submodules: recursive
+          # The whole history: each page's "Last updated on" comes from git.
+          fetch-depth: 0
 
-      - name: Install MkDocs Material + mike
+      - name: Install Hugo ${{ env.HUGO_VERSION }}
         run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
+          curl -fsSL -o /tmp/hugo.tar.gz \
+            "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_${HUGO_VERSION}_linux-amd64.tar.gz"
+          echo "${HUGO_SHA256}  /tmp/hugo.tar.gz" | sha256sum -c -
+          sudo tar -xzf /tmp/hugo.tar.gz -C /usr/local/bin hugo
+          hugo version
 
-      # --strict turns a broken link or an unknown config key into a failure
-      # rather than a warning nobody reads.
-      - name: Build the site (strict)
-        run: mkdocs build --strict
+      # The version is the last segment of baseURL: the version selector reads
+      # it there. Only strict vMAJOR.MINOR.PATCH tags are releases.
+      - name: Version
+        id: version
+        run: |
+          if [ "${GITHUB_REF_TYPE}" = tag ]; then
+            if ! printf '%s\n' "${GITHUB_REF_NAME}" | grep -Eq '^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$'; then
+              echo "::error::tag ${GITHUB_REF_NAME} is not vMAJOR.MINOR.PATCH: nothing to publish"
+              exit 1
+            fi
+            version="${GITHUB_REF_NAME}"
+          else
+            version=dev
+          fi
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "documentation version: ${version}"
+
+      # --panicOnWarning: a deprecated setting or a template warning fails the
+      # build rather than scrolling by. A broken {{< relref >}} is an error.
+      - name: Build
+        env:
+          HUGO_ENVIRONMENT: production
+        run: >-
+          hugo --gc --minify --panicOnWarning --printPathWarnings
+          --baseURL "${DOCS_URL}/${{ steps.version.outputs.version }}/"
+
+      # Internal links and anchors, offline, with the site laid out under
+      # /docs/<version>/ as it is served.
+      - name: Lay out the site for the link check
+        run: |
+          mkdir -p _check/docs
+          cp -R public "_check/docs/${{ steps.version.outputs.version }}"
+
+      - name: Check links
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: >-
+            --offline --no-progress --include-fragments
+            --index-files index.html
+            --root-dir ${{ github.workspace }}/_check
+            '_check/docs/**/*.html'
+          fail: true
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: site
+          path: public
+          retention-days: 7
 
   deploy:
-    # Only main publishes. A pull request stops after build above: it has no
-    # business pushing to gh-pages.
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    # Only main and release tags publish. A pull request stops after build
+    # above: it has no business pushing to gh-pages.
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
     needs: build
-    # Never two deploys at once: mike pushes gh-pages and the second is
-    # rejected outright. cancel-in-progress stays false -- killing a publish
-    # half way through is worse than making it wait.
+    # Never two deploys at once: both would push gh-pages and the second would
+    # be rejected. cancel-in-progress stays false -- killing a publish half way
+    # through is worse than making it wait.
     concurrency:
       group: gh-pages-deploy
       cancel-in-progress: false
@@ -54,32 +112,35 @@ jobs:
     permissions:
       contents: write
     steps:
+      # The publishing script, from the commit being published.
       - uses: actions/checkout@v7
         with:
-          fetch-depth: 0   # mike needs full history of gh-pages
+          path: source
 
-      - uses: actions/setup-python@v7
+      # The published site. Only the version being built is replaced; every
+      # other version (the MkDocs-built v0.1.0 among them) stays as it is.
+      - uses: actions/checkout@v7
         with:
-          python-version: "3.x"
-          cache: pip
+          ref: gh-pages
+          path: gh-pages
 
-      - run: pip install -r requirements.txt
+      - uses: actions/download-artifact@v7
+        with:
+          name: site
+          path: site
 
-      - name: Configure git for mike
+      - name: Publish ${{ needs.build.outputs.version }}
+        run: source/scripts/publish-version.sh "${{ needs.build.outputs.version }}" site gh-pages
+
+      - name: Push gh-pages
+        working-directory: gh-pages
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Deploy released version
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: |
-          VERSION="${GITHUB_REF_NAME}"
-          mike deploy --push --update-aliases "$VERSION" latest
-          mike set-default --push latest
-
-      - name: Deploy development version
-        if: github.ref == 'refs/heads/main'
-        run: |
-          mike deploy --push dev
-          # Root (/docs/) redirects here until the first tagged release.
-          mike set-default --push dev
+          git add -A
+          if git diff --cached --quiet; then
+            echo "nothing changed"
+            exit 0
+          fi
+          git commit -q -m "Deployed ${GITHUB_SHA::7} to ${{ needs.build.outputs.version }} with Hugo ${HUGO_VERSION}"
+          git push origin HEAD:gh-pages

@@ -1,0 +1,42 @@
+/* Claimward branding on Hextra (github.com/claimward/brand).
+ *
+ * Brand teal #0D9488 = hsl(175 84% 32%), the theme's primary colour in the
+ * light theme. On a dark background that teal is dim, so the dark theme takes
+ * the next step up the same hue (#14B8A6 = hsl(173 80% 40%)). Hextra derives
+ * its whole primary scale (links, active sidebar entry, buttons) from these
+ * three variables. */
+:root {
+  --primary-hue: 175deg;
+  --primary-saturation: 84%;
+  --primary-lightness: 32%;
+}
+.dark {
+  --primary-hue: 173deg;
+  --primary-saturation: 80%;
+  --primary-lightness: 40%;
+}
+
+/* Inter, the wordmark's typeface, for the title and headings: the brand ships
+ * its Medium and Bold faces (mounted under /fonts/inter/ by hugo.yaml); their
+ * @font-face rules are in layouts/_partials/custom/head-end.html, where the URL
+ * can follow the version's baseURL. Body text stays on the system stack, with
+ * Inter first where it is installed. */
+:root {
+  --hx-font-sans: Inter, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+h1, h2, h3, .hextra-nav-container nav > a span {
+  font-family: "Claimward Inter", var(--hx-font-sans);
+}
+
+/* The lockup on the home page ({{< brand-lockup >}}). In the light theme it is
+ * the brand's own colours; in the dark theme "claim" and the mark take the
+ * lighter teal and "ward" a light teal, since #134E4A on #111 cannot be read. */
+.cw-lockup { margin: 0.5rem 0 1.5rem; }
+.cw-lockup svg { height: 3.5rem; width: auto; display: block; }
+.dark .cw-lockup g[stroke="#0D9488"] { stroke: #2DD4BF; }
+.dark .cw-lockup g[fill="#0D9488"] { fill: #2DD4BF; }
+.dark .cw-lockup g[fill="#134E4A"] { fill: #CCFBF1; }
+
+/* The version selector's list hangs from its button's right edge, so that it
+ * stays on screen at the end of the navbar. */
+.cw-version-select .hextra-nav-menu-items { left: auto !important; right: 0; transform: none !important; }

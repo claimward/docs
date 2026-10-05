@@ -1,0 +1,6 @@
+[submodule "themes/hextra"]
+	path = themes/hextra
+	url = https://github.com/imfing/hextra.git
+[submodule "branding"]
+	path = branding
+	url = https://github.com/claimward/brand.git
