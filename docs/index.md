@@ -38,5 +38,6 @@ It is written in Go, with a small Svelte UI for the desktop app.
 - [Architecture](architecture.md) — how the enrollment flow works end to end.
 
 !!! note "Status"
-    Claimward is an early MVP. See each repository's README for the current
-    hardening TODOs (TLS, helper socket permissions, Keychain, packaging).
+    v0.1.0 is the first release. Still to come: the session token in the
+    macOS Keychain, a signed and notarized `.app`, and the Linux and Windows
+    apps. Each repository's README lists what remains.

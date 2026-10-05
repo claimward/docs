@@ -68,8 +68,10 @@ of GitHub, set `AUTH_PROVIDER=oidc` with `OIDC_ISSUER` / `OIDC_CLIENT_ID`.
 === "macOS app"
 
     Configure `~/Library/Application Support/Claimward/config.json`, install the
-    helper (`sudo ./scripts/install-helper.sh`), launch the app and click
-    **Connect**. See the [macOS app guide](components/macos-app.md).
+    helper with the server it may connect to
+    (`sudo ./scripts/install-helper.sh https://vpn.example.com`), launch the app
+    and click **Connect**. A person in several tenants chooses one in the
+    window. See the [macOS app guide](components/macos-app.md).
 
 You should now have a `utun`/`wg` interface with your assigned `10.80.0.x`
 address and a route into the private network.
