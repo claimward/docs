@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="claimward favicon">
+  <!-- Small-size variant: filled teal, simplified to one tooth, thicker stroke. -->
+  <rect width="64" height="64" rx="13" fill="#0D9488"/>
+  <g fill="none" stroke="#FFFFFF" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M16 18 H48 V33 Q48 44 32 51 Q16 44 16 33 Z"/>
+    <path d="M32 21 L26.6 24.1 L26.6 30.3 L32 33.4 L37.4 30.3 L37.4 24.1 Z"/>
+    <path d="M32 33.4 V43"/>
+    <path d="M32 43 H38"/>
+  </g>
+</svg>

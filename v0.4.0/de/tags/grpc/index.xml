@@ -1,0 +1,1110 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Claimward – Grpc</title><link>https://claimward.github.io/docs/v0.4.0/de/tags/grpc/</link><description>Recent content in Grpc on Claimward</description><generator>Hugo -- gohugo.io</generator><language>de</language><atom:link href="https://claimward.github.io/docs/v0.4.0/de/tags/grpc/index.xml" rel="self" type="application/rss+xml"/><item><title>Registrierungsprotokoll</title><link>https://claimward.github.io/docs/v0.4.0/de/reference/protocol/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/v0.4.0/de/reference/protocol/</guid><description>
+&lt;p&gt;Der Wire-Vertrag zwischen den Clients und dem Server. Er ist einmal definiert, in
+&lt;a href="https://github.com/claimward/claimward-vpn-client/tree/main/pkg/protocol" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-client/pkg/protocol&lt;/code&gt;&lt;/a&gt;
+(HTTP) und &lt;code&gt;proto/routes/v1/routes.proto&lt;/code&gt; (gRPC), und wird von beiden Seiten importiert.&lt;/p&gt;
+&lt;p&gt;Jede authentifizierte Anfrage sendet das Bearer-Token der Person als
+&lt;code&gt;Authorization: Bearer &amp;lt;token&amp;gt;&lt;/code&gt;, niemals im Body: ein &lt;strong&gt;GitHub-OAuth-Access-Token&lt;/strong&gt;
+(&lt;code&gt;AUTH_PROVIDER=github&lt;/code&gt;), ein &lt;strong&gt;OIDC-ID-Token&lt;/strong&gt; (&lt;code&gt;oidc&lt;/code&gt;) oder ein
+&lt;strong&gt;go-authn-Access-Token&lt;/strong&gt; (&lt;code&gt;go-authn&lt;/code&gt;). Anfrage-Bodys sind JSON, höchstens
+64 KiB, und unbekannte Felder werden abgelehnt.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="post-apiv1enroll"&gt;&lt;code&gt;POST /api/v1/enroll&lt;/code&gt;&lt;span class="hx:absolute hx:-mt-20" id="post-apiv1enroll"&gt;&lt;/span&gt;
+&lt;a href="#post-apiv1enroll" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Anfrage:&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;public_key&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;&amp;lt;wireguard base64 public key&amp;gt;&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;device&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;name&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;alice-mbp&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;os&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;darwin&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;platform&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;app-osx&amp;#34;&lt;/span&gt; &lt;span class="p"&gt;},&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;tenant&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;hpc&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;code&gt;tenant&lt;/code&gt; ist optional: Ohne ihn verwendet der Server den einzigen Mandanten der Person.
+Die Helper senden als &lt;code&gt;os&lt;/code&gt; &lt;code&gt;darwin&lt;/code&gt;, &lt;code&gt;linux&lt;/code&gt; oder &lt;code&gt;windows&lt;/code&gt; und als &lt;code&gt;platform&lt;/code&gt;
+&lt;code&gt;app-osx&lt;/code&gt;, &lt;code&gt;app-linux&lt;/code&gt; oder &lt;code&gt;app-windows&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Antwort &lt;code&gt;200&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;assigned_ip&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;10.80.0.5/32&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;server_public_key&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;&amp;lt;base64&amp;gt;&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;endpoint&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;vpn.example.com:51820&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;allowed_ips&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;10.80.0.0/24&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;dns&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;10.80.0.1&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;grpc_endpoint&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;vpn.example.com:8444&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;persistent_keepalive&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;25&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;lease_expires_at&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;2026-10-06T10:00:00Z&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;code&gt;allowed_ips&lt;/code&gt; und &lt;code&gt;dns&lt;/code&gt; sind die des Mandanten. &lt;code&gt;dns&lt;/code&gt; entfällt, wenn der Mandant
+keine hat, &lt;code&gt;grpc_endpoint&lt;/code&gt;, wenn der Server keinen RouteService ankündigt
+(&lt;code&gt;GRPC_ENDPOINT&lt;/code&gt;). Das Protokoll kennt außerdem ein optionales &lt;code&gt;mtu&lt;/code&gt;, das der Server
+(v0.2.0) nie setzt.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="get-apiv1tenants"&gt;&lt;code&gt;GET /api/v1/tenants&lt;/code&gt;&lt;span class="hx:absolute hx:-mt-20" id="get-apiv1tenants"&gt;&lt;/span&gt;
+&lt;a href="#get-apiv1tenants" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Antwort &lt;code&gt;200&lt;/code&gt;: die Mandanten, mit denen sich der Aufrufer verbinden darf.&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;[&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;default&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;name&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;Default&amp;#34;&lt;/span&gt; &lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="p"&gt;]&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;h2 data-hextra-search-id="post-apiv1heartbeat"&gt;&lt;code&gt;POST /api/v1/heartbeat&lt;/code&gt;&lt;span class="hx:absolute hx:-mt-20" id="post-apiv1heartbeat"&gt;&lt;/span&gt;
+&lt;a href="#post-apiv1heartbeat" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;public_key&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;&amp;lt;base64&amp;gt;&amp;#34;&lt;/span&gt; &lt;span class="p"&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;Antwort &lt;code&gt;200&lt;/code&gt;: &lt;code&gt;{ &amp;quot;lease_expires_at&amp;quot;: &amp;quot;...&amp;quot; }&lt;/code&gt;. &lt;code&gt;404 not_enrolled&lt;/code&gt;, wenn der Schlüssel
+nicht vom Aufrufer registriert ist, &lt;code&gt;403 not_a_member&lt;/code&gt;, sobald die Person den
+Mandanten der Sitzung verlassen hat, &lt;code&gt;403 key_not_registered&lt;/code&gt; (go-authn), sobald der Anbieter
+den Schlüssel nicht mehr führt.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="post-apiv1deregister"&gt;&lt;code&gt;POST /api/v1/deregister&lt;/code&gt;&lt;span class="hx:absolute hx:-mt-20" id="post-apiv1deregister"&gt;&lt;/span&gt;
+&lt;a href="#post-apiv1deregister" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;public_key&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;&amp;lt;base64&amp;gt;&amp;#34;&lt;/span&gt; &lt;span class="p"&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;Antwort &lt;code&gt;204&lt;/code&gt;, auch für einen Schlüssel, der nicht registriert ist. &lt;code&gt;403 not_owner&lt;/code&gt;, wenn der Schlüssel
+einer anderen Person gehört.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="get-healthz"&gt;&lt;code&gt;GET /healthz&lt;/code&gt;&lt;span class="hx:absolute hx:-mt-20" id="get-healthz"&gt;&lt;/span&gt;
+&lt;a href="#get-healthz" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Antwort &lt;code&gt;200&lt;/code&gt;: &lt;code&gt;{ &amp;quot;status&amp;quot;: &amp;quot;ok&amp;quot; }&lt;/code&gt;, ohne Authentifizierung.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="errors"&gt;Fehler&lt;span class="hx:absolute hx:-mt-20" id="errors"&gt;&lt;/span&gt;
+&lt;a href="#errors" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Antworten außerhalb von 2xx tragen:&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;error&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;invalid_token&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;message&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;…&amp;#34;&lt;/span&gt; &lt;span class="p"&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Code&lt;/th&gt;
+&lt;th&gt;Status&lt;/th&gt;
+&lt;th&gt;Bedeutung&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;missing_token&lt;/code&gt; / &lt;code&gt;invalid_token&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;401&lt;/td&gt;
+&lt;td&gt;kein Bearer-Token, oder die Prüfung durch den Anbieter ist fehlgeschlagen (einschließlich einer Allowlist für Organisationen oder Domains)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;bad_public_key&lt;/code&gt; / &lt;code&gt;bad_request&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;400&lt;/td&gt;
+&lt;td&gt;fehlerhafte Eingabe&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;key_not_registered&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;403&lt;/td&gt;
+&lt;td&gt;go-authn: Der Schlüssel ist beim Anbieter nicht von dieser Person registriert&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;not_a_member&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;403&lt;/td&gt;
+&lt;td&gt;der angeforderte Mandant gehört nicht (oder nicht mehr) zu denen des Aufrufers&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;not_owner&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;403&lt;/td&gt;
+&lt;td&gt;deregister: Der Schlüssel gehört einer anderen Person&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;not_enrolled&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;404&lt;/td&gt;
+&lt;td&gt;heartbeat: keine Registrierung dieses Schlüssels durch den Aufrufer&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;key_taken&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;409&lt;/td&gt;
+&lt;td&gt;enroll: Der Schlüssel ist von einer anderen Person registriert&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;tenant_required&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;409&lt;/td&gt;
+&lt;td&gt;enroll: Der Aufrufer gehört mehreren Mandanten an und hat keinen genannt; die Meldung listet sie auf&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pool_exhausted&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;503&lt;/td&gt;
+&lt;td&gt;keine freie Adresse in &lt;code&gt;VPN_CIDR&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;gateway_error&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;500&lt;/td&gt;
+&lt;td&gt;der Peer konnte nicht zu WireGuard hinzugefügt werden&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 data-hextra-search-id="routeservice-grpc"&gt;RouteService (gRPC)&lt;span class="hx:absolute hx:-mt-20" id="routeservice-grpc"&gt;&lt;/span&gt;
+&lt;a href="#routeservice-grpc" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-protobuf" data-lang="protobuf"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="kn"&gt;package&lt;/span&gt; &lt;span class="nn"&gt;claimward.routes.v1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="kd"&gt;service&lt;/span&gt; &lt;span class="n"&gt;RouteService&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="kd"&gt;rpc&lt;/span&gt; &lt;span class="n"&gt;Watch&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;WatchRequest&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;returns&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;stream&lt;/span&gt; &lt;span class="n"&gt;RouteUpdate&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="kd"&gt;message&lt;/span&gt; &lt;span class="nc"&gt;WatchRequest&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="kt"&gt;string&lt;/span&gt; &lt;span class="n"&gt;public_key&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="kd"&gt;message&lt;/span&gt; &lt;span class="nc"&gt;RouteUpdate&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="k"&gt;repeated&lt;/span&gt; &lt;span class="kt"&gt;string&lt;/span&gt; &lt;span class="n"&gt;allowed_ips&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="k"&gt;repeated&lt;/span&gt; &lt;span class="kt"&gt;string&lt;/span&gt; &lt;span class="n"&gt;dns&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="kt"&gt;uint64&lt;/span&gt; &lt;span class="n"&gt;serial&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="c1"&gt;// increases on each change
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;Der Server lauscht auf &lt;code&gt;GRPC_ADDR&lt;/code&gt; und kündigt &lt;code&gt;GRPC_ENDPOINT&lt;/code&gt; in der
+Registrierungsantwort an. Das Bearer-Token wird in den Metadaten übertragen,
+&lt;code&gt;authorization: Bearer &amp;lt;token&amp;gt;&lt;/code&gt;, und wie bei der HTTP-API geprüft. &lt;code&gt;Watch&lt;/code&gt;
+sendet sofort die aktuelle Menge, dann jedes Mal eine neue, wenn sich die Routen des Mandanten
+ändern, für den Mandanten, &lt;strong&gt;in den sich das Gerät registriert hat&lt;/strong&gt;, ermittelt über &lt;code&gt;public_key&lt;/code&gt;,
+der vom Aufrufer registriert sein muss (andernfalls &lt;code&gt;NOT_FOUND&lt;/code&gt;,
+&lt;code&gt;PERMISSION_DENIED&lt;/code&gt;, sobald die Person diesen Mandanten verlassen hat).&lt;/p&gt;
+&lt;p&gt;Der Server stellt ihn mit &lt;code&gt;TLS_CERT&lt;/code&gt;/&lt;code&gt;TLS_KEY&lt;/code&gt; über TLS bereit. Die Clients
+(&lt;code&gt;pkg/routeclient&lt;/code&gt;) sprechen TLS mit ihm, geprüft gegen die Stammzertifikate des Systems,
+außer zu einer Loopback-Adresse, und lehnen einen unverschlüsselten ab.&lt;/p&gt;</description></item><item><title>Server</title><link>https://claimward.github.io/docs/v0.4.0/de/components/server/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/v0.4.0/de/components/server/</guid><description>
+&lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-server" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-server&lt;/code&gt;&lt;/a&gt;
+&lt;strong&gt;v0.2.0&lt;/strong&gt; ist die Steuerungsebene. Er prüft das Bearer-Token, das ein Gerät vorlegt,
+vergibt VPN-Adressen und programmiert das WireGuard-Gateway mit einem Peer pro
+registriertem Gerät. Er läuft auf dem Linux-Gateway-Host, neben einem vorhandenen &lt;code&gt;wg0&lt;/code&gt;.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="what-it-serves"&gt;Was er bereitstellt&lt;span class="hx:absolute hx:-mt-20" id="what-it-serves"&gt;&lt;/span&gt;
+&lt;a href="#what-it-serves" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Listener&lt;/th&gt;
+&lt;th&gt;Pfad&lt;/th&gt;
+&lt;th&gt;Zweck&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;LISTEN_ADDR&lt;/code&gt; (&lt;code&gt;:8443&lt;/code&gt;)&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;POST /api/v1/enroll&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;prüfen, den Mandanten wählen, eine Adresse vergeben, den Peer hinzufügen, die Tunnelkonfiguration zurückgeben&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;GET /api/v1/tenants&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;die Mandanten, mit denen sich der Aufrufer verbinden darf&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;POST /api/v1/heartbeat&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;die Lease des Geräts erneuern&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;POST /api/v1/deregister&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;den Peer entfernen&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;GET /healthz&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Liveness&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;GET /metrics&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Prometheus-Metriken&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;/admin/&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Admin-API und WebUI, wenn &lt;code&gt;ADMIN_TOKEN&lt;/code&gt; gesetzt ist&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GRPC_ADDR&lt;/code&gt; (&lt;code&gt;:8444&lt;/code&gt;)&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;claimward.routes.v1.RouteService/Watch&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;streamt die Routen des Mandanten und ihre Aktualisierungen&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Die API-Anfragen tragen &lt;code&gt;Authorization: Bearer &amp;lt;token&amp;gt;&lt;/code&gt;: ein GitHub-Access-Token,
+ein OIDC-ID-Token oder ein go-authn-Access-Token, je nach &lt;code&gt;AUTH_PROVIDER&lt;/code&gt;.
+Die Nutzdaten sind im
+&lt;a href="https://claimward.github.io/docs/v0.4.0/de/reference/protocol/"&gt;Registrierungsprotokoll&lt;/a&gt;
+beschrieben.&lt;/p&gt;
+&lt;p&gt;Mit &lt;code&gt;TLS_CERT&lt;/code&gt; und &lt;code&gt;TLS_KEY&lt;/code&gt; verwenden beide Listener TLS. Ohne sie ist die HTTP-API
+unverschlüsselt (terminieren Sie TLS an einem Proxy), ebenso der RouteService, den die
+Clients dann ablehnen, außer über Loopback: Geräte verbinden sich, erhalten aber keine Live-Aktualisierungen
+der Routen.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="configuration"&gt;Konfiguration&lt;span class="hx:absolute hx:-mt-20" id="configuration"&gt;&lt;/span&gt;
+&lt;a href="#configuration" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Die gesamte Konfiguration erfolgt über die Umgebung.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Variable&lt;/th&gt;
+&lt;th&gt;Erforderlich&lt;/th&gt;
+&lt;th&gt;Standard&lt;/th&gt;
+&lt;th&gt;Hinweise&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;AUTH_PROVIDER&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;github&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Identitätsanbieter: &lt;code&gt;github&lt;/code&gt;, &lt;code&gt;oidc&lt;/code&gt; oder &lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;CSV-Allowlist der Organisationen (&lt;code&gt;github&lt;/code&gt;): Ein aktives Mitglied einer davon wird zugelassen&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GITHUB_API_URL&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;https://api.github.com&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;für GitHub Enterprise zu setzen&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;OIDC_ISSUER&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;oidc&lt;/code&gt;, &lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;URL des Issuers (Discovery)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;OIDC_CLIENT_ID&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;oidc&lt;/code&gt;, &lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;die Audience, die Tokens tragen müssen&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;OIDC_ALLOWED_DOMAINS&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;CSV-Allowlist der E-Mail-Domains (&lt;code&gt;oidc&lt;/code&gt;)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GOAUTHN_GATEWAY_CLIENT_ID&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;der eigene Client des Gateways beim Anbieter (&lt;code&gt;wireguard_peers&lt;/code&gt;)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GOAUTHN_GATEWAY_SECRET_FILE&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;sein Secret, &lt;strong&gt;nur aus einer Datei&lt;/strong&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GOAUTHN_PEER_LIST_INTERVAL&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;30s&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;wie oft die Liste der registrierten Schlüssel abgerufen wird&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GOAUTHN_SSF&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;false&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;zusätzlich den Shared-Signals-Stream des Anbieters abfragen, damit auf eine Deaktivierung sofort reagiert wird; der Client des Gateways muss dort SSF-Empfänger sein&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GOAUTHN_SSF_INTERVAL&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;5s&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;wie oft der SSF-Stream abgefragt wird&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;WG_ENDPOINT&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;✅&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;öffentlicher &lt;code&gt;host:port&lt;/code&gt; des Gateways, den Clients mitgeteilt&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;WG_PRIVATE_KEY&lt;/code&gt; / &lt;code&gt;WG_PRIVATE_KEY_FILE&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;✅&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;der private Schlüssel des Gateways in Base64 (die Variable hat Vorrang vor der Datei)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;WG_INTERFACE&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;wg0&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;zu verwaltende Schnittstelle&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;WG_DRYRUN&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;false&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Peer-Operationen protokollieren statt sie anzuwenden (lokale Entwicklung)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;VPN_CIDR&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;10.80.0.0/24&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;IPv4-Adresspool; sein erster Host ist der des Gateways&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;PUSH_ROUTES&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;VPN_CIDR&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;CSV-Routen des Mandanten &lt;code&gt;default&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;DNS&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;CSV-DNS-Server des Mandanten &lt;code&gt;default&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;KEEPALIVE&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;25&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;den Clients mitgeteiltes Persistent Keepalive (Sekunden)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;LEASE_TTL&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;24h&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;wie lange eine Registrierung ohne Heartbeat gilt&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;LISTEN_ADDR&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;:8443&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;HTTP-Listen-Adresse&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GRPC_ADDR&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;:8444&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Listen-Adresse des RouteService&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GRPC_ENDPOINT&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;den Clients mitgeteilter &lt;code&gt;host:port&lt;/code&gt; des RouteService; ist er leer, beobachten sie nicht&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;ADMIN_TOKEN&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;Bearer-Token für die Admin-API und die WebUI; leer deaktiviert sie&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;TLS_CERT&lt;/code&gt; / &lt;code&gt;TLS_KEY&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;HTTPS und TLS auf dem RouteService&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;DEBUG&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;beliebiger Wert: Debug-Protokollierung (eine Zeile pro Anfrage)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 data-hextra-search-id="authentication-providers"&gt;Authentifizierungsanbieter&lt;span class="hx:absolute hx:-mt-20" id="authentication-providers"&gt;&lt;/span&gt;
+&lt;a href="#authentication-providers" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Die Authentifizierung ist hinter der Schnittstelle &lt;code&gt;Verifier&lt;/code&gt; austauschbar
+(&lt;code&gt;internal/auth&lt;/code&gt;):&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;github&lt;/code&gt;&lt;/strong&gt; (Standard): Das Bearer-Token ist ein GitHub-OAuth-Access-Token aus dem
+Device Flow. Der Server löst es über die GitHub-API auf (&lt;code&gt;/user&lt;/code&gt;,
+&lt;code&gt;/user/orgs&lt;/code&gt;) und verlangt mit &lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt; eine aktive Mitgliedschaft
+in einer dieser Organisationen. Es ist kein Client-Secret beteiligt.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;oidc&lt;/code&gt;&lt;/strong&gt;: Das Bearer-Token ist ein OIDC-ID-Token, geprüft gegen den Issuer mit
+der Audience &lt;code&gt;OIDC_CLIENT_ID&lt;/code&gt; und der optionalen Allowlist der E-Mail-Domains.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;go-authn&lt;/code&gt;&lt;/strong&gt;: Das Bearer-Token ist ein Access-Token (&lt;code&gt;at+jwt&lt;/code&gt;) eines
+&lt;a href="https://github.com/go-authn/bridge" target="_blank" rel="noopener"&gt;go-authn/bridge&lt;/a&gt;-Anbieters, und der
+Schlüssel des Geräts muss dort von derselben Person registriert sein. Der Server liest
+die signierte Liste der registrierten Schlüssel des Anbieters
+(&lt;a href="https://github.com/go-authn/wireguard" target="_blank" rel="noopener"&gt;go-authn/wireguard&lt;/a&gt;) und entfernt aus
+&lt;code&gt;wg0&lt;/code&gt; einen Schlüssel, den der Anbieter zurückzieht.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Jeden Ablauf von Ende zu Ende finden Sie unter
+&lt;a href="https://claimward.github.io/docs/v0.4.0/de/identity-providers/"&gt;Identitätsanbieter&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="enrollment-rules"&gt;Registrierungsregeln&lt;span class="hx:absolute hx:-mt-20" id="enrollment-rules"&gt;&lt;/span&gt;
+&lt;a href="#enrollment-rules" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Ein Schlüssel gehört demjenigen, der ihn registriert hat.&lt;/strong&gt; Das Registrieren eines Schlüssels, den eine andere Identität
+hält, wird abgelehnt (&lt;code&gt;409 key_taken&lt;/code&gt;): Ein öffentlicher Schlüssel ist öffentlich, und ihn zu übernehmen
+gäbe die Macht, das Gerät seines Besitzers abzumelden.&lt;/li&gt;
+&lt;li&gt;Derselbe Schlüssel, erneut von seinem Besitzer registriert, behält seine Adresse und erhält eine neue
+Lease.&lt;/li&gt;
+&lt;li&gt;Die einzige erlaubte IP des Peers ist das &lt;code&gt;/32&lt;/code&gt; des Geräts, sodass Geräte die Adressen der jeweils
+anderen nicht verwenden können.&lt;/li&gt;
+&lt;li&gt;Der Mandant ist derjenige, den der Aufrufer angefordert hat, sofern er Mitglied ist, oder sein
+einziger. Siehe &lt;a href="https://claimward.github.io/docs/v0.4.0/de/tenants/"&gt;Mandanten&lt;/a&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 data-hextra-search-id="how-it-programs-the-gateway"&gt;Wie er das Gateway programmiert&lt;span class="hx:absolute hx:-mt-20" id="how-it-programs-the-gateway"&gt;&lt;/span&gt;
+&lt;a href="#how-it-programs-the-gateway" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Der Server verwendet &lt;a href="https://pkg.go.dev/golang.zx2c4.com/wireguard/wgctrl" target="_blank" rel="noopener"&gt;&lt;code&gt;wgctrl&lt;/code&gt;&lt;/a&gt;,
+um Peers auf einer vorhandenen Schnittstelle hinzuzufügen und zu entfernen, und prüft beim Start, dass
+die Schnittstelle existiert. Die Schnittstelle selbst (ihr privater Schlüssel und Listen-Port)
+bleibt &lt;code&gt;wg-quick&lt;/code&gt; oder systemd-networkd beim Booten überlassen, was die privilegierte
+Einrichtung der Schnittstelle aus dem dauerhaft laufenden Dienst heraushält.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="run-locally"&gt;Lokal ausführen&lt;span class="hx:absolute hx:-mt-20" id="run-locally"&gt;&lt;/span&gt;
+&lt;a href="#run-locally" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Mit &lt;code&gt;WG_DRYRUN=true&lt;/code&gt; wird kein WireGuard-Gerät angetastet:&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;AUTH_PROVIDER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;oidc
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;OIDC_ISSUER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;https://accounts.google.com
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;OIDC_CLIENT_ID&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;xxxx.apps.googleusercontent.com
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;WG_ENDPOINT&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;vpn.example.com:51820
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;WG_PRIVATE_KEY&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;$(&lt;/span&gt;wg genkey&lt;span class="k"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;WG_DRYRUN&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nb"&gt;true&lt;/span&gt; &lt;span class="nv"&gt;LISTEN_ADDR&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;:8080
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;go run ./cmd/claimward-server&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;code&gt;task run:dev&lt;/code&gt; tut dasselbe mit GitHub-Anmeldung und einem flüchtigen Schlüssel, und
+&lt;code&gt;task dex&lt;/code&gt; startet ein lokales &lt;a href="https://dexidp.io/" target="_blank" rel="noopener"&gt;Dex&lt;/a&gt;, bei dem man sich anmelden kann
+(&lt;code&gt;deploy/dev/&lt;/code&gt;).&lt;/p&gt;
+&lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-amber-200 hx:bg-amber-100 hx:text-amber-900 hx:dark:border-amber-200/30 hx:dark:bg-amber-900/30 hx:dark:text-amber-200"&gt;
+&lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/&gt;&lt;/svg&gt;&lt;/div&gt;
+&lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Hinter TLS betreiben.&lt;/strong&gt; Bearer-Tokens sind Zugangsdaten: Stellen Sie die API immer über
+HTTPS bereit, entweder mit &lt;code&gt;TLS_CERT&lt;/code&gt;/&lt;code&gt;TLS_KEY&lt;/code&gt; oder hinter einem Proxy, der TLS terminiert, und
+geben Sie dem RouteService ein Zertifikat, damit Geräte Live-Aktualisierungen der Routen erhalten.&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description></item><item><title>Client-Bibliothek</title><link>https://claimward.github.io/docs/v0.4.0/de/components/client/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/v0.4.0/de/components/client/</guid><description>
+&lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-client" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-client&lt;/code&gt;&lt;/a&gt;
+&lt;strong&gt;v0.3.1&lt;/strong&gt; ist eine Go-&lt;strong&gt;Bibliothek&lt;/strong&gt;. Sie liefert kein Binary aus: Die ausführbaren Programme sind
+die der Apps (&lt;code&gt;cmd/claimward-app&lt;/code&gt; und &lt;code&gt;cmd/claimward-helper&lt;/code&gt; in jedem App-Repository).
+Auch der Server importiert sie, für die Wire-Typen und die gRPC-Stubs.&lt;/p&gt;
+&lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-blue-200 hx:bg-blue-100 hx:text-blue-900 hx:dark:border-blue-200/30 hx:dark:bg-blue-900/30 hx:dark:text-blue-200"&gt;
+&lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/&gt;&lt;/svg&gt;&lt;/div&gt;
+&lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;Es gibt keinen Kommandozeilen-Client &lt;code&gt;claimward&lt;/code&gt;. Frühere Versionen dieses Moduls
+hatten einen (&lt;code&gt;cmd/claimward&lt;/code&gt;, mit &lt;code&gt;login&lt;/code&gt; und &lt;code&gt;connect&lt;/code&gt;); er wurde entfernt, und
+das reine Bibliotheksmodul ist die Grundlage der Apps.&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;h2 data-hextra-search-id="packages"&gt;Pakete&lt;span class="hx:absolute hx:-mt-20" id="packages"&gt;&lt;/span&gt;
+&lt;a href="#packages" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Paket&lt;/th&gt;
+&lt;th&gt;Zweck&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pkg/protocol&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;der Wire-Vertrag (&lt;code&gt;/enroll&lt;/code&gt;, &lt;code&gt;/tenants&lt;/code&gt;, &lt;code&gt;/heartbeat&lt;/code&gt;, &lt;code&gt;/deregister&lt;/code&gt;), gemeinsam mit dem Server&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pkg/routespb&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;generierte gRPC/Protobuf-Stubs des RouteService, gemeinsam mit dem Server&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pkg/auth&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;interaktive Anmeldung hinter einem &lt;code&gt;Provider&lt;/code&gt;: GitHub Device Flow (Standard), OIDC Code + PKCE oder go-authn Device Flow, dessen Anbieter außerdem den Schlüssel des Geräts registriert (&lt;code&gt;KeyRegistrar&lt;/code&gt;)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pkg/oidc&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;der OIDC-Ablauf Authorization Code + PKCE: Discovery, Loopback-Weiterleitung&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pkg/browser&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;öffnet eine URL im Standardbrowser mit absoluten Pfaden zu den Öffnerprogrammen, damit es aus GUI-Apps heraus funktioniert&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pkg/client&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;Enroll&lt;/code&gt;, &lt;code&gt;Tenants&lt;/code&gt;, &lt;code&gt;Heartbeat&lt;/code&gt;, &lt;code&gt;Deregister&lt;/code&gt; gegen den Server sowie &lt;code&gt;TunnelConfig&lt;/code&gt;, um eine &lt;code&gt;EnrollResponse&lt;/code&gt; in eine &lt;code&gt;wgtun.Config&lt;/code&gt; umzuwandeln&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pkg/wgkey&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Erzeugung und Parsen von WireGuard-Schlüsseln&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pkg/wgtun&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;WireGuard-Tunnel im Userspace mit &lt;code&gt;wireguard-go&lt;/code&gt;, dazu Adresse und Routen: &lt;code&gt;ifconfig&lt;/code&gt;/&lt;code&gt;route&lt;/code&gt; unter macOS, &lt;code&gt;ip&lt;/code&gt; unter Linux, ein Wintun-Adapter über &lt;code&gt;winipcfg&lt;/code&gt; unter Windows (mit DNS und MTU); benötigt Privilegien&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pkg/routeclient&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;beobachtet den RouteService des Servers und meldet Aktualisierungen der Routen; TLS, außer zu Loopback&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pkg/appcore&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;die Logik der Apps, gemeinsam für alle drei: Anmeldung, der für die Sitzung gewählte Mandant, Verbinden und Trennen über den Helper, Status für die Oberfläche&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pkg/helper&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;der privilegierte Helper, gemeinsam für die drei Apps: registriert, besitzt den Tunnel, beobachtet gepushte Routen&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pkg/hproto&lt;/code&gt;, &lt;code&gt;pkg/helperclient&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;das Socket-Protokoll des Helpers und der Client der App dafür&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pkg/tokenstore&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;die Sitzung (Bearer-Token, Refresh-Token, privater Schlüssel des Geräts, gewählter Mandant) in einer JSON-Datei mit &lt;code&gt;0600&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 data-hextra-search-id="files-on-the-device"&gt;Dateien auf dem Gerät&lt;span class="hx:absolute hx:-mt-20" id="files-on-the-device"&gt;&lt;/span&gt;
+&lt;a href="#files-on-the-device" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Datei&lt;/th&gt;
+&lt;th&gt;Was&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;&amp;lt;config dir&amp;gt;/Claimward/config.json&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;die Konfiguration der App (&lt;code&gt;appcore.Config&lt;/code&gt;), &lt;code&gt;0600&lt;/code&gt;, überschrieben durch die Variablen &lt;code&gt;CLAIMWARD_*&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;&amp;lt;config dir&amp;gt;/claimward/session.json&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;die Sitzung (&lt;code&gt;pkg/tokenstore&lt;/code&gt;), &lt;code&gt;0600&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;code&gt;&amp;lt;config dir&amp;gt;&lt;/code&gt; ist Go&amp;rsquo;s &lt;code&gt;os.UserConfigDir()&lt;/code&gt;: &lt;code&gt;~/Library/Application Support&lt;/code&gt; unter
+macOS, &lt;code&gt;~/.config&lt;/code&gt; unter Linux, &lt;code&gt;%AppData%&lt;/code&gt; unter Windows.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Schlüssel in &lt;code&gt;config.json&lt;/code&gt;&lt;/th&gt;
+&lt;th&gt;Variable&lt;/th&gt;
+&lt;th&gt;&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;server_url&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;CLAIMWARD_SERVER&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;die Basis-URL des Servers; muss eine sein, für die der Helper konfiguriert ist&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;provider&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;CLAIMWARD_AUTH_PROVIDER&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;github&lt;/code&gt; (Standard), &lt;code&gt;oidc&lt;/code&gt; oder &lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;github_client_id&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;CLAIMWARD_GITHUB_CLIENT_ID&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;die Client-ID der GitHub-OAuth-App&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;oidc_issuer&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;CLAIMWARD_OIDC_ISSUER&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;oidc&lt;/code&gt; und &lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;oidc_client_id&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;CLAIMWARD_OIDC_CLIENT_ID&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;oidc&lt;/code&gt; und &lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;socket_path&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;CLAIMWARD_HELPER_SOCKET&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;der Socket des Helpers, falls nicht der Standard&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 data-hextra-search-id="use-in-your-own-tooling"&gt;Verwendung in eigenen Werkzeugen&lt;span class="hx:absolute hx:-mt-20" id="use-in-your-own-tooling"&gt;&lt;/span&gt;
+&lt;a href="#use-in-your-own-tooling" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-go" data-lang="go"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nx"&gt;ctx&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;context&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Background&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;// 1. Sign in. GitHub is the default provider (device flow).&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nx"&gt;provider&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;auth&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;New&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;auth&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Config&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nx"&gt;Provider&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;#34;github&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;GitHubClientID&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;#34;Iv1.0123456789abcdef&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;})&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;!=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;nil&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;log&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Fatal&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nx"&gt;tok&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;provider&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Login&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;ctx&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kd"&gt;func&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;p&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;auth&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;DevicePrompt&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;fmt&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Printf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#34;visit %s and enter code %s\n&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;p&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;VerificationURI&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;p&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;UserCode&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;})&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;!=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;nil&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;log&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Fatal&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;// 2. A key pair, and with go-authn the PUBLIC key registered first: the&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;// token for the server is the one RegisterKey returns.&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nx"&gt;keys&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;wgkey&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Generate&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;!=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;nil&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;log&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Fatal&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;reg&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;ok&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;provider&lt;/span&gt;&lt;span class="p"&gt;.(&lt;/span&gt;&lt;span class="nx"&gt;auth&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;KeyRegistrar&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;ok&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;tok&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;reg&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;RegisterKey&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;ctx&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;tok&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;keys&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Public&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;String&lt;/span&gt;&lt;span class="p"&gt;(),&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;#34;laptop&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;!=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;nil&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;log&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Fatal&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;// 3. Enroll; &amp;#34;&amp;#34; lets the server use the person&amp;#39;s only tenant.&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nx"&gt;c&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;client&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;New&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#34;https://vpn.example.com&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nx"&gt;resp&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;c&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Enroll&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;ctx&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;tok&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Value&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;keys&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Public&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;protocol&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;DeviceInfo&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nx"&gt;Name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;#34;laptop&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;OS&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;#34;linux&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;Platform&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;#34;my-tool&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;},&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;#34;&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;!=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;nil&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;log&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Fatal&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;// 4. The tunnel (needs privileges), and optionally live routes.&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nx"&gt;cfg&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;client&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;TunnelConfig&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;resp&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;keys&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Private&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;!=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;nil&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;log&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Fatal&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nx"&gt;tun&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;wgtun&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Up&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;cfg&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;!=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;nil&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;log&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Fatal&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;defer&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;tun&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Close&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;resp&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;GRPCEndpoint&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;!=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;#34;&amp;#34;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;go&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;routeclient&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Watch&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;ctx&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;resp&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;GRPCEndpoint&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;tok&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Value&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;keys&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Public&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;String&lt;/span&gt;&lt;span class="p"&gt;(),&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kd"&gt;func&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;u&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;routeclient&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Update&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;_&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;tun&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;UpdateRoutes&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;u&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;AllowedIPs&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;})&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;Ein langlebiger Client erneuert seine Lease mit &lt;code&gt;c.Heartbeat&lt;/code&gt; vor
+&lt;code&gt;resp.LeaseExpiresAt&lt;/code&gt; und entfernt seinen Peer mit &lt;code&gt;c.Deregister&lt;/code&gt;, wenn er fertig ist.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="platform-notes"&gt;Hinweise zu den Plattformen&lt;span class="hx:absolute hx:-mt-20" id="platform-notes"&gt;&lt;/span&gt;
+&lt;a href="#platform-notes" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;DNS.&lt;/strong&gt; Die DNS-Server des Servers werden nur unter &lt;strong&gt;Windows&lt;/strong&gt; angewendet; unter macOS
+und Linux werden sie im Protokoll übertragen, aber &lt;code&gt;pkg/wgtun&lt;/code&gt; wendet sie noch
+nicht an.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Gepushte Routen&lt;/strong&gt; ersetzen die erlaubten IPs und die Routen; DNS-Änderungen in einem
+Push werden nicht angewendet.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Windows.&lt;/strong&gt; Das Gerät ist ein Wintun-Adapter namens &lt;code&gt;Claimward&lt;/code&gt;: &lt;code&gt;wintun.dll&lt;/code&gt;
+(von &lt;a href="https://www.wintun.net" target="_blank" rel="noopener"&gt;https://www.wintun.net&lt;/a&gt;, signiert von WireGuard LLC) muss neben der
+ausführbaren Datei liegen, die &lt;code&gt;wgtun.Up&lt;/code&gt; aufruft, worum sich das Packaging der Windows-App
+kümmert. Adresse, Routen, DNS und MTU werden über &lt;code&gt;winipcfg&lt;/code&gt; gesetzt (die IP
+Helper API, reines Go, &lt;code&gt;CGO_ENABLED=0&lt;/code&gt;).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Sitzungsspeicher.&lt;/strong&gt; Eine Datei mit &lt;code&gt;0600&lt;/code&gt;; die Verlagerung in den Geheimnisspeicher der Plattform
+steht noch aus.&lt;/li&gt;
+&lt;/ul&gt;</description></item><item><title>Architektur</title><link>https://claimward.github.io/docs/v0.4.0/de/architecture/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/v0.4.0/de/architecture/</guid><description>
+&lt;p&gt;Claimward trennt eine &lt;strong&gt;Steuerungsebene&lt;/strong&gt;, den Server, von der &lt;strong&gt;Datenebene&lt;/strong&gt;,
+dem WireGuard-Tunnel zwischen einem Gerät und dem Gateway. Die Authentifizierung wird
+an Ihren Identitätsanbieter delegiert: Claimward sieht nie ein Passwort.&lt;/p&gt;
+&lt;p&gt;Auf einem Gerät meldet eine nicht privilegierte &lt;strong&gt;App&lt;/strong&gt; die Person an und hält die
+Sitzung; ein &lt;strong&gt;privilegierter Helper&lt;/strong&gt; (root, unter Windows SYSTEM) registriert sich beim
+Server und besitzt den Tunnel. Die App selbst spricht nie mit dem Server.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="end-to-end-enrollment-flow"&gt;Registrierungsablauf von Ende zu Ende&lt;span class="hx:absolute hx:-mt-20" id="end-to-end-enrollment-flow"&gt;&lt;/span&gt;
+&lt;a href="#end-to-end-enrollment-flow" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ┌──────────┐ 1. sign-in: GitHub device flow, OIDC code + PKCE, ┌──────────┐
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ app │ or go-authn device flow (+ key registration) │ IdP │
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ (as you) │◀─────────────────── bearer token ──────────────────│ │
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; └────┬─────┘ └──────────┘
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ 2. socket: connect {server_url, bearer, private key, tenant}
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ▼
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ┌──────────┐ 3. POST /api/v1/enroll ┌─────────────────────────┐
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ helper │ Authorization: Bearer &amp;lt;token&amp;gt; │ claimward-vpn-server │
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ (root) │ {public_key, device, tenant} ───▶ │ verify the bearer │
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ │ │ choose the tenant │
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ │ ◀─── 4. {assigned_ip, │ allocate an address │
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ │ server_public_key, endpoint, │ wgctrl: add the peer │
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ │ allowed_ips, dns, │ (AllowedIPs = ip/32) │
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ │ grpc_endpoint, keepalive, └───────────┬─────────────┘
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ │ lease_expires_at} │ RouteService
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ │ ◀═════════════ 6. gRPC Watch (TLS) ═══════════════╛ (live routes)
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ │
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ │ 5. wireguard-go: utunN / Wintun &amp;#34;Claimward&amp;#34;, address, routes
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; └────┬─────┘
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ╚═══════════════════ WireGuard tunnel ════════════════════▶ private network&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;ol&gt;
+&lt;li&gt;Die App meldet die Person mit dem konfigurierten Anbieter an: standardmäßig &lt;strong&gt;GitHub&lt;/strong&gt;
+(OAuth Device Flow), ein beliebiger &lt;strong&gt;OpenID-Connect&lt;/strong&gt;-Issuer (Authorization
+Code mit PKCE, im Browser) oder ein &lt;strong&gt;go-authn&lt;/strong&gt;-Anbieter (Device Flow).
+Das Bearer-Token, das sie erhält, ist ein GitHub-Access-Token, ein OIDC-ID-Token oder ein go-authn-Access-Token.
+Bei go-authn wird zuerst der &lt;strong&gt;öffentliche&lt;/strong&gt; Schlüssel des Geräts beim Anbieter
+registriert, und das Bearer-Token ist das Token, das diese Registrierung
+zurückgibt.&lt;/li&gt;
+&lt;li&gt;Die App erzeugt das WireGuard-Schlüsselpaar des Geräts bei der ersten Anmeldung und
+bewahrt es in ihrer Sitzungsdatei auf, bis sich die Person abmeldet, sodass das Gerät
+seinen öffentlichen Schlüssel über Verbindungen hinweg behält (und seine Adresse, solange es registriert ist). Zum Verbinden übergibt sie dem Helper die Server-URL, das Bearer-Token, den
+privaten Schlüssel und den für die Sitzung gewählten Mandanten, über den Socket des Helpers.&lt;/li&gt;
+&lt;li&gt;Der Helper prüft, dass der Server &lt;strong&gt;einer der in seiner eigenen Konfiguration genannten&lt;/strong&gt; ist,
+und ruft dann &lt;code&gt;POST /api/v1/enroll&lt;/code&gt; mit dem öffentlichen Schlüssel des Geräts und dem
+Bearer-Token auf.&lt;/li&gt;
+&lt;li&gt;Der Server &lt;strong&gt;prüft&lt;/strong&gt; das Bearer-Token (ein Aufruf der GitHub-API, ein OIDC-ID-Token oder
+ein go-authn-Access-Token, dessen Subject den Schlüssel besitzen muss), wendet eine etwaige
+Allowlist für Organisationen oder E-Mail-Domains an, wählt den &lt;strong&gt;Mandanten&lt;/strong&gt;, &lt;strong&gt;vergibt&lt;/strong&gt; eine
+VPN-Adresse und &lt;strong&gt;programmiert das Gateway&lt;/strong&gt; (&lt;code&gt;wgctrl&lt;/code&gt;) mit einem Peer, dessen einzige
+erlaubte IP dieses &lt;code&gt;/32&lt;/code&gt; ist. Er antwortet mit den Tunnelparametern: der Adresse,
+seinem eigenen öffentlichen Schlüssel, dem Endpunkt, den Routen und DNS-Servern des Mandanten, dem
+Keepalive, dem Endpunkt des RouteService und dem Ende der Lease.&lt;/li&gt;
+&lt;li&gt;Der Helper baut mit &lt;code&gt;wireguard-go&lt;/code&gt; einen Tunnel im Userspace auf, gibt der
+Schnittstelle ihre Adresse und installiert die Routen.&lt;/li&gt;
+&lt;li&gt;Wenn der Server einen RouteService ankündigt (&lt;code&gt;GRPC_ENDPOINT&lt;/code&gt;), beobachtet der Helper
+ihn über gRPC: Änderungen an den Routen des Mandanten erreichen das Gerät,
+ohne dass es sich erneut registriert.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 data-hextra-search-id="leases"&gt;Leases&lt;span class="hx:absolute hx:-mt-20" id="leases"&gt;&lt;/span&gt;
+&lt;a href="#leases" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Jede Registrierung trägt eine &lt;strong&gt;Lease&lt;/strong&gt; von &lt;code&gt;LEASE_TTL&lt;/code&gt; (standardmäßig 24 Stunden). Ein
+Hintergrundprozess auf dem Server entfernt jede Minute die Peers, deren Lease
+abgelaufen ist, sodass ein verlorenes oder gesperrtes Gerät von selbst vom Gateway verschwindet. Bei
+go-authn überdauert eine Lease nie die Registrierung des Schlüssels beim Anbieter.&lt;/p&gt;
+&lt;p&gt;Der Server erneuert eine Lease bei &lt;code&gt;POST /api/v1/heartbeat&lt;/code&gt; und entfernt einen Peer
+sofort bei &lt;code&gt;POST /api/v1/deregister&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Ab &lt;strong&gt;claimward-vpn-client v0.3.1&lt;/strong&gt;, also ab den App-Releases, die diese Version
+enthalten (die macOS-, Linux- und Windows-Apps ab v0.2.0), hält der Helper die Lease selbst aufrecht, solange
+der Tunnel steht. Er erneuert sie, wenn die Hälfte der Restlaufzeit der Lease verstrichen ist, nie früher
+als nach 30 Sekunden und nie später als nach 10 Minuten, und handelt nach der Antwort:&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Der Server antwortet&lt;/th&gt;
+&lt;th&gt;Der Helper&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;eine erneuerte Lease&lt;/td&gt;
+&lt;td&gt;erneuert wieder nach der Hälfte davon&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;404 not_enrolled&lt;/code&gt;: Er hat das Gerät vergessen (die Lease ist abgelaufen, oder der Server wurde neu gestartet)&lt;/td&gt;
+&lt;td&gt;registriert sich erneut mit demselben Schlüssel und Mandanten und baut den Tunnel anhand dieser Antwort auf; schlägt auch das fehl, baut er den Tunnel ab&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;403&lt;/code&gt; (&lt;code&gt;not_a_member&lt;/code&gt;, &lt;code&gt;key_not_registered&lt;/code&gt;): Zugang entzogen&lt;/td&gt;
+&lt;td&gt;baut den Tunnel ab und meldet den Grund (&lt;code&gt;last_error&lt;/code&gt;)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;401&lt;/code&gt;, ein &lt;code&gt;5xx&lt;/code&gt; oder nichts&lt;/td&gt;
+&lt;td&gt;versucht es innerhalb einer Minute erneut, bevor die Lease endet&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Der Helper erneuert mit dem letzten Bearer-Token, das er erhalten hat. Das genügt für ein
+GitHub-Token, nicht aber für ein go-authn-Access-Token, das nach Minuten abläuft und
+das nur die App auffrischen kann. Solange die App läuft, übergibt &lt;code&gt;pkg/appcore&lt;/code&gt; dem
+Helper daher ein frisches Bearer-Token (die Aktion &lt;code&gt;renew&lt;/code&gt; des Helpers), wenn 40 % der Restlaufzeit der Lease
+verstrichen sind (höchstens 8 Minuten auseinander), bevor die eigene Erneuerung des Helpers fällig ist. Eine App, die unter einem
+laufenden Tunnel neu gestartet wird, beginnt damit bei ihrer ersten Statusabfrage.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Disconnect&lt;/em&gt; (die Aktion &lt;code&gt;down&lt;/code&gt; des Helpers) &lt;strong&gt;meldet&lt;/strong&gt; den Peer &lt;strong&gt;ab&lt;/strong&gt; und gibt seine
+Adresse sofort zurück. Ein Helper, der beendet wird (sein Dienstmanager stoppt
+ihn, oder die Maschine fährt herunter), baut den Tunnel ab, ohne sich abzumelden,
+sodass ein neu gestarteter Helper die Lease noch vorfindet und die Lease einer gestoppten Maschine
+auf dem Server abläuft.&lt;/p&gt;
+&lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-blue-200 hx:bg-blue-100 hx:text-blue-900 hx:dark:border-blue-200/30 hx:dark:bg-blue-900/30 hx:dark:text-blue-200"&gt;
+&lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/&gt;&lt;/svg&gt;&lt;/div&gt;
+&lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;Die Apps in v0.1.0 bauen auf früheren Client-Versionen auf, die nichts davon tun:
+Sie erneuern eine Lease nur durch erneutes Verbinden und lassen den Peer nach
+&lt;em&gt;Disconnect&lt;/em&gt; auf dem Gateway, bis seine Lease endet.&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;h2 data-hextra-search-id="trust-boundaries"&gt;Vertrauensgrenzen&lt;span class="hx:absolute hx:-mt-20" id="trust-boundaries"&gt;&lt;/span&gt;
+&lt;a href="#trust-boundaries" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;Der &lt;strong&gt;Server&lt;/strong&gt; ist die einzige Komponente, die mit dem Identitätsanbieter spricht, um
+eine Anmeldung zu prüfen, und die einzige mit dem Recht, die Peers des Gateways zu ändern.&lt;/li&gt;
+&lt;li&gt;Auf dem Gerät ist der &lt;strong&gt;Helper&lt;/strong&gt; der einzige privilegierte Prozess. Alles, was
+seinen Socket erreichen kann, kann ihn zum Handeln auffordern, daher handelt er im Rahmen seiner eigenen
+Konfiguration: Er registriert sich nur bei den Servern, die diese Konfiguration nennt, und
+übernimmt keine Tunnelkonfiguration aus einer Anfrage. Siehe
+&lt;a href="https://claimward.github.io/docs/v0.4.0/de/components/helper/"&gt;Privilegierter Helper&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;Die &lt;strong&gt;App&lt;/strong&gt; läuft unter dem Benutzer der Person. Sie hält die Sitzung (Bearer-Token und Geräteschlüssel)
+in einer Datei mit &lt;code&gt;0600&lt;/code&gt; in deren Konfigurationsverzeichnis.&lt;/li&gt;
+&lt;li&gt;Eine Beobachtung der Routen überträgt das Bearer-Token, daher läuft sie über &lt;strong&gt;TLS&lt;/strong&gt;, außer zu einer
+Loopback-Adresse.&lt;/li&gt;
+&lt;li&gt;Der Wire-Vertrag liegt an einer einzigen Stelle,
+&lt;a href="https://github.com/claimward/claimward-vpn-client/tree/main/pkg/protocol" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-client/pkg/protocol&lt;/code&gt;&lt;/a&gt;
+und &lt;code&gt;pkg/routespb&lt;/code&gt;, importiert sowohl von den Clients als auch vom Server.&lt;/li&gt;
+&lt;/ul&gt;</description></item><item><title>Mandanten</title><link>https://claimward.github.io/docs/v0.4.0/de/tenants/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/v0.4.0/de/tenants/</guid><description>
+&lt;p&gt;Ein &lt;strong&gt;Mandant&lt;/strong&gt; ist eine Menge von Routen (&lt;code&gt;allowed_ips&lt;/code&gt;) und DNS-Servern sowie die Regeln,
+die festlegen, wer ihm angehört. Eine Person kann mehreren Mandanten angehören: Sie
+wählt einen pro Sitzung, und das Gerät verbindet sich mit diesem.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="membership"&gt;Mitgliedschaft&lt;span class="hx:absolute hx:-mt-20" id="membership"&gt;&lt;/span&gt;
+&lt;a href="#membership" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Eine Person gehört jedem Mandanten an, der eines der folgenden Merkmale nennt:&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feld&lt;/th&gt;
+&lt;th&gt;Abgeglichen mit&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;domains&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;der Domain einer &lt;strong&gt;verifizierten&lt;/strong&gt; E-Mail-Adresse (eine nicht verifizierte ist eine Zeichenkette, die die Person eingegeben hat)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;groups&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;dem Claim &lt;code&gt;groups&lt;/code&gt; des Tokens (OIDC; go-authn: eduPerson-Entitlements) oder den GitHub-Organisationen der Person&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;idps&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;der Einrichtung, die für sie gebürgt hat: das &lt;code&gt;idp&lt;/code&gt; von go-authn, eine SAML-Entity-ID&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Eine Person, auf die nichts davon zutrifft, gehört dem Mandanten &lt;code&gt;default&lt;/code&gt; an, und nur dann.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="where-tenants-come-from"&gt;Woher die Mandanten kommen&lt;span class="hx:absolute hx:-mt-20" id="where-tenants-come-from"&gt;&lt;/span&gt;
+&lt;a href="#where-tenants-come-from" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Der Server startet mit einem Mandanten, &lt;code&gt;default&lt;/code&gt;, dessen Routen &lt;code&gt;PUSH_ROUTES&lt;/code&gt;
+(standardmäßig &lt;code&gt;VPN_CIDR&lt;/code&gt;) und dessen DNS-Server &lt;code&gt;DNS&lt;/code&gt; sind. Weitere Mandanten werden
+über die &lt;a href="https://claimward.github.io/docs/v0.4.0/de/operations/#admin-api-and-webui"&gt;Admin-API und WebUI&lt;/a&gt; angelegt, bearbeitet und gelöscht,
+die neben den Routen die drei Mitgliedschaftslisten bearbeiten. Der Standardmandant
+kann nicht gelöscht werden.&lt;/p&gt;
+&lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-amber-200 hx:bg-amber-100 hx:text-amber-900 hx:dark:border-amber-200/30 hx:dark:bg-amber-900/30 hx:dark:text-amber-200"&gt;
+&lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/&gt;&lt;/svg&gt;&lt;/div&gt;
+&lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;Mandanten werden &lt;strong&gt;im Arbeitsspeicher&lt;/strong&gt; gehalten (v0.2.0): Ein Neustart des Servers lässt nur
+den Mandanten &lt;code&gt;default&lt;/code&gt; übrig, neu aufgebaut aus der Umgebung.&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;h2 data-hextra-search-id="choosing-one-per-session"&gt;Einen pro Sitzung wählen&lt;span class="hx:absolute hx:-mt-20" id="choosing-one-per-session"&gt;&lt;/span&gt;
+&lt;a href="#choosing-one-per-session" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Anfrage&lt;/th&gt;
+&lt;th&gt;Was der Server tut&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GET /api/v1/tenants&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;listet die Mandanten, mit denen sich der Aufrufer verbinden darf, &lt;code&gt;[{&amp;quot;id&amp;quot;, &amp;quot;name&amp;quot;}]&lt;/code&gt;, damit ein Client die Auswahl anbieten kann&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;POST /api/v1/enroll&lt;/code&gt; mit &lt;code&gt;tenant&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;der Mandant muss einer davon sein, sonst &lt;code&gt;403 not_a_member&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;POST /api/v1/enroll&lt;/code&gt; ohne &lt;code&gt;tenant&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;der einzige Mandant des Aufrufers; eine Person in mehreren erhält &lt;code&gt;409 tenant_required&lt;/code&gt;, mit der Liste in der Meldung, statt in ein Netz geleitet zu werden, das sie nicht gewählt hat&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;POST /api/v1/heartbeat&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;abgelehnt mit &lt;code&gt;403 not_a_member&lt;/code&gt;, sobald die Person nicht mehr dem Mandanten der Sitzung angehört&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;RouteService &lt;code&gt;Watch&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;streamt die Routen des Mandanten, &lt;strong&gt;in den sich das Gerät registriert hat&lt;/strong&gt;, ermittelt über den Schlüssel des Geräts, der dem Aufrufer gehören muss&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;In den Apps (&lt;code&gt;pkg/appcore&lt;/code&gt;):&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;Tenants&lt;/code&gt;&lt;/strong&gt; fragt den Server über den Helper, welchen Mandanten die Person
+beitreten darf;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;SetTenant&lt;/code&gt;&lt;/strong&gt; speichert die Wahl in der Sitzung, und nur einen Mandanten, den der
+Server angeboten hat; eine neue Anmeldung vergisst sie;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;Connect&lt;/code&gt;&lt;/strong&gt; registriert sich in diesem Mandanten. Eine Person in mehreren, die nicht
+gewählt hat, erhält &lt;code&gt;ErrTenantRequired&lt;/code&gt;, mit den Mandanten im Status.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Eine Person in nur einem Mandanten wählt nie. Die macOS-App öffnet ihr Fenster, wenn ein
+&lt;strong&gt;Connect&lt;/strong&gt; aus der Menüleiste mangels Auswahl abgelehnt wird; die Linux- und die
+Windows-App zeigen die Auswahl in ihrem Fenster. Die Linux-App lässt keinen Wechsel des
+Mandanten zu, solange eine Verbindung besteht.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="route-updates"&gt;Aktualisierungen der Routen&lt;span class="hx:absolute hx:-mt-20" id="route-updates"&gt;&lt;/span&gt;
+&lt;a href="#route-updates" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Das Bearbeiten der Routen eines Mandanten erhöht dessen &lt;code&gt;serial&lt;/code&gt; und pusht die neue Menge an jedes
+Gerät, das diesen Mandanten über den gRPC-RouteService beobachtet. Der Helper ersetzt
+die erlaubten IPs des WireGuard-Peers und fügt die entsprechenden Routen hinzu oder entfernt sie,
+ohne sich erneut zu registrieren. Das Löschen eines Mandanten beendet seine Beobachtungen.&lt;/p&gt;</description></item><item><title>Betrieb</title><link>https://claimward.github.io/docs/v0.4.0/de/operations/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/v0.4.0/de/operations/</guid><description>
+&lt;h2 data-hextra-search-id="tls"&gt;TLS&lt;span class="hx:absolute hx:-mt-20" id="tls"&gt;&lt;/span&gt;
+&lt;a href="#tls" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Der Server spricht unverschlüsseltes HTTP, sofern &lt;code&gt;TLS_CERT&lt;/code&gt;/&lt;code&gt;TLS_KEY&lt;/code&gt; nicht gesetzt sind. Bearer-Tokens
+sind Zugangsdaten, stellen Sie die API also &lt;strong&gt;immer&lt;/strong&gt; hinter TLS, direkt oder über einen
+Reverse Proxy (nginx, Caddy, einen Load Balancer).&lt;/p&gt;
+&lt;p&gt;Dasselbe Zertifikat bedient den gRPC-RouteService. Eine Beobachtung der Routen überträgt das
+Bearer-Token, und die Clients lehnen eine unverschlüsselte Beobachtung ab, außer über Loopback: Ein
+Server ohne &lt;code&gt;TLS_CERT&lt;/code&gt;/&lt;code&gt;TLS_KEY&lt;/code&gt; (etwa hinter einem Proxy, der nur
+HTTPS terminiert) registriert Geräte, diese erhalten aber keine Live-Aktualisierungen der Routen, und er
+protokolliert beim Start eine Warnung. Setzen Sie &lt;code&gt;GRPC_ENDPOINT&lt;/code&gt; auf den &lt;code&gt;host:port&lt;/code&gt;, unter dem die Geräte
+den RouteService erreichen, mit einem Namen, den das Zertifikat abdeckt.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="gateway"&gt;Gateway&lt;span class="hx:absolute hx:-mt-20" id="gateway"&gt;&lt;/span&gt;
+&lt;a href="#gateway" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;Bringen Sie &lt;code&gt;wg0&lt;/code&gt; beim Booten mit &lt;code&gt;wg-quick&lt;/code&gt; oder systemd-networkd hoch; Claimward
+verwaltet nur seine Peers. Starten Sie den Server mit den Rechten, die Schnittstelle zu konfigurieren
+(root oder &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt;).&lt;/li&gt;
+&lt;li&gt;Aktivieren Sie &lt;code&gt;net.ipv4.ip_forward&lt;/code&gt; sowie NAT- oder Firewall-Regeln, wenn Clients
+über das VPN-Subnetz hinaus routen.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;GET /healthz&lt;/code&gt; ist die Liveness-Probe.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 data-hextra-search-id="leases"&gt;Leases&lt;span class="hx:absolute hx:-mt-20" id="leases"&gt;&lt;/span&gt;
+&lt;a href="#leases" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;LEASE_TTL&lt;/code&gt; (standardmäßig 24 Stunden) wägt Sicherheit gegen Fluktuation ab. Der Hintergrundprozess
+entfernt jede Minute abgelaufene Peers, sodass gesperrte oder offline befindliche Geräte von selbst
+verschwinden. Um eines sofort zu sperren, melden Sie seinen Peer ab oder entfernen Sie ihn mit
+&lt;code&gt;wg set wg0 peer &amp;lt;key&amp;gt; remove&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Ab claimward-vpn-client v0.3.1 (die Apps ab v0.2.0) erneuert der Helper
+die Lease, solange der Tunnel steht, nach der Hälfte der Restlaufzeit (zwischen 30 Sekunden
+und 10 Minuten), und meldet sich bei &lt;em&gt;Disconnect&lt;/em&gt; ab. Eine kürzere &lt;code&gt;LEASE_TTL&lt;/code&gt; kostet daher
+mehr Heartbeats, nicht abgebrochene Tunnel: Eine Entfernung aus einem Mandanten oder ein Schlüssel,
+den der go-authn-Anbieter zurückzieht, beendet den Tunnel bei der nächsten Erneuerung (der
+Server antwortet &lt;code&gt;403&lt;/code&gt;). Ein Server, der ein Gerät vergessen hat (&lt;code&gt;404&lt;/code&gt;), lässt es
+sich erneut registrieren. Siehe &lt;a href="https://claimward.github.io/docs/v0.4.0/de/architecture/#leases"&gt;Leases&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Die Apps in v0.1.0 erneuern nur durch erneutes Verbinden und lassen den Peer nach &lt;em&gt;Disconnect&lt;/em&gt; bestehen, bis seine
+Lease endet: Bei ihnen verliert ein Gerät, das länger als &lt;code&gt;LEASE_TTL&lt;/code&gt; verbunden bleibt,
+seinen Tunnel, wenn sein Peer entfernt wird.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="state"&gt;Zustand&lt;span class="hx:absolute hx:-mt-20" id="state"&gt;&lt;/span&gt;
+&lt;a href="#state" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Der Server hält die registrierten Peers, den Adresspool und die Mandanten
+&lt;strong&gt;im Arbeitsspeicher&lt;/strong&gt;. Ein Neustart vergisst sie:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;die Mandanten sind wieder allein &lt;code&gt;default&lt;/code&gt;, aus &lt;code&gt;PUSH_ROUTES&lt;/code&gt; und &lt;code&gt;DNS&lt;/code&gt;;&lt;/li&gt;
+&lt;li&gt;ab Server &lt;strong&gt;v0.2.0&lt;/strong&gt; werden die Peers, die ein vorheriger Lauf auf &lt;code&gt;wg0&lt;/code&gt; hinterlassen hat,
+&lt;strong&gt;beim Start entfernt&lt;/strong&gt;: jeder Peer, dessen einzige erlaubte IP ein &lt;code&gt;/32&lt;/code&gt; innerhalb von
+&lt;code&gt;VPN_CIDR&lt;/code&gt; ist, die Form, die der Server jedem Peer gibt. Jeder andere Peer
+(von Hand konfiguriert, eine Site-to-Site-Verbindung) bleibt unberührt. Behalten, würden diese Peers
+niemandem gehören: nie entfernt, nie gegen die Liste des Anbieters geprüft,
+sodass eine vor dem Neustart deaktivierte Person einen funktionierenden Tunnel behielte. Geräte
+stellen bei ihrer nächsten Erneuerung der Lease fest, dass sie unbekannt sind, und registrieren sich erneut (Apps,
+die auf claimward-vpn-client v0.3.1 aufbauen); bis dahin überträgt ihr Tunnel
+nichts. Der Helper erneuert höchstens im Abstand von 10 Minuten, daher kann nach einem Neustart ein
+Gerät bis zu 10 Minuten abgeschnitten sein. Ein erneutes Verbinden stellt es sofort
+wieder her.&lt;/li&gt;
+&lt;li&gt;der Server in &lt;strong&gt;v0.1.0&lt;/strong&gt; lässt diese Peers auf &lt;code&gt;wg0&lt;/code&gt;: Er entfernt sie nie, und
+er kann ihre Adressen an neue Geräte vergeben (WireGuard leitet die
+Adresse dann an den neuen Peer). Leeren Sie nach seinem Neustart die Peers
+(&lt;code&gt;wg-quick down wg0 &amp;amp;&amp;amp; wg-quick up wg0&lt;/code&gt; oder &lt;code&gt;wg set … remove&lt;/code&gt;) und lassen Sie die
+Geräte sich erneut verbinden.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Für mehrere Gateways oder einen dauerhaften Audit-Trail benötigen die Pakete &lt;code&gt;store&lt;/code&gt;, &lt;code&gt;ipam&lt;/code&gt; und
+&lt;code&gt;tenant&lt;/code&gt; eine Datenbank dahinter.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="identity-provider"&gt;Identitätsanbieter&lt;span class="hx:absolute hx:-mt-20" id="identity-provider"&gt;&lt;/span&gt;
+&lt;a href="#identity-provider" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Standardmäßig meldet Claimward Personen mit &lt;strong&gt;GitHub&lt;/strong&gt; an (Device Flow): Legen Sie eine
+GitHub-OAuth-App mit aktiviertem &lt;strong&gt;Device Flow&lt;/strong&gt; an und beschränken Sie den Zugang mit
+&lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;. Für &lt;strong&gt;OIDC&lt;/strong&gt; setzen Sie &lt;code&gt;AUTH_PROVIDER=oidc&lt;/code&gt; mit einem
+nativen/öffentlichen PKCE-Client und beschränken mit &lt;code&gt;OIDC_ALLOWED_DOMAINS&lt;/code&gt;. Für
+&lt;strong&gt;go-authn&lt;/strong&gt; setzen Sie &lt;code&gt;AUTH_PROVIDER=go-authn&lt;/code&gt; mit dem eigenen Client des Gateways: Der
+Anbieter entscheidet dann, welche Schlüssel sich verbinden dürfen, und ein Gateway, das
+seine Liste nicht abrufen kann, lässt niemanden Neues zu. Siehe
+&lt;a href="https://claimward.github.io/docs/v0.4.0/de/identity-providers/"&gt;Identitätsanbieter&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="admin-api-and-webui"&gt;Admin-API und WebUI&lt;span class="hx:absolute hx:-mt-20" id="admin-api-and-webui"&gt;&lt;/span&gt;
+&lt;a href="#admin-api-and-webui" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Wenn &lt;code&gt;ADMIN_TOKEN&lt;/code&gt; gesetzt ist, stellt der Server eine eingebettete Svelte-WebUI unter
+&lt;code&gt;/admin/&lt;/code&gt; und eine API unter &lt;code&gt;/admin/api/&lt;/code&gt; bereit, geschützt durch
+&lt;code&gt;Authorization: Bearer &amp;lt;ADMIN_TOKEN&amp;gt;&lt;/code&gt; (in konstanter Zeit verglichen). Ohne es
+antwortet &lt;code&gt;/admin/&lt;/code&gt; mit &lt;code&gt;503&lt;/code&gt;. Die Dateien der WebUI werden ohne Authentifizierung ausgeliefert;
+sie fragt nach dem Token und sendet es bei jedem Aufruf mit.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Methode &amp;amp; Pfad&lt;/th&gt;
+&lt;th&gt;&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GET /admin/api/overview&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Anzahlen &lt;code&gt;{&amp;quot;tenants&amp;quot;, &amp;quot;peers&amp;quot;, &amp;quot;watchers&amp;quot;}&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GET /admin/api/tenants&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;alle Mandanten&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;POST /admin/api/tenants&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;einen anlegen: &lt;code&gt;id&lt;/code&gt; (oder ein Slug von &lt;code&gt;name&lt;/code&gt;), &lt;code&gt;name&lt;/code&gt;, &lt;code&gt;domains&lt;/code&gt;, &lt;code&gt;groups&lt;/code&gt;, &lt;code&gt;idps&lt;/code&gt;, &lt;code&gt;allowed_ips&lt;/code&gt;, &lt;code&gt;dns&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GET /admin/api/tenants/{id}&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;ein Mandant&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;PUT /admin/api/tenants/{id}&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;ersetzt seinen Namen, seine Mitgliedschaftslisten und Routen; erhöht &lt;code&gt;serial&lt;/code&gt; und pusht die Routen an seine Beobachter&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;DELETE /admin/api/tenants/{id}&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;löscht ihn (nicht &lt;code&gt;default&lt;/code&gt;); beendet seine Beobachtungen&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Stellen Sie &lt;code&gt;/admin/&lt;/code&gt; nur dort bereit, wo Administratoren es erreichen: Das Token ist ein statisches
+gemeinsames Geheimnis.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="metrics"&gt;Metriken&lt;span class="hx:absolute hx:-mt-20" id="metrics"&gt;&lt;/span&gt;
+&lt;a href="#metrics" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;GET /metrics&lt;/code&gt; liefert Prometheus-Metriken aus, ohne Authentifizierung:&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Metrik&lt;/th&gt;
+&lt;th&gt;&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;claimward_enrollments_total{tenant}&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;erfolgreiche Registrierungen&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;claimward_active_peers&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;registrierte Peers&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;claimward_tenants&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;konfigurierte Mandanten&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;claimward_route_watchers&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;aktive Beobachtungen des RouteService&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;claimward_tenant_route_serial{tenant}&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;die Routen-Seriennummer jedes Mandanten&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;</description></item></channel></rss>

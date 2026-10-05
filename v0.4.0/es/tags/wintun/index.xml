@@ -1,0 +1,115 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Claimward – Wintun</title><link>https://claimward.github.io/docs/v0.4.0/es/tags/wintun/</link><description>Recent content in Wintun on Claimward</description><generator>Hugo -- gohugo.io</generator><language>es</language><atom:link href="https://claimward.github.io/docs/v0.4.0/es/tags/wintun/index.xml" rel="self" type="application/rss+xml"/><item><title>Aplicación Windows</title><link>https://claimward.github.io/docs/v0.4.0/es/components/windows-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/v0.4.0/es/components/windows-app/</guid><description>
+&lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-windows" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-windows&lt;/code&gt;&lt;/a&gt;
+&lt;strong&gt;v0.3.0&lt;/strong&gt; es una aplicación de escritorio con un icono en el área de notificación (bandeja del sistema). Todo es
+Go con &lt;code&gt;CGO_ENABLED=0&lt;/code&gt;: la ventana y la bandeja del sistema las dibuja
+&lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt; (sin webview, sin servidor HTTP en la
+aplicación), y el túnel es &lt;a href="https://git.zx2c4.com/wireguard-go" target="_blank" rel="noopener"&gt;wireguard-go&lt;/a&gt; sobre un
+adaptador &lt;a href="https://www.wintun.net" target="_blank" rel="noopener"&gt;Wintun&lt;/a&gt;, configurado mediante la IP Helper API.
+Su lógica y su helper son los compartidos
+&lt;a href="https://claimward.github.io/docs/v0.4.0/es/components/client/"&gt;&lt;code&gt;pkg/appcore&lt;/code&gt; y &lt;code&gt;pkg/helper&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="design"&gt;Diseño&lt;span class="hx:absolute hx:-mt-20" id="design"&gt;&lt;/span&gt;
+&lt;a href="#design" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; claimward-app.exe (the person, unprivileged)
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ├─ internal/ui/view.go widgets, bound by go-widgets/mvvmtk to …
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ├─ internal/ui/viewmodel.go … the ViewModel: all state, observables and commands
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ├─ internal/ui/tray_binding the tray menu, bound to the same ViewModel
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; └─ appcore sign-in, session, tenant, helper client
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ AF_UNIX socket, one JSON request each: C:\ProgramData\Claimward\helper.sock
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ▼
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; claimward-helper.exe — the ClaimwardHelper service (LocalSystem)
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; pkg/helper enrolls with a server helper.json names, owns the tunnel
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; pkg/wgtun wireguard-go on the Wintun adapter &amp;#34;Claimward&amp;#34;; address, routes, DNS, MTU&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copiar código"
+aria-label="Copiar código"
+data-copied-label="¡Copiado!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;La ventana muestra la conexión, la dirección y la interfaz, quién ha iniciado sesión,
+el inquilino y si el helper responde; el aviso del flujo de dispositivo con un
+botón que abre la página en el navegador predeterminado (solo se entrega al shell
+una página &lt;code&gt;https&lt;/code&gt;); &lt;strong&gt;Connect / Disconnect / Sign out&lt;/strong&gt;; &lt;strong&gt;Choose
+tenant&lt;/strong&gt;; los ajustes, guardados en &lt;code&gt;%AppData%\Claimward\config.json&lt;/code&gt;; y el
+historial de conexiones. El estado se consulta cada 2 segundos. El menú de la bandeja del sistema ofrece
+el estado, Connect, Disconnect, Open y Quit. Cerrar la ventana cierra la
+aplicación; el túnel pertenece al servicio y permanece activo hasta Disconnect.&lt;/p&gt;
+&lt;p&gt;El icono de la bandeja del sistema aparece a partir de &lt;strong&gt;v0.3.0&lt;/strong&gt;. Antes, la biblioteca de la bandeja no tenía
+implementación para Windows de la llamada que hace la aplicación, y la aplicación ignoraba el
+error, de modo que v0.1.0 y v0.2.0 no mostraban &lt;strong&gt;ningún icono en la bandeja&lt;/strong&gt;. v0.3.0 se compila con la
+biblioteca de la bandeja que la implementa (go-widgets/tray v0.14.0). Esto está comprobado por la
+compilación y por las pruebas propias de la biblioteca, pero aún no en un escritorio Windows. Dos
+carencias conocidas: un icono que no se puede añadir se notifica en stderr, que una
+compilación con ventana no muestra
+(&lt;a href="https://github.com/claimward/claimward-vpn-app-windows/issues/6" target="_blank" rel="noopener"&gt;#6&lt;/a&gt;), y
+al salir puede quedar un icono fantasma hasta que el puntero pasa por encima
+(&lt;a href="https://github.com/go-widgets/tray/issues/37" target="_blank" rel="noopener"&gt;go-widgets/tray#37&lt;/a&gt;).&lt;/p&gt;
+&lt;h2 data-hextra-search-id="install"&gt;Instalación&lt;span class="hx:absolute hx:-mt-20" id="install"&gt;&lt;/span&gt;
+&lt;a href="#install" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Desde una carpeta de versión publicada (&lt;code&gt;scripts/package.sh&lt;/code&gt; las genera, con Wintun), en un
+PowerShell &lt;strong&gt;con privilegios elevados&lt;/strong&gt;:&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-powershell" data-lang="powershell"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;Set-ExecutionPolicy&lt;/span&gt; &lt;span class="n"&gt;-Scope&lt;/span&gt; &lt;span class="k"&gt;Process&lt;/span&gt; &lt;span class="n"&gt;Bypass&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;.\&lt;/span&gt;&lt;span class="n"&gt;install&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="py"&gt;ps1&lt;/span&gt; &lt;span class="n"&gt;-Server&lt;/span&gt; &lt;span class="n"&gt;https&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="p"&gt;//&lt;/span&gt;&lt;span class="n"&gt;vpn&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="py"&gt;example&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="py"&gt;org&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c"&gt;# optionally, the app&amp;#39;s settings for the current user as well:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;.\&lt;/span&gt;&lt;span class="n"&gt;install&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="py"&gt;ps1&lt;/span&gt; &lt;span class="n"&gt;-Server&lt;/span&gt; &lt;span class="n"&gt;https&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="p"&gt;//&lt;/span&gt;&lt;span class="n"&gt;vpn&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="py"&gt;example&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="py"&gt;org&lt;/span&gt; &lt;span class="n"&gt;-Provider&lt;/span&gt; &lt;span class="n"&gt;github&lt;/span&gt; &lt;span class="n"&gt;-GitHubClientId&lt;/span&gt; &lt;span class="n"&gt;Iv1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;0123456789abcdef&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copiar código"
+aria-label="Copiar código"
+data-copied-label="¡Copiado!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;Copia los programas y &lt;code&gt;wintun.dll&lt;/code&gt; en &lt;code&gt;C:\Program Files\Claimward&lt;/code&gt;,
+crea el grupo local &lt;strong&gt;Claimward Users&lt;/strong&gt; y le añade a usted, escribe
+&lt;code&gt;C:\ProgramData\Claimward\helper.json&lt;/code&gt;, registra e inicia el servicio
+&lt;strong&gt;ClaimwardHelper&lt;/strong&gt;, y añade un acceso directo &lt;strong&gt;Claimward VPN&lt;/strong&gt; al menú Inicio.
+La pertenencia surte efecto en su &lt;strong&gt;próximo inicio de sesión en Windows&lt;/strong&gt;; hasta entonces el
+socket le rechaza. Añada a otras personas con
+&lt;code&gt;Add-LocalGroupMember -Group 'Claimward Users' -Member &amp;lt;name&amp;gt;&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;.\uninstall.ps1&lt;/code&gt; elimina el servicio, el acceso directo y los programas;
+&lt;code&gt;-RemoveData&lt;/code&gt; elimina además &lt;code&gt;C:\ProgramData\Claimward&lt;/code&gt; y el grupo. Todavía no
+hay MSI.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;package.sh&lt;/code&gt; descarga &lt;code&gt;wintun-0.14.1.zip&lt;/code&gt; de wintun.net y lo rechaza
+salvo que su SHA-256 coincida con el fijado en el script; la DLL está firmada por
+WireGuard LLC y no está en el repositorio.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="configure"&gt;Configuración&lt;span class="hx:absolute hx:-mt-20" id="configure"&gt;&lt;/span&gt;
+&lt;a href="#configure" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;La aplicación lee &lt;code&gt;%AppData%\Claimward\config.json&lt;/code&gt; y después las variables &lt;code&gt;CLAIMWARD_*&lt;/code&gt;
+(véase la &lt;a href="https://claimward.github.io/docs/v0.4.0/es/components/client/#files-on-the-device"&gt;biblioteca cliente&lt;/a&gt;).
+La sesión es &lt;code&gt;%AppData%\claimward\session.json&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;El helper lee &lt;code&gt;C:\ProgramData\Claimward\helper.json&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;servers&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;https://vpn.example.org&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;group&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;Claimward Users&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;socket&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;C:\\ProgramData\\Claimward\\helper.sock&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copiar código"
+aria-label="Copiar código"
+data-copied-label="¡Copiado!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;El servicio registra en &lt;code&gt;C:\ProgramData\Claimward\helper.log&lt;/code&gt;; desde una consola
+con privilegios elevados, &lt;code&gt;claimward-helper run&lt;/code&gt; lo ejecuta en primer plano. Las ACL que el helper
+establece y comprueba se describen en
+&lt;a href="https://claimward.github.io/docs/v0.4.0/es/components/helper/#the-socket-windows"&gt;Helper con privilegios&lt;/a&gt;.&lt;/p&gt;
+&lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-blue-200 hx:bg-blue-100 hx:text-blue-900 hx:dark:border-blue-200/30 hx:dark:bg-blue-900/30 hx:dark:text-blue-200"&gt;
+&lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/&gt;&lt;/svg&gt;&lt;/div&gt;
+&lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Pendiente:&lt;/strong&gt; un instalador MSI, y la sesión en el Administrador de credenciales
+de Windows (DPAPI) en lugar de un archivo por usuario.&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description></item></channel></rss>

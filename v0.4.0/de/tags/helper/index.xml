@@ -1,0 +1,645 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Claimward – Helper</title><link>https://claimward.github.io/docs/v0.4.0/de/tags/helper/</link><description>Recent content in Helper on Claimward</description><generator>Hugo -- gohugo.io</generator><language>de</language><atom:link href="https://claimward.github.io/docs/v0.4.0/de/tags/helper/index.xml" rel="self" type="application/rss+xml"/><item><title>Privilegierter Helper</title><link>https://claimward.github.io/docs/v0.4.0/de/components/helper/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/v0.4.0/de/components/helper/</guid><description>
+&lt;p&gt;Jede App hat einen &lt;strong&gt;privilegierten Helper&lt;/strong&gt;: einen root-LaunchDaemon unter macOS, einen systemd-Dienst
+unter Linux, den Dienst &lt;strong&gt;ClaimwardHelper&lt;/strong&gt; (LocalSystem) unter Windows. Er
+ist der einzige privilegierte Prozess der App. Alle drei sind derselbe Code,
+&lt;code&gt;pkg/helper&lt;/code&gt; aus &lt;a href="https://github.com/claimward/claimward-vpn-client" target="_blank" rel="noopener"&gt;claimward-vpn-client&lt;/a&gt;;
+jede App liefert nur eine &lt;code&gt;main&lt;/code&gt;, die die Konfiguration lädt und lauscht.&lt;/p&gt;
+&lt;p&gt;Der Helper übernimmt die Kommunikation mit dem Server ebenso wie den Tunnel: Er registriert sich,
+baut den Tunnel auf und beobachtet gepushte Routen. Unter macOS hindert der Datenschutz
+„Lokales Netzwerk“ eine nicht privilegierte App daran, einen Server im LAN zu erreichen, während root
+davon ausgenommen ist; die anderen Plattformen folgen demselben Weg, damit sich die drei Apps
+gleich verhalten.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="the-socket-protocol"&gt;Das Socket-Protokoll&lt;span class="hx:absolute hx:-mt-20" id="the-socket-protocol"&gt;&lt;/span&gt;
+&lt;a href="#the-socket-protocol" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Eine JSON-Anfrage pro Verbindung, eine JSON-Antwort (&lt;code&gt;pkg/hproto&lt;/code&gt;):&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Aktion&lt;/th&gt;
+&lt;th&gt;Was der Helper tut&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;connect&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;registriert sich beim in der Anfrage genannten Server, sofern seine Konfiguration es erlaubt, mit dem übergebenen Bearer-Token, privaten Schlüssel, Gerätenamen und Mandanten; baut den Tunnel auf; beobachtet den RouteService&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;tenants&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;fragt den Server, mit welchen Mandanten sich das Bearer-Token verbinden darf&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;down&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;baut den Tunnel ab&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;status&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;verbunden oder nicht, die Schnittstelle, die Adresse, der Mandant&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 data-hextra-search-id="bounded-by-its-own-configuration"&gt;Durch die eigene Konfiguration begrenzt&lt;span class="hx:absolute hx:-mt-20" id="bounded-by-its-own-configuration"&gt;&lt;/span&gt;
+&lt;a href="#bounded-by-its-own-configuration" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Jeder Prozess, der den Socket des Helpers erreichen kann, kann ihn zum Handeln bringen, daher ist das, was er
+tut, durch &lt;strong&gt;seine eigene&lt;/strong&gt; Konfiguration begrenzt, niemals durch die Anfrage:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Er registriert sich nur bei einem Server, den seine Konfiguration nennt.&lt;/strong&gt; Ein Helper, der
+den Server aus der Anfrage übernähme, ließe jeden lokalen Prozess ihn auf einen eigenen
+Server richten, der mit Routen für &lt;code&gt;0.0.0.0/0&lt;/code&gt; antwortet: jedes Paket der
+Maschine, dorthin gesendet, wohin dieser Prozess es wollte.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Er übernimmt keine Tunnelkonfiguration aus einer Anfrage.&lt;/strong&gt; Der Tunnel ist das, was dieser
+Server bei der Registrierung geantwortet hat. Die früheren Aktionen &lt;code&gt;up&lt;/code&gt; und &lt;code&gt;update-routes&lt;/code&gt;,
+die eine übernahmen, gibt es nicht mehr.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Seine Konfiguration muss root gehören&lt;/strong&gt; (unter Windows SYSTEM oder den Administratoren) &lt;strong&gt;und
+für niemanden sonst beschreibbar sein&lt;/strong&gt;, sonst startet der Helper nicht:
+Wer sie schreibt, wählt die vertrauenswürdigen Server.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;servers&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;https://vpn.example.org&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;group&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;claimward&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;socket&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;/var/run/claimward-helper.sock&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Schlüssel&lt;/th&gt;
+&lt;th&gt;&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;servers&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;strong&gt;erforderlich&lt;/strong&gt;: die Server, bei denen sich der Helper registrieren darf. Die &lt;code&gt;server_url&lt;/code&gt; der App muss einer davon sein (verglichen ohne abschließendes &lt;code&gt;/&lt;/code&gt;)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;group&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;wer den Socket neben root verwenden darf: standardmäßig &lt;code&gt;admin&lt;/code&gt; unter macOS, &lt;code&gt;claimward&lt;/code&gt; unter Linux, &lt;code&gt;Claimward Users&lt;/code&gt; unter Windows&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;socket&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;standardmäßig &lt;code&gt;/var/run/claimward-helper.sock&lt;/code&gt;, unter Windows &lt;code&gt;C:\ProgramData\Claimward\helper.sock&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Plattform&lt;/th&gt;
+&lt;th&gt;&lt;code&gt;helper.json&lt;/code&gt;&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;macOS&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;/Library/Application Support/Claimward/helper.json&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Linux&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;/etc/claimward/helper.json&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Windows&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;C:\ProgramData\Claimward\helper.json&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 data-hextra-search-id="the-socket-macos-and-linux"&gt;Der Socket: macOS und Linux&lt;span class="hx:absolute hx:-mt-20" id="the-socket-macos-and-linux"&gt;&lt;/span&gt;
+&lt;a href="#the-socket-macos-and-linux" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Der Socket hat &lt;strong&gt;&lt;code&gt;0660&lt;/code&gt;&lt;/strong&gt; und gehört root und der Gruppe des Helpers. Er wird
+mit einer restriktiven umask angelegt, sodass er nie mit weiteren Rechten existiert, in einem Verzeichnis,
+in das nur root schreiben kann (der Helper lehnt eines ab, in das jemand anderes schreiben könnte, denn dieser
+könnte den Socket durch seinen eigenen ersetzen und das Bearer-Token der App empfangen). Der
+Socket des früheren Helpers hatte &lt;code&gt;0666&lt;/code&gt;.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="the-socket-windows"&gt;Der Socket: Windows&lt;span class="hx:absolute hx:-mt-20" id="the-socket-windows"&gt;&lt;/span&gt;
+&lt;a href="#the-socket-windows" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Unter Windows sind dieselben Regeln ACLs, die der Helper selbst setzt und zurückliest,
+statt darauf zu vertrauen, dass ein Installationsprogramm es getan hat:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;das Verzeichnis des Sockets, &lt;code&gt;C:\ProgramData\Claimward&lt;/code&gt;, erhält eine &lt;strong&gt;geschützte&lt;/strong&gt; DACL
+(nichts von ProgramData geerbt, das jedem Benutzer erlaubt, dort Dateien anzulegen):
+SYSTEM und Administratoren mit Vollzugriff, die Gruppe des Sockets darf es
+auflisten und durchqueren und nichts weiter. Es wird bereits mit dieser
+DACL angelegt, und ein Verzeichnis, das eine Junction oder ein Link ist, wird abgelehnt;&lt;/li&gt;
+&lt;li&gt;der Socket erhält seine eigene DACL: SYSTEM, Administratoren und die Gruppe, die sich
+verbinden darf (Lesen/Schreiben);&lt;/li&gt;
+&lt;li&gt;die Gruppe ist die lokale Gruppe &lt;strong&gt;&lt;code&gt;Claimward Users&lt;/code&gt;&lt;/strong&gt;, die das Installationsprogramm
+anlegt. Existiert sie nicht, wird der Socket für &lt;strong&gt;INTERACTIVE&lt;/strong&gt; geöffnet
+(alle an der Maschine angemeldeten Personen, Konsole oder Remotedesktop), und der
+Helper protokolliert, dass er das getan hat;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;helper.json&lt;/code&gt; muss &lt;strong&gt;SYSTEM oder den Administratoren gehören und für niemanden sonst
+beschreibbar sein&lt;/strong&gt;: Der Helper liest den Besitzer und die DACL der Datei und lehnt jeden
+Zulassungseintrag ab, der einer anderen SID Schreiben, Anhängen, Löschen, &lt;code&gt;WRITE_DAC&lt;/code&gt;, &lt;code&gt;WRITE_OWNER&lt;/code&gt; oder
+generisches Schreiben/Alles gewährt, ebenso eine Null-DACL.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Die Regeln (&lt;code&gt;pkg/helper/acl.go&lt;/code&gt;) sind reine Funktionen, auf jeder Plattform getestet;
+der Windows-Job der CI wendet sie auf echte Dateien an und liest sie zurück.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="route-watches-over-tls"&gt;Beobachtung der Routen über TLS&lt;span class="hx:absolute hx:-mt-20" id="route-watches-over-tls"&gt;&lt;/span&gt;
+&lt;a href="#route-watches-over-tls" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Eine Beobachtung der Routen überträgt das Bearer-Token, daher führt &lt;code&gt;pkg/routeclient&lt;/code&gt; sie über
+&lt;strong&gt;TLS&lt;/strong&gt; aus, geprüft gegen die Stammzertifikate des Systems, außer zu einer Loopback-Adresse.
+Gegenüber einem Server, dessen RouteService kein TLS spricht, scheitert der Handshake, bevor das
+Token gesendet wird, und der Tunnel bleibt ohne Live-Aktualisierungen der Routen bestehen.&lt;/p&gt;
+&lt;p&gt;Das Beenden des Helpers baut den Tunnel ab.&lt;/p&gt;</description></item><item><title>macOS-App</title><link>https://claimward.github.io/docs/v0.4.0/de/components/macos-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/v0.4.0/de/components/macos-app/</guid><description>
+&lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-osx" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-osx&lt;/code&gt;&lt;/a&gt;
+&lt;strong&gt;v0.2.0&lt;/strong&gt; ist eine in Go geschriebene Menüleisten-App (Tray), deren &lt;strong&gt;gesamte Benutzeroberfläche
+eine in einer Webview dargestellte Svelte-Single-Page-App ist&lt;/strong&gt;. Ihre Logik (Anmeldung,
+Wahl des Mandanten, Verbinden) und ihr Helper sind die gemeinsamen
+&lt;a href="https://claimward.github.io/docs/v0.4.0/de/components/client/"&gt;&lt;code&gt;pkg/appcore&lt;/code&gt; und &lt;code&gt;pkg/helper&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="design"&gt;Aufbau&lt;span class="hx:absolute hx:-mt-20" id="design"&gt;&lt;/span&gt;
+&lt;a href="#design" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; claimward-app (tray process, as you)
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ├─ systray menu: status / Open Claimward… / Configuration… / Connect / Disconnect / Quit
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ├─ uiserver loopback HTTP: embedded Svelte SPA + token-guarded JSON API
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; └─ appcore sign-in, tenant choice, session; drives the helper
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ spawns &amp;#34;claimward-app ui &amp;lt;url&amp;gt;&amp;#34; │ Unix socket (JSON), 0660 root:admin
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ▼ ▼
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; webview (WKWebView) claimward-helper (root LaunchDaemon)
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; renders the Svelte UI enrolls with the server, wireguard-go: utunN,
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; route pushes&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;Der Tray-Prozess besitzt den gesamten Zustand und stellt sowohl die Oberfläche als auch eine kleine JSON-API auf
+&lt;code&gt;127.0.0.1&lt;/code&gt; bereit, geschützt durch ein bei jedem Start neues Token, das in konstanter Zeit verglichen wird. Die
+Webview ist ein schlankes Fenster, das auf diese Loopback-URL zeigt, in einem eigenen Prozess,
+weil nur eine Cocoa-Run-Loop den Hauptthread besitzen kann. Der
+&lt;a href="https://claimward.github.io/docs/v0.4.0/de/components/helper/"&gt;Helper&lt;/a&gt; registriert sich beim Server und
+besitzt den Tunnel; die App ist nicht privilegiert.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="build"&gt;Build&lt;span class="hx:absolute hx:-mt-20" id="build"&gt;&lt;/span&gt;
+&lt;a href="#build" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Mit &lt;a href="https://taskfile.dev" target="_blank" rel="noopener"&gt;go-task&lt;/a&gt;:&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;task config:init &lt;span class="c1"&gt;# a starter config.json (local Dex)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;task install-helper &lt;span class="nv"&gt;SERVER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;https://vpn.example.org &lt;span class="c1"&gt;# build and install the helper (sudo)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;task start:bundle &lt;span class="c1"&gt;# build Claimward.app and open it&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;Starten Sie das Bundle und nicht das bloße Binary: Ein bloßes Binary, das von einem
+Menüleisten-Agenten gestartet wird, kann sein Fenster nicht in den Vordergrund bringen. Von Hand:&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;cd&lt;/span&gt; frontend &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; npm install &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; npm run build &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="nb"&gt;cd&lt;/span&gt; .. &lt;span class="c1"&gt;# the Svelte UI, embedded with go:embed&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;CGO_ENABLED&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt; go build -o bin/claimward-app ./cmd/claimward-app
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;CGO_ENABLED&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt; go build -o bin/claimward-helper ./cmd/claimward-helper&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;h2 data-hextra-search-id="configure"&gt;Konfiguration&lt;span class="hx:absolute hx:-mt-20" id="configure"&gt;&lt;/span&gt;
+&lt;a href="#configure" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;~/Library/Application Support/Claimward/config.json&lt;/code&gt;, auch bearbeitbar über
+&lt;strong&gt;Configuration…&lt;/strong&gt; (GitHub ist der Standard):&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;server_url&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;https://vpn.example.com&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;provider&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;github&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;github_client_id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;Iv1.0123456789abcdef&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;Für OIDC setzen Sie &lt;code&gt;&amp;quot;provider&amp;quot;: &amp;quot;oidc&amp;quot;&lt;/code&gt;, für go-authn &lt;code&gt;&amp;quot;provider&amp;quot;: &amp;quot;go-authn&amp;quot;&lt;/code&gt;, jeweils mit
+&lt;code&gt;&amp;quot;oidc_issuer&amp;quot;&lt;/code&gt; und &lt;code&gt;&amp;quot;oidc_client_id&amp;quot;&lt;/code&gt;. Bei GitHub und go-authn zeigt ein Klick auf
+&lt;strong&gt;Connect&lt;/strong&gt; einen Code an, der auf der angezeigten Seite einzugeben ist; bei OIDC öffnet der Browser
+die Anmeldeseite des Anbieters.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="install-the-helper-and-run"&gt;Den Helper installieren und starten&lt;span class="hx:absolute hx:-mt-20" id="install-the-helper-and-run"&gt;&lt;/span&gt;
+&lt;a href="#install-the-helper-and-run" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo ./scripts/install-helper.sh https://vpn.example.org &lt;span class="c1"&gt;# more servers may follow&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;open dist/Claimward.app &lt;span class="c1"&gt;# then click Connect&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;Das Installationsprogramm kopiert den Helper nach &lt;code&gt;/Library/PrivilegedHelperTools/&lt;/code&gt;, schreibt
+&lt;code&gt;/Library/Application Support/Claimward/helper.json&lt;/code&gt; (gehört root, Modus &lt;code&gt;0644&lt;/code&gt;)
+mit den angegebenen Servern und lädt den LaunchDaemon &lt;code&gt;com.claimward.helper&lt;/code&gt;.
+Der Socket des Helpers ist &lt;code&gt;/var/run/claimward-helper.sock&lt;/code&gt;, &lt;code&gt;0660&lt;/code&gt;,
+&lt;code&gt;root:admin&lt;/code&gt;; er protokolliert nach &lt;code&gt;/var/log/claimward-helper.log&lt;/code&gt;.
+&lt;code&gt;sudo ./scripts/uninstall-helper.sh&lt;/code&gt; entfernt ihn.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="tenants"&gt;Mandanten&lt;span class="hx:absolute hx:-mt-20" id="tenants"&gt;&lt;/span&gt;
+&lt;a href="#tenants" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Eine Person in mehreren Mandanten wählt einen im Fenster aus („Choose a tenant…“),
+das sie anbietet, sobald der Server meldet, dass eine Wahl besteht, oder auf Anfrage. Die
+Wahl gilt für die Sitzung; eine neue Anmeldung vergisst sie. Ein &lt;strong&gt;Connect&lt;/strong&gt; aus der
+Menüleiste, das der Server mangels Auswahl ablehnt, öffnet das Fenster.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="release"&gt;Release&lt;span class="hx:absolute hx:-mt-20" id="release"&gt;&lt;/span&gt;
+&lt;a href="#release" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;.github/workflows/release.yml&lt;/code&gt; baut &lt;code&gt;Claimward.dmg&lt;/code&gt; bei &lt;code&gt;v*&lt;/code&gt;-Tags und
+hängt es an das Release an. Wenn die Signatur-Secrets gesetzt sind, signiert es die App
+mit einer Developer ID und lässt das DMG notarisieren und versieht es mit dem Ticket (Stapling); ohne sie weicht es
+auf eine Ad-hoc-Signatur aus, die Gatekeeper bei einem heruntergeladenen DMG blockiert. Das
+Repository enthält keine Signatur-Secrets, daher sind die veröffentlichten DMGs (v0.1.0 und
+v0.2.0) &lt;strong&gt;ad hoc signiert und nicht notarisiert&lt;/strong&gt;. Das DMG enthält die App (mit dem Helper-Binary darin); der
+Helper wird wie oben beschrieben installiert.&lt;/p&gt;
+&lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-blue-200 hx:bg-blue-100 hx:text-blue-900 hx:dark:border-blue-200/30 hx:dark:bg-blue-900/30 hx:dark:text-blue-200"&gt;
+&lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/&gt;&lt;/svg&gt;&lt;/div&gt;
+&lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Noch ausstehend:&lt;/strong&gt; das Sitzungstoken in der Keychain (heute ist es eine Datei mit &lt;code&gt;0600&lt;/code&gt;),
+der mit SMJobBless installierte Helper, ein mit einer
+Developer ID signiertes Release und unter macOS angewendetes DNS.&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description></item><item><title>Linux-App</title><link>https://claimward.github.io/docs/v0.4.0/de/components/linux-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/v0.4.0/de/components/linux-app/</guid><description>
+&lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-linux" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-linux&lt;/code&gt;&lt;/a&gt;
+&lt;strong&gt;v0.2.1&lt;/strong&gt; ist ein &lt;strong&gt;Fenster und ein Symbol im Infobereich, in reinem Go gezeichnet&lt;/strong&gt; mit
+&lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt;: keine Webview, kein GTK, kein cgo
+(&lt;code&gt;CGO_ENABLED=0&lt;/code&gt;). Ein von systemd ausgeführter &lt;strong&gt;privilegierter Helper&lt;/strong&gt; besitzt den WireGuard-Tunnel.
+Die Logik ist die der macOS-App: Beide verwenden
+&lt;a href="https://claimward.github.io/docs/v0.4.0/de/components/client/"&gt;&lt;code&gt;pkg/appcore&lt;/code&gt; und &lt;code&gt;pkg/helper&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="design"&gt;Aufbau&lt;span class="hx:absolute hx:-mt-20" id="design"&gt;&lt;/span&gt;
+&lt;a href="#design" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; claimward-app (your session)
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ├─ internal/view go-widgets/toolkit widgets, bound with go-widgets/mvvmtk
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ├─ internal/trayview tray icon + menu (StatusNotifierItem over D-Bus)
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ├─ internal/viewmodel all state as go-widgets/mvvm observables and commands
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; └─ appcore sign-in, tenant, session; drives the helper
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ X11 / Wayland │ unix socket, JSON, 0660 root:claimward
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ▼ ▼
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; the window, the tray claimward-helper (root, systemd)
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; enrolls with a configured server,
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; wireguard-go TUN + ip(8), route pushes&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;Die App läuft unter Ihrem Benutzer und greift nie selbst in die Netzwerkkonfiguration oder auf den
+Server zu: Alles läuft über den &lt;a href="https://claimward.github.io/docs/v0.4.0/de/components/helper/"&gt;Helper&lt;/a&gt;.
+Das ViewModel hält den gesamten Zustand und importiert kein Widget; die CI erzwingt
+MVVM mit &lt;a href="https://github.com/go-widgets/mvvmlint" target="_blank" rel="noopener"&gt;mvvmlint&lt;/a&gt; und „keine
+von Hand gezeichnete Oberfläche“ mit &lt;a href="https://github.com/go-widgets/bricolint" target="_blank" rel="noopener"&gt;bricolint&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="what-it-does"&gt;Funktionen&lt;span class="hx:absolute hx:-mt-20" id="what-it-does"&gt;&lt;/span&gt;
+&lt;a href="#what-it-does" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Status&lt;/strong&gt;: wer angemeldet ist, verbunden oder nicht, die Adresse und die Schnittstelle,
+der Mandant der Sitzung, ob der Helper antwortet, der Server. Er wird
+alle 2 Sekunden abgefragt.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Anmeldung&lt;/strong&gt;: Bei einem Device Flow zeigt das Fenster den Code und eine Schaltfläche &lt;em&gt;Open sign-in
+page&lt;/em&gt; (&lt;code&gt;xdg-open&lt;/code&gt;); die Anmeldung kann abgebrochen werden.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Mandant&lt;/strong&gt;: Wenn der Server eine Verbindung ablehnt, weil die Person mehreren Mandanten angehört,
+meldet das Fenster dies und bietet eine Auswahlliste an; &lt;em&gt;Choose tenant&lt;/em&gt; fragt
+die Liste im Voraus ab. Der Mandant kann nicht gewechselt werden, solange eine Verbindung besteht.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Connect / Disconnect / Sign out&lt;/strong&gt;, &lt;strong&gt;Settings&lt;/strong&gt; (Server-URL, Anbieter,
+GitHub-Client-ID, OIDC-Issuer und Client-ID) und das &lt;strong&gt;Verbindungsprotokoll&lt;/strong&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Infobereich&lt;/strong&gt;: eine Statuszeile, &lt;em&gt;Connect&lt;/em&gt;, &lt;em&gt;Disconnect&lt;/em&gt;, &lt;em&gt;Open window&lt;/em&gt;, &lt;em&gt;Quit&lt;/em&gt;; das
+Symbol ist farbig, solange eine Verbindung besteht. Das Schließen des Fensters lässt die App im
+Infobereich; &lt;em&gt;Quit&lt;/em&gt; lässt den Tunnel, wie er ist.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Der Infobereich benötigt einen StatusNotifierItem-Host (KDE Plasma, GNOME mit der Erweiterung
+&lt;em&gt;AppIndicator and KStatusNotifierItem Support&lt;/em&gt;, waybar…). Ohne
+einen solchen, oder wenn das Element des Infobereichs nicht auf den Sitzungsbus gelegt werden kann, meldet die App dies beim
+Start, und das Schließen des Fensters beendet sie.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="install"&gt;Installation&lt;span class="hx:absolute hx:-mt-20" id="install"&gt;&lt;/span&gt;
+&lt;a href="#install" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Bauen Sie als Sie selbst (Go 1.27.1 oder neuer) und installieren Sie dann als root:&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;CGO_ENABLED&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt; go build -trimpath -o bin/ ./cmd/...
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo ./scripts/install.sh --server https://vpn.example.com&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;code&gt;install.sh&lt;/code&gt;:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;legt die Gruppe &lt;code&gt;claimward&lt;/code&gt; an und fügt Sie ihr hinzu (&lt;code&gt;$SUDO_USER&lt;/code&gt; oder
+&lt;code&gt;--user&lt;/code&gt;): &lt;strong&gt;Melden Sie sich ab und wieder an&lt;/strong&gt;, damit es wirksam wird;&lt;/li&gt;
+&lt;li&gt;installiert &lt;code&gt;claimward-app&lt;/code&gt; nach &lt;code&gt;/usr/local/bin&lt;/code&gt; und &lt;code&gt;claimward-helper&lt;/code&gt; nach
+&lt;code&gt;/usr/local/sbin&lt;/code&gt; (änderbar mit &lt;code&gt;--prefix&lt;/code&gt;);&lt;/li&gt;
+&lt;li&gt;schreibt &lt;code&gt;/etc/claimward/helper.json&lt;/code&gt;, &lt;code&gt;root:root&lt;/code&gt;, Modus &lt;code&gt;0644&lt;/code&gt;, mit dem
+angegebenen Server (eine vorhandene Datei bleibt erhalten);&lt;/li&gt;
+&lt;li&gt;installiert und startet &lt;code&gt;claimward-helper.service&lt;/code&gt; und wartet auf dessen Socket;&lt;/li&gt;
+&lt;li&gt;installiert den Desktop-Eintrag und das Symbol.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Starten Sie &lt;strong&gt;Claimward VPN&lt;/strong&gt; aus dem Menü der Desktopumgebung; &lt;code&gt;claimward-app -hidden&lt;/code&gt;
+startet im Infobereich (für einen Autostart-Eintrag). &lt;code&gt;sudo ./scripts/uninstall.sh&lt;/code&gt;
+entfernt alles und stoppt den Helper, was den Tunnel abbaut; &lt;code&gt;--purge&lt;/code&gt;
+entfernt außerdem &lt;code&gt;/etc/claimward&lt;/code&gt; und die Gruppe.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="configure"&gt;Konfiguration&lt;span class="hx:absolute hx:-mt-20" id="configure"&gt;&lt;/span&gt;
+&lt;a href="#configure" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Die App: &lt;code&gt;~/.config/Claimward/config.json&lt;/code&gt;, vom Einstellungsformular geschrieben,
+Modus &lt;code&gt;0600&lt;/code&gt;, überschrieben durch die Variablen &lt;code&gt;CLAIMWARD_*&lt;/code&gt; (siehe die
+&lt;a href="https://claimward.github.io/docs/v0.4.0/de/components/client/#files-on-the-device"&gt;Client-Bibliothek&lt;/a&gt;).
+Die Sitzung ist &lt;code&gt;~/.config/claimward/session.json&lt;/code&gt;, Modus &lt;code&gt;0600&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Der Helper: &lt;code&gt;/etc/claimward/helper.json&lt;/code&gt; (siehe
+&lt;a href="https://claimward.github.io/docs/v0.4.0/de/components/helper/"&gt;Privilegierter Helper&lt;/a&gt;); führen Sie nach dem Bearbeiten
+&lt;code&gt;sudo systemctl restart claimward-helper&lt;/code&gt; aus.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="the-hardened-unit"&gt;Die gehärtete Unit&lt;span class="hx:absolute hx:-mt-20" id="the-hardened-unit"&gt;&lt;/span&gt;
+&lt;a href="#the-hardened-unit" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;claimward-helper.service&lt;/code&gt; behält nur &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt;, &lt;code&gt;CAP_NET_RAW&lt;/code&gt; und
+&lt;code&gt;CAP_CHOWN&lt;/code&gt;, mit &lt;code&gt;NoNewPrivileges&lt;/code&gt;, &lt;code&gt;ProtectSystem=strict&lt;/code&gt; und nur &lt;code&gt;/run&lt;/code&gt;
+beschreibbar, &lt;code&gt;ProtectHome&lt;/code&gt;, aus &lt;code&gt;/dev&lt;/code&gt; allein &lt;code&gt;/dev/net/tun&lt;/code&gt;, Adressfamilien
+beschränkt auf unix, inet, inet6 und netlink, und die Systemaufrufe von &lt;code&gt;@system-service&lt;/code&gt;.
+&lt;code&gt;systemd-analyze security claimward-helper&lt;/code&gt; bewertet sie mit 2.5 (OK). Mitglied
+der Gruppe &lt;code&gt;claimward&lt;/code&gt; zu sein bedeutet, das VPN auf- und abbauen zu dürfen.&lt;/p&gt;
+&lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-blue-200 hx:bg-blue-100 hx:text-blue-900 hx:dark:border-blue-200/30 hx:dark:bg-blue-900/30 hx:dark:text-blue-200"&gt;
+&lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/&gt;&lt;/svg&gt;&lt;/div&gt;
+&lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Geprüft&lt;/strong&gt; in einer virtuellen Maschine mit Ubuntu 24.04 (arm64) gegen einen
+Ersatzserver. &lt;strong&gt;Noch nicht geprüft&lt;/strong&gt;, laut README: ein echter GNOME- oder KDE-Desktop,
+Wayland, HiDPI, eine Anmeldung bei einem echten Identitätsanbieter und ein
+echter claimward-vpn-server. Die Sitzungsdatei liegt noch nicht in einem Schlüsselbund.&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description></item><item><title>Windows-App</title><link>https://claimward.github.io/docs/v0.4.0/de/components/windows-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/v0.4.0/de/components/windows-app/</guid><description>
+&lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-windows" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-windows&lt;/code&gt;&lt;/a&gt;
+&lt;strong&gt;v0.3.0&lt;/strong&gt; ist eine Desktop-App mit einem Symbol im Infobereich (Tray). Alles ist
+Go mit &lt;code&gt;CGO_ENABLED=0&lt;/code&gt;: Das Fenster und der Infobereich werden von
+&lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt; gezeichnet (keine Webview, kein HTTP-Server in der
+App), und der Tunnel ist &lt;a href="https://git.zx2c4.com/wireguard-go" target="_blank" rel="noopener"&gt;wireguard-go&lt;/a&gt; auf einem
+&lt;a href="https://www.wintun.net" target="_blank" rel="noopener"&gt;Wintun&lt;/a&gt;-Adapter, konfiguriert über die IP Helper API.
+Ihre Logik und ihr Helper sind die gemeinsamen
+&lt;a href="https://claimward.github.io/docs/v0.4.0/de/components/client/"&gt;&lt;code&gt;pkg/appcore&lt;/code&gt; und &lt;code&gt;pkg/helper&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="design"&gt;Aufbau&lt;span class="hx:absolute hx:-mt-20" id="design"&gt;&lt;/span&gt;
+&lt;a href="#design" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; claimward-app.exe (the person, unprivileged)
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ├─ internal/ui/view.go widgets, bound by go-widgets/mvvmtk to …
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ├─ internal/ui/viewmodel.go … the ViewModel: all state, observables and commands
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ├─ internal/ui/tray_binding the tray menu, bound to the same ViewModel
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; └─ appcore sign-in, session, tenant, helper client
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ AF_UNIX socket, one JSON request each: C:\ProgramData\Claimward\helper.sock
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ▼
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; claimward-helper.exe — the ClaimwardHelper service (LocalSystem)
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; pkg/helper enrolls with a server helper.json names, owns the tunnel
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; pkg/wgtun wireguard-go on the Wintun adapter &amp;#34;Claimward&amp;#34;; address, routes, DNS, MTU&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;Das Fenster zeigt die Verbindung, die Adresse und die Schnittstelle, wer angemeldet ist,
+den Mandanten und ob der Helper antwortet; die Aufforderung des Device Flow mit einer
+Schaltfläche, die die Seite im Standardbrowser öffnet (an die Shell wird immer nur eine &lt;code&gt;https&lt;/code&gt;-Seite
+übergeben); &lt;strong&gt;Connect / Disconnect / Sign out&lt;/strong&gt;; &lt;strong&gt;Choose
+tenant&lt;/strong&gt;; die Einstellungen, gespeichert in &lt;code&gt;%AppData%\Claimward\config.json&lt;/code&gt;; und das
+Verbindungsprotokoll. Der Status wird alle 2 Sekunden abgefragt. Das Menü im Infobereich bietet
+den Status, Connect, Disconnect, Open und Quit. Das Schließen des Fensters beendet die
+App; der Tunnel gehört dem Dienst und bleibt bis Disconnect bestehen.&lt;/p&gt;
+&lt;p&gt;Das Symbol im Infobereich erscheint ab &lt;strong&gt;v0.3.0&lt;/strong&gt;. Davor hatte die Tray-Bibliothek keine
+Windows-Implementierung des Aufrufs, den die App macht, und die App ignorierte den
+Fehler, sodass v0.1.0 und v0.2.0 &lt;strong&gt;kein Symbol im Infobereich&lt;/strong&gt; zeigten. v0.3.0 wird mit der
+Tray-Bibliothek gebaut, die ihn implementiert (go-widgets/tray v0.14.0). Das ist durch die
+Kompilierung und die eigenen Tests der Bibliothek geprüft, noch nicht auf einem Windows-Desktop. Zwei
+bekannte Lücken: Ein Symbol, das nicht hinzugefügt werden kann, wird auf stderr gemeldet, was ein
+Build mit Fenster nicht anzeigt
+(&lt;a href="https://github.com/claimward/claimward-vpn-app-windows/issues/6" target="_blank" rel="noopener"&gt;#6&lt;/a&gt;), und
+beim Beenden kann ein Geistersymbol zurückbleiben, bis der Mauszeiger darüberfährt
+(&lt;a href="https://github.com/go-widgets/tray/issues/37" target="_blank" rel="noopener"&gt;go-widgets/tray#37&lt;/a&gt;).&lt;/p&gt;
+&lt;h2 data-hextra-search-id="install"&gt;Installation&lt;span class="hx:absolute hx:-mt-20" id="install"&gt;&lt;/span&gt;
+&lt;a href="#install" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Aus einem Release-Ordner (&lt;code&gt;scripts/package.sh&lt;/code&gt; erstellt sie, mit Wintun), in einer
+PowerShell &lt;strong&gt;mit erhöhten Rechten&lt;/strong&gt;:&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-powershell" data-lang="powershell"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;Set-ExecutionPolicy&lt;/span&gt; &lt;span class="n"&gt;-Scope&lt;/span&gt; &lt;span class="k"&gt;Process&lt;/span&gt; &lt;span class="n"&gt;Bypass&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;.\&lt;/span&gt;&lt;span class="n"&gt;install&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="py"&gt;ps1&lt;/span&gt; &lt;span class="n"&gt;-Server&lt;/span&gt; &lt;span class="n"&gt;https&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="p"&gt;//&lt;/span&gt;&lt;span class="n"&gt;vpn&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="py"&gt;example&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="py"&gt;org&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c"&gt;# optionally, the app&amp;#39;s settings for the current user as well:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;.\&lt;/span&gt;&lt;span class="n"&gt;install&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="py"&gt;ps1&lt;/span&gt; &lt;span class="n"&gt;-Server&lt;/span&gt; &lt;span class="n"&gt;https&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="p"&gt;//&lt;/span&gt;&lt;span class="n"&gt;vpn&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="py"&gt;example&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="py"&gt;org&lt;/span&gt; &lt;span class="n"&gt;-Provider&lt;/span&gt; &lt;span class="n"&gt;github&lt;/span&gt; &lt;span class="n"&gt;-GitHubClientId&lt;/span&gt; &lt;span class="n"&gt;Iv1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;0123456789abcdef&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;Es kopiert die Programme und &lt;code&gt;wintun.dll&lt;/code&gt; nach &lt;code&gt;C:\Program Files\Claimward&lt;/code&gt;,
+legt die lokale Gruppe &lt;strong&gt;Claimward Users&lt;/strong&gt; an und fügt Sie ihr hinzu, schreibt
+&lt;code&gt;C:\ProgramData\Claimward\helper.json&lt;/code&gt;, registriert und startet den Dienst
+&lt;strong&gt;ClaimwardHelper&lt;/strong&gt; und fügt eine Startmenü-Verknüpfung &lt;strong&gt;Claimward VPN&lt;/strong&gt; hinzu.
+Die Mitgliedschaft wird bei Ihrer &lt;strong&gt;nächsten Anmeldung an Windows&lt;/strong&gt; wirksam; bis dahin
+weist der Socket Sie ab. Fügen Sie weitere Personen hinzu mit
+&lt;code&gt;Add-LocalGroupMember -Group 'Claimward Users' -Member &amp;lt;name&amp;gt;&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;.\uninstall.ps1&lt;/code&gt; entfernt den Dienst, die Verknüpfung und die Programme;
+&lt;code&gt;-RemoveData&lt;/code&gt; entfernt außerdem &lt;code&gt;C:\ProgramData\Claimward&lt;/code&gt; und die Gruppe. Ein
+MSI gibt es noch nicht.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;package.sh&lt;/code&gt; lädt &lt;code&gt;wintun-0.14.1.zip&lt;/code&gt; von wintun.net herunter und weist es zurück,
+sofern sein SHA-256 nicht mit dem im Skript festgelegten übereinstimmt; die DLL ist von
+WireGuard LLC signiert und liegt nicht im Repository.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="configure"&gt;Konfiguration&lt;span class="hx:absolute hx:-mt-20" id="configure"&gt;&lt;/span&gt;
+&lt;a href="#configure" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Die App liest &lt;code&gt;%AppData%\Claimward\config.json&lt;/code&gt;, dann die Variablen &lt;code&gt;CLAIMWARD_*&lt;/code&gt;
+(siehe die &lt;a href="https://claimward.github.io/docs/v0.4.0/de/components/client/#files-on-the-device"&gt;Client-Bibliothek&lt;/a&gt;).
+Die Sitzung ist &lt;code&gt;%AppData%\claimward\session.json&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Der Helper liest &lt;code&gt;C:\ProgramData\Claimward\helper.json&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;servers&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;https://vpn.example.org&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;group&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;Claimward Users&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;socket&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;C:\\ProgramData\\Claimward\\helper.sock&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;Der Dienst protokolliert nach &lt;code&gt;C:\ProgramData\Claimward\helper.log&lt;/code&gt;; aus einer Konsole
+mit erhöhten Rechten führt &lt;code&gt;claimward-helper run&lt;/code&gt; ihn im Vordergrund aus. Die ACLs, die der Helper
+setzt und prüft, sind unter
+&lt;a href="https://claimward.github.io/docs/v0.4.0/de/components/helper/#the-socket-windows"&gt;Privilegierter Helper&lt;/a&gt; beschrieben.&lt;/p&gt;
+&lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-blue-200 hx:bg-blue-100 hx:text-blue-900 hx:dark:border-blue-200/30 hx:dark:bg-blue-900/30 hx:dark:text-blue-200"&gt;
+&lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/&gt;&lt;/svg&gt;&lt;/div&gt;
+&lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Noch ausstehend:&lt;/strong&gt; ein MSI-Installationsprogramm und die Sitzung in der Windows-Anmeldeinformationsverwaltung
+(DPAPI) statt in einer Datei pro Benutzer.&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description></item><item><title>Architektur</title><link>https://claimward.github.io/docs/v0.4.0/de/architecture/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/v0.4.0/de/architecture/</guid><description>
+&lt;p&gt;Claimward trennt eine &lt;strong&gt;Steuerungsebene&lt;/strong&gt;, den Server, von der &lt;strong&gt;Datenebene&lt;/strong&gt;,
+dem WireGuard-Tunnel zwischen einem Gerät und dem Gateway. Die Authentifizierung wird
+an Ihren Identitätsanbieter delegiert: Claimward sieht nie ein Passwort.&lt;/p&gt;
+&lt;p&gt;Auf einem Gerät meldet eine nicht privilegierte &lt;strong&gt;App&lt;/strong&gt; die Person an und hält die
+Sitzung; ein &lt;strong&gt;privilegierter Helper&lt;/strong&gt; (root, unter Windows SYSTEM) registriert sich beim
+Server und besitzt den Tunnel. Die App selbst spricht nie mit dem Server.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="end-to-end-enrollment-flow"&gt;Registrierungsablauf von Ende zu Ende&lt;span class="hx:absolute hx:-mt-20" id="end-to-end-enrollment-flow"&gt;&lt;/span&gt;
+&lt;a href="#end-to-end-enrollment-flow" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ┌──────────┐ 1. sign-in: GitHub device flow, OIDC code + PKCE, ┌──────────┐
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ app │ or go-authn device flow (+ key registration) │ IdP │
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ (as you) │◀─────────────────── bearer token ──────────────────│ │
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; └────┬─────┘ └──────────┘
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ 2. socket: connect {server_url, bearer, private key, tenant}
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ▼
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ┌──────────┐ 3. POST /api/v1/enroll ┌─────────────────────────┐
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ helper │ Authorization: Bearer &amp;lt;token&amp;gt; │ claimward-vpn-server │
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ (root) │ {public_key, device, tenant} ───▶ │ verify the bearer │
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ │ │ choose the tenant │
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ │ ◀─── 4. {assigned_ip, │ allocate an address │
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ │ server_public_key, endpoint, │ wgctrl: add the peer │
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ │ allowed_ips, dns, │ (AllowedIPs = ip/32) │
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ │ grpc_endpoint, keepalive, └───────────┬─────────────┘
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ │ lease_expires_at} │ RouteService
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ │ ◀═════════════ 6. gRPC Watch (TLS) ═══════════════╛ (live routes)
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ │
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ │ 5. wireguard-go: utunN / Wintun &amp;#34;Claimward&amp;#34;, address, routes
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; └────┬─────┘
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ╚═══════════════════ WireGuard tunnel ════════════════════▶ private network&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;ol&gt;
+&lt;li&gt;Die App meldet die Person mit dem konfigurierten Anbieter an: standardmäßig &lt;strong&gt;GitHub&lt;/strong&gt;
+(OAuth Device Flow), ein beliebiger &lt;strong&gt;OpenID-Connect&lt;/strong&gt;-Issuer (Authorization
+Code mit PKCE, im Browser) oder ein &lt;strong&gt;go-authn&lt;/strong&gt;-Anbieter (Device Flow).
+Das Bearer-Token, das sie erhält, ist ein GitHub-Access-Token, ein OIDC-ID-Token oder ein go-authn-Access-Token.
+Bei go-authn wird zuerst der &lt;strong&gt;öffentliche&lt;/strong&gt; Schlüssel des Geräts beim Anbieter
+registriert, und das Bearer-Token ist das Token, das diese Registrierung
+zurückgibt.&lt;/li&gt;
+&lt;li&gt;Die App erzeugt das WireGuard-Schlüsselpaar des Geräts bei der ersten Anmeldung und
+bewahrt es in ihrer Sitzungsdatei auf, bis sich die Person abmeldet, sodass das Gerät
+seinen öffentlichen Schlüssel über Verbindungen hinweg behält (und seine Adresse, solange es registriert ist). Zum Verbinden übergibt sie dem Helper die Server-URL, das Bearer-Token, den
+privaten Schlüssel und den für die Sitzung gewählten Mandanten, über den Socket des Helpers.&lt;/li&gt;
+&lt;li&gt;Der Helper prüft, dass der Server &lt;strong&gt;einer der in seiner eigenen Konfiguration genannten&lt;/strong&gt; ist,
+und ruft dann &lt;code&gt;POST /api/v1/enroll&lt;/code&gt; mit dem öffentlichen Schlüssel des Geräts und dem
+Bearer-Token auf.&lt;/li&gt;
+&lt;li&gt;Der Server &lt;strong&gt;prüft&lt;/strong&gt; das Bearer-Token (ein Aufruf der GitHub-API, ein OIDC-ID-Token oder
+ein go-authn-Access-Token, dessen Subject den Schlüssel besitzen muss), wendet eine etwaige
+Allowlist für Organisationen oder E-Mail-Domains an, wählt den &lt;strong&gt;Mandanten&lt;/strong&gt;, &lt;strong&gt;vergibt&lt;/strong&gt; eine
+VPN-Adresse und &lt;strong&gt;programmiert das Gateway&lt;/strong&gt; (&lt;code&gt;wgctrl&lt;/code&gt;) mit einem Peer, dessen einzige
+erlaubte IP dieses &lt;code&gt;/32&lt;/code&gt; ist. Er antwortet mit den Tunnelparametern: der Adresse,
+seinem eigenen öffentlichen Schlüssel, dem Endpunkt, den Routen und DNS-Servern des Mandanten, dem
+Keepalive, dem Endpunkt des RouteService und dem Ende der Lease.&lt;/li&gt;
+&lt;li&gt;Der Helper baut mit &lt;code&gt;wireguard-go&lt;/code&gt; einen Tunnel im Userspace auf, gibt der
+Schnittstelle ihre Adresse und installiert die Routen.&lt;/li&gt;
+&lt;li&gt;Wenn der Server einen RouteService ankündigt (&lt;code&gt;GRPC_ENDPOINT&lt;/code&gt;), beobachtet der Helper
+ihn über gRPC: Änderungen an den Routen des Mandanten erreichen das Gerät,
+ohne dass es sich erneut registriert.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 data-hextra-search-id="leases"&gt;Leases&lt;span class="hx:absolute hx:-mt-20" id="leases"&gt;&lt;/span&gt;
+&lt;a href="#leases" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Jede Registrierung trägt eine &lt;strong&gt;Lease&lt;/strong&gt; von &lt;code&gt;LEASE_TTL&lt;/code&gt; (standardmäßig 24 Stunden). Ein
+Hintergrundprozess auf dem Server entfernt jede Minute die Peers, deren Lease
+abgelaufen ist, sodass ein verlorenes oder gesperrtes Gerät von selbst vom Gateway verschwindet. Bei
+go-authn überdauert eine Lease nie die Registrierung des Schlüssels beim Anbieter.&lt;/p&gt;
+&lt;p&gt;Der Server erneuert eine Lease bei &lt;code&gt;POST /api/v1/heartbeat&lt;/code&gt; und entfernt einen Peer
+sofort bei &lt;code&gt;POST /api/v1/deregister&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Ab &lt;strong&gt;claimward-vpn-client v0.3.1&lt;/strong&gt;, also ab den App-Releases, die diese Version
+enthalten (die macOS-, Linux- und Windows-Apps ab v0.2.0), hält der Helper die Lease selbst aufrecht, solange
+der Tunnel steht. Er erneuert sie, wenn die Hälfte der Restlaufzeit der Lease verstrichen ist, nie früher
+als nach 30 Sekunden und nie später als nach 10 Minuten, und handelt nach der Antwort:&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Der Server antwortet&lt;/th&gt;
+&lt;th&gt;Der Helper&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;eine erneuerte Lease&lt;/td&gt;
+&lt;td&gt;erneuert wieder nach der Hälfte davon&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;404 not_enrolled&lt;/code&gt;: Er hat das Gerät vergessen (die Lease ist abgelaufen, oder der Server wurde neu gestartet)&lt;/td&gt;
+&lt;td&gt;registriert sich erneut mit demselben Schlüssel und Mandanten und baut den Tunnel anhand dieser Antwort auf; schlägt auch das fehl, baut er den Tunnel ab&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;403&lt;/code&gt; (&lt;code&gt;not_a_member&lt;/code&gt;, &lt;code&gt;key_not_registered&lt;/code&gt;): Zugang entzogen&lt;/td&gt;
+&lt;td&gt;baut den Tunnel ab und meldet den Grund (&lt;code&gt;last_error&lt;/code&gt;)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;401&lt;/code&gt;, ein &lt;code&gt;5xx&lt;/code&gt; oder nichts&lt;/td&gt;
+&lt;td&gt;versucht es innerhalb einer Minute erneut, bevor die Lease endet&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Der Helper erneuert mit dem letzten Bearer-Token, das er erhalten hat. Das genügt für ein
+GitHub-Token, nicht aber für ein go-authn-Access-Token, das nach Minuten abläuft und
+das nur die App auffrischen kann. Solange die App läuft, übergibt &lt;code&gt;pkg/appcore&lt;/code&gt; dem
+Helper daher ein frisches Bearer-Token (die Aktion &lt;code&gt;renew&lt;/code&gt; des Helpers), wenn 40 % der Restlaufzeit der Lease
+verstrichen sind (höchstens 8 Minuten auseinander), bevor die eigene Erneuerung des Helpers fällig ist. Eine App, die unter einem
+laufenden Tunnel neu gestartet wird, beginnt damit bei ihrer ersten Statusabfrage.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Disconnect&lt;/em&gt; (die Aktion &lt;code&gt;down&lt;/code&gt; des Helpers) &lt;strong&gt;meldet&lt;/strong&gt; den Peer &lt;strong&gt;ab&lt;/strong&gt; und gibt seine
+Adresse sofort zurück. Ein Helper, der beendet wird (sein Dienstmanager stoppt
+ihn, oder die Maschine fährt herunter), baut den Tunnel ab, ohne sich abzumelden,
+sodass ein neu gestarteter Helper die Lease noch vorfindet und die Lease einer gestoppten Maschine
+auf dem Server abläuft.&lt;/p&gt;
+&lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-blue-200 hx:bg-blue-100 hx:text-blue-900 hx:dark:border-blue-200/30 hx:dark:bg-blue-900/30 hx:dark:text-blue-200"&gt;
+&lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/&gt;&lt;/svg&gt;&lt;/div&gt;
+&lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;Die Apps in v0.1.0 bauen auf früheren Client-Versionen auf, die nichts davon tun:
+Sie erneuern eine Lease nur durch erneutes Verbinden und lassen den Peer nach
+&lt;em&gt;Disconnect&lt;/em&gt; auf dem Gateway, bis seine Lease endet.&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;h2 data-hextra-search-id="trust-boundaries"&gt;Vertrauensgrenzen&lt;span class="hx:absolute hx:-mt-20" id="trust-boundaries"&gt;&lt;/span&gt;
+&lt;a href="#trust-boundaries" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;Der &lt;strong&gt;Server&lt;/strong&gt; ist die einzige Komponente, die mit dem Identitätsanbieter spricht, um
+eine Anmeldung zu prüfen, und die einzige mit dem Recht, die Peers des Gateways zu ändern.&lt;/li&gt;
+&lt;li&gt;Auf dem Gerät ist der &lt;strong&gt;Helper&lt;/strong&gt; der einzige privilegierte Prozess. Alles, was
+seinen Socket erreichen kann, kann ihn zum Handeln auffordern, daher handelt er im Rahmen seiner eigenen
+Konfiguration: Er registriert sich nur bei den Servern, die diese Konfiguration nennt, und
+übernimmt keine Tunnelkonfiguration aus einer Anfrage. Siehe
+&lt;a href="https://claimward.github.io/docs/v0.4.0/de/components/helper/"&gt;Privilegierter Helper&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;Die &lt;strong&gt;App&lt;/strong&gt; läuft unter dem Benutzer der Person. Sie hält die Sitzung (Bearer-Token und Geräteschlüssel)
+in einer Datei mit &lt;code&gt;0600&lt;/code&gt; in deren Konfigurationsverzeichnis.&lt;/li&gt;
+&lt;li&gt;Eine Beobachtung der Routen überträgt das Bearer-Token, daher läuft sie über &lt;strong&gt;TLS&lt;/strong&gt;, außer zu einer
+Loopback-Adresse.&lt;/li&gt;
+&lt;li&gt;Der Wire-Vertrag liegt an einer einzigen Stelle,
+&lt;a href="https://github.com/claimward/claimward-vpn-client/tree/main/pkg/protocol" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-client/pkg/protocol&lt;/code&gt;&lt;/a&gt;
+und &lt;code&gt;pkg/routespb&lt;/code&gt;, importiert sowohl von den Clients als auch vom Server.&lt;/li&gt;
+&lt;/ul&gt;</description></item></channel></rss>

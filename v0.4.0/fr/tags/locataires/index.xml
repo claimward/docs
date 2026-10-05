@@ -1,0 +1,91 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Claimward – Locataires</title><link>https://claimward.github.io/docs/v0.4.0/fr/tags/locataires/</link><description>Recent content in Locataires on Claimward</description><generator>Hugo -- gohugo.io</generator><language>fr</language><atom:link href="https://claimward.github.io/docs/v0.4.0/fr/tags/locataires/index.xml" rel="self" type="application/rss+xml"/><item><title>Locataires</title><link>https://claimward.github.io/docs/v0.4.0/fr/tenants/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/v0.4.0/fr/tenants/</guid><description>
+&lt;p&gt;Un &lt;strong&gt;locataire&lt;/strong&gt; est un ensemble de routes (&lt;code&gt;allowed_ips&lt;/code&gt;) et de serveurs DNS, ainsi que
+les règles qui disent qui lui appartient. Une personne peut appartenir à plusieurs
+locataires : elle en choisit un par session, et l&amp;rsquo;appareil se connecte à celui-là.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="membership"&gt;Appartenance&lt;span class="hx:absolute hx:-mt-20" id="membership"&gt;&lt;/span&gt;
+&lt;a href="#membership" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Une personne appartient à tout locataire qui mentionne l&amp;rsquo;un des éléments suivants :&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Champ&lt;/th&gt;
+&lt;th&gt;Comparé à&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;domains&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;le domaine d&amp;rsquo;une adresse e-mail &lt;strong&gt;vérifiée&lt;/strong&gt; (une adresse non vérifiée n&amp;rsquo;est qu&amp;rsquo;une chaîne saisie par la personne)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;groups&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;la revendication &lt;code&gt;groups&lt;/code&gt; du jeton (OIDC ; go-authn : droits eduPerson), ou les organisations GitHub de la personne&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;idps&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;l&amp;rsquo;établissement qui s&amp;rsquo;est porté garant d&amp;rsquo;elle : l&amp;rsquo;&lt;code&gt;idp&lt;/code&gt; de go-authn, un entity ID SAML&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Une personne qui ne correspond à aucun appartient au locataire &lt;code&gt;default&lt;/code&gt;, et seulement dans ce cas.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="where-tenants-come-from"&gt;D&amp;rsquo;où viennent les locataires&lt;span class="hx:absolute hx:-mt-20" id="where-tenants-come-from"&gt;&lt;/span&gt;
+&lt;a href="#where-tenants-come-from" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Le serveur démarre avec un seul locataire, &lt;code&gt;default&lt;/code&gt;, dont les routes sont &lt;code&gt;PUSH_ROUTES&lt;/code&gt;
+(par défaut &lt;code&gt;VPN_CIDR&lt;/code&gt;) et dont les serveurs DNS sont &lt;code&gt;DNS&lt;/code&gt;. Les autres locataires sont
+créés, modifiés et supprimés via l&amp;rsquo;&lt;a href="https://claimward.github.io/docs/v0.4.0/fr/operations/#admin-api-and-webui"&gt;API d&amp;rsquo;administration et la WebUI&lt;/a&gt;,
+qui modifient les trois listes d&amp;rsquo;appartenance à côté des routes. Le locataire par défaut
+ne peut pas être supprimé.&lt;/p&gt;
+&lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-amber-200 hx:bg-amber-100 hx:text-amber-900 hx:dark:border-amber-200/30 hx:dark:bg-amber-900/30 hx:dark:text-amber-200"&gt;
+&lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/&gt;&lt;/svg&gt;&lt;/div&gt;
+&lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;Les locataires sont conservés &lt;strong&gt;en mémoire&lt;/strong&gt; (v0.2.0) : un redémarrage du serveur ne laisse que
+le locataire &lt;code&gt;default&lt;/code&gt;, reconstruit à partir de l&amp;rsquo;environnement.&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;h2 data-hextra-search-id="choosing-one-per-session"&gt;En choisir un par session&lt;span class="hx:absolute hx:-mt-20" id="choosing-one-per-session"&gt;&lt;/span&gt;
+&lt;a href="#choosing-one-per-session" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Requête&lt;/th&gt;
+&lt;th&gt;Ce que fait le serveur&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GET /api/v1/tenants&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;liste les locataires auxquels l&amp;rsquo;appelant peut se connecter, &lt;code&gt;[{&amp;quot;id&amp;quot;, &amp;quot;name&amp;quot;}]&lt;/code&gt;, pour qu&amp;rsquo;un client propose le choix&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;POST /api/v1/enroll&lt;/code&gt; avec &lt;code&gt;tenant&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;le locataire doit être l&amp;rsquo;un d&amp;rsquo;eux, sinon &lt;code&gt;403 not_a_member&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;POST /api/v1/enroll&lt;/code&gt; sans &lt;code&gt;tenant&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;l&amp;rsquo;unique locataire de l&amp;rsquo;appelant ; une personne qui en a plusieurs reçoit &lt;code&gt;409 tenant_required&lt;/code&gt;, avec la liste dans le message, plutôt que d&amp;rsquo;être routée vers un réseau qu&amp;rsquo;elle n&amp;rsquo;a pas choisi&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;POST /api/v1/heartbeat&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;refusé avec &lt;code&gt;403 not_a_member&lt;/code&gt; dès que la personne ne fait plus partie du locataire de la session&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;RouteService &lt;code&gt;Watch&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;diffuse les routes du locataire &lt;strong&gt;dans lequel l&amp;rsquo;appareil s&amp;rsquo;est enrôlé&lt;/strong&gt;, retrouvé par la clé de l&amp;rsquo;appareil, qui doit être celle de l&amp;rsquo;appelant&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Dans les applications (&lt;code&gt;pkg/appcore&lt;/code&gt;) :&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;Tenants&lt;/code&gt;&lt;/strong&gt; demande au serveur, via le helper, quels locataires la personne
+peut rejoindre ;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;SetTenant&lt;/code&gt;&lt;/strong&gt; enregistre le choix dans la session, et uniquement un locataire que le
+serveur a proposé ; une nouvelle connexion l&amp;rsquo;oublie ;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;Connect&lt;/code&gt;&lt;/strong&gt; enrôle l&amp;rsquo;appareil dans ce locataire. Une personne qui en a plusieurs et n&amp;rsquo;a pas
+choisi reçoit &lt;code&gt;ErrTenantRequired&lt;/code&gt;, avec les locataires dans l&amp;rsquo;état.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Une personne qui n&amp;rsquo;a qu&amp;rsquo;un locataire ne choisit jamais. L&amp;rsquo;application macOS ouvre sa fenêtre lorsqu&amp;rsquo;un
+&lt;strong&gt;Connect&lt;/strong&gt; depuis la barre des menus est refusé faute de choix ; les applications Linux et
+Windows affichent le choix dans leur fenêtre. L&amp;rsquo;application Linux ne permet pas de changer de
+locataire pendant la connexion.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="route-updates"&gt;Mises à jour des routes&lt;span class="hx:absolute hx:-mt-20" id="route-updates"&gt;&lt;/span&gt;
+&lt;a href="#route-updates" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Modifier les routes d&amp;rsquo;un locataire incrémente son &lt;code&gt;serial&lt;/code&gt; et pousse le nouvel ensemble vers chaque
+appareil qui surveille ce locataire via le RouteService gRPC. Le helper remplace
+les allowed IPs du pair WireGuard et ajoute ou retire les routes correspondantes,
+sans nouvel enrôlement. Supprimer un locataire met fin à ses surveillances.&lt;/p&gt;</description></item></channel></rss>

@@ -1,0 +1,91 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Claimward – Tenants</title><link>https://claimward.github.io/docs/v0.4.0/tags/tenants/</link><description>Recent content in Tenants on Claimward</description><generator>Hugo -- gohugo.io</generator><language>en</language><atom:link href="https://claimward.github.io/docs/v0.4.0/tags/tenants/index.xml" rel="self" type="application/rss+xml"/><item><title>Tenants</title><link>https://claimward.github.io/docs/v0.4.0/tenants/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/v0.4.0/tenants/</guid><description>
+&lt;p&gt;A &lt;strong&gt;tenant&lt;/strong&gt; is a set of routes (&lt;code&gt;allowed_ips&lt;/code&gt;) and DNS servers, and the rules
+that say who belongs to it. A person may belong to several tenants: they
+choose one per session, and the device connects to that one.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="membership"&gt;Membership&lt;span class="hx:absolute hx:-mt-20" id="membership"&gt;&lt;/span&gt;
+&lt;a href="#membership" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;A person belongs to every tenant that names any of:&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Field&lt;/th&gt;
+&lt;th&gt;Matched against&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;domains&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;the domain of a &lt;strong&gt;verified&lt;/strong&gt; email address (an unverified one is a string the person typed)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;groups&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;the token&amp;rsquo;s &lt;code&gt;groups&lt;/code&gt; claim (OIDC; go-authn: eduPerson entitlements), or the person&amp;rsquo;s GitHub organisations&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;idps&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;the institution that vouched for them: go-authn&amp;rsquo;s &lt;code&gt;idp&lt;/code&gt;, a SAML entity ID&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;A person who matches none belongs to the &lt;code&gt;default&lt;/code&gt; tenant, and only then.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="where-tenants-come-from"&gt;Where tenants come from&lt;span class="hx:absolute hx:-mt-20" id="where-tenants-come-from"&gt;&lt;/span&gt;
+&lt;a href="#where-tenants-come-from" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;The server starts with one tenant, &lt;code&gt;default&lt;/code&gt;, whose routes are &lt;code&gt;PUSH_ROUTES&lt;/code&gt;
+(by default &lt;code&gt;VPN_CIDR&lt;/code&gt;) and whose DNS servers are &lt;code&gt;DNS&lt;/code&gt;. Other tenants are
+created, edited and deleted through the &lt;a href="https://claimward.github.io/docs/v0.4.0/operations/#admin-api-and-webui"&gt;admin API and WebUI&lt;/a&gt;,
+which edit the three membership lists beside the routes. The default tenant
+cannot be deleted.&lt;/p&gt;
+&lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-amber-200 hx:bg-amber-100 hx:text-amber-900 hx:dark:border-amber-200/30 hx:dark:bg-amber-900/30 hx:dark:text-amber-200"&gt;
+&lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/&gt;&lt;/svg&gt;&lt;/div&gt;
+&lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;Tenants are kept &lt;strong&gt;in memory&lt;/strong&gt; (v0.2.0): a restart of the server leaves only
+the &lt;code&gt;default&lt;/code&gt; tenant, rebuilt from the environment.&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;h2 data-hextra-search-id="choosing-one-per-session"&gt;Choosing one per session&lt;span class="hx:absolute hx:-mt-20" id="choosing-one-per-session"&gt;&lt;/span&gt;
+&lt;a href="#choosing-one-per-session" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Request&lt;/th&gt;
+&lt;th&gt;What the server does&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GET /api/v1/tenants&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;lists the tenants the caller may connect to, &lt;code&gt;[{&amp;quot;id&amp;quot;, &amp;quot;name&amp;quot;}]&lt;/code&gt;, for a client to offer the choice&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;POST /api/v1/enroll&lt;/code&gt; with &lt;code&gt;tenant&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;the tenant must be one of them, or &lt;code&gt;403 not_a_member&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;POST /api/v1/enroll&lt;/code&gt; without &lt;code&gt;tenant&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;the caller&amp;rsquo;s only tenant; a person in several gets &lt;code&gt;409 tenant_required&lt;/code&gt;, with the list in the message, rather than being routed into a network they did not choose&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;POST /api/v1/heartbeat&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;refused with &lt;code&gt;403 not_a_member&lt;/code&gt; once the person is no longer in the session&amp;rsquo;s tenant&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;RouteService &lt;code&gt;Watch&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;streams the routes of the tenant &lt;strong&gt;the device enrolled into&lt;/strong&gt;, found by the device&amp;rsquo;s key, which must be the caller&amp;rsquo;s&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;In the apps (&lt;code&gt;pkg/appcore&lt;/code&gt;):&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;Tenants&lt;/code&gt;&lt;/strong&gt; asks the server, through the helper, which tenants the person
+may join;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;SetTenant&lt;/code&gt;&lt;/strong&gt; records the choice in the session, and only a tenant the
+server offered; a new sign-in forgets it;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;Connect&lt;/code&gt;&lt;/strong&gt; enrolls into that tenant. A person in several who has not
+chosen gets &lt;code&gt;ErrTenantRequired&lt;/code&gt;, with the tenants in the status.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;A person in one tenant never chooses. The macOS app opens its window when a
+&lt;strong&gt;Connect&lt;/strong&gt; from the menu bar is refused for want of a choice; the Linux and
+Windows apps show the choice in their window. The Linux app does not let the
+tenant change while connected.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="route-updates"&gt;Route updates&lt;span class="hx:absolute hx:-mt-20" id="route-updates"&gt;&lt;/span&gt;
+&lt;a href="#route-updates" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Editing a tenant&amp;rsquo;s routes bumps its &lt;code&gt;serial&lt;/code&gt; and pushes the new set to every
+device watching that tenant over the gRPC RouteService. The helper replaces
+the WireGuard peer&amp;rsquo;s allowed IPs and adds or removes the matching routes,
+without enrolling again. Deleting a tenant ends its watches.&lt;/p&gt;</description></item></channel></rss>

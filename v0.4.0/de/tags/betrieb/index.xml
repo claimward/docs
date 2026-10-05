@@ -1,0 +1,142 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Claimward – Betrieb</title><link>https://claimward.github.io/docs/v0.4.0/de/tags/betrieb/</link><description>Recent content in Betrieb on Claimward</description><generator>Hugo -- gohugo.io</generator><language>de</language><atom:link href="https://claimward.github.io/docs/v0.4.0/de/tags/betrieb/index.xml" rel="self" type="application/rss+xml"/><item><title>Betrieb</title><link>https://claimward.github.io/docs/v0.4.0/de/operations/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/v0.4.0/de/operations/</guid><description>
+&lt;h2 data-hextra-search-id="tls"&gt;TLS&lt;span class="hx:absolute hx:-mt-20" id="tls"&gt;&lt;/span&gt;
+&lt;a href="#tls" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Der Server spricht unverschlüsseltes HTTP, sofern &lt;code&gt;TLS_CERT&lt;/code&gt;/&lt;code&gt;TLS_KEY&lt;/code&gt; nicht gesetzt sind. Bearer-Tokens
+sind Zugangsdaten, stellen Sie die API also &lt;strong&gt;immer&lt;/strong&gt; hinter TLS, direkt oder über einen
+Reverse Proxy (nginx, Caddy, einen Load Balancer).&lt;/p&gt;
+&lt;p&gt;Dasselbe Zertifikat bedient den gRPC-RouteService. Eine Beobachtung der Routen überträgt das
+Bearer-Token, und die Clients lehnen eine unverschlüsselte Beobachtung ab, außer über Loopback: Ein
+Server ohne &lt;code&gt;TLS_CERT&lt;/code&gt;/&lt;code&gt;TLS_KEY&lt;/code&gt; (etwa hinter einem Proxy, der nur
+HTTPS terminiert) registriert Geräte, diese erhalten aber keine Live-Aktualisierungen der Routen, und er
+protokolliert beim Start eine Warnung. Setzen Sie &lt;code&gt;GRPC_ENDPOINT&lt;/code&gt; auf den &lt;code&gt;host:port&lt;/code&gt;, unter dem die Geräte
+den RouteService erreichen, mit einem Namen, den das Zertifikat abdeckt.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="gateway"&gt;Gateway&lt;span class="hx:absolute hx:-mt-20" id="gateway"&gt;&lt;/span&gt;
+&lt;a href="#gateway" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;Bringen Sie &lt;code&gt;wg0&lt;/code&gt; beim Booten mit &lt;code&gt;wg-quick&lt;/code&gt; oder systemd-networkd hoch; Claimward
+verwaltet nur seine Peers. Starten Sie den Server mit den Rechten, die Schnittstelle zu konfigurieren
+(root oder &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt;).&lt;/li&gt;
+&lt;li&gt;Aktivieren Sie &lt;code&gt;net.ipv4.ip_forward&lt;/code&gt; sowie NAT- oder Firewall-Regeln, wenn Clients
+über das VPN-Subnetz hinaus routen.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;GET /healthz&lt;/code&gt; ist die Liveness-Probe.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 data-hextra-search-id="leases"&gt;Leases&lt;span class="hx:absolute hx:-mt-20" id="leases"&gt;&lt;/span&gt;
+&lt;a href="#leases" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;LEASE_TTL&lt;/code&gt; (standardmäßig 24 Stunden) wägt Sicherheit gegen Fluktuation ab. Der Hintergrundprozess
+entfernt jede Minute abgelaufene Peers, sodass gesperrte oder offline befindliche Geräte von selbst
+verschwinden. Um eines sofort zu sperren, melden Sie seinen Peer ab oder entfernen Sie ihn mit
+&lt;code&gt;wg set wg0 peer &amp;lt;key&amp;gt; remove&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Ab claimward-vpn-client v0.3.1 (die Apps ab v0.2.0) erneuert der Helper
+die Lease, solange der Tunnel steht, nach der Hälfte der Restlaufzeit (zwischen 30 Sekunden
+und 10 Minuten), und meldet sich bei &lt;em&gt;Disconnect&lt;/em&gt; ab. Eine kürzere &lt;code&gt;LEASE_TTL&lt;/code&gt; kostet daher
+mehr Heartbeats, nicht abgebrochene Tunnel: Eine Entfernung aus einem Mandanten oder ein Schlüssel,
+den der go-authn-Anbieter zurückzieht, beendet den Tunnel bei der nächsten Erneuerung (der
+Server antwortet &lt;code&gt;403&lt;/code&gt;). Ein Server, der ein Gerät vergessen hat (&lt;code&gt;404&lt;/code&gt;), lässt es
+sich erneut registrieren. Siehe &lt;a href="https://claimward.github.io/docs/v0.4.0/de/architecture/#leases"&gt;Leases&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Die Apps in v0.1.0 erneuern nur durch erneutes Verbinden und lassen den Peer nach &lt;em&gt;Disconnect&lt;/em&gt; bestehen, bis seine
+Lease endet: Bei ihnen verliert ein Gerät, das länger als &lt;code&gt;LEASE_TTL&lt;/code&gt; verbunden bleibt,
+seinen Tunnel, wenn sein Peer entfernt wird.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="state"&gt;Zustand&lt;span class="hx:absolute hx:-mt-20" id="state"&gt;&lt;/span&gt;
+&lt;a href="#state" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Der Server hält die registrierten Peers, den Adresspool und die Mandanten
+&lt;strong&gt;im Arbeitsspeicher&lt;/strong&gt;. Ein Neustart vergisst sie:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;die Mandanten sind wieder allein &lt;code&gt;default&lt;/code&gt;, aus &lt;code&gt;PUSH_ROUTES&lt;/code&gt; und &lt;code&gt;DNS&lt;/code&gt;;&lt;/li&gt;
+&lt;li&gt;ab Server &lt;strong&gt;v0.2.0&lt;/strong&gt; werden die Peers, die ein vorheriger Lauf auf &lt;code&gt;wg0&lt;/code&gt; hinterlassen hat,
+&lt;strong&gt;beim Start entfernt&lt;/strong&gt;: jeder Peer, dessen einzige erlaubte IP ein &lt;code&gt;/32&lt;/code&gt; innerhalb von
+&lt;code&gt;VPN_CIDR&lt;/code&gt; ist, die Form, die der Server jedem Peer gibt. Jeder andere Peer
+(von Hand konfiguriert, eine Site-to-Site-Verbindung) bleibt unberührt. Behalten, würden diese Peers
+niemandem gehören: nie entfernt, nie gegen die Liste des Anbieters geprüft,
+sodass eine vor dem Neustart deaktivierte Person einen funktionierenden Tunnel behielte. Geräte
+stellen bei ihrer nächsten Erneuerung der Lease fest, dass sie unbekannt sind, und registrieren sich erneut (Apps,
+die auf claimward-vpn-client v0.3.1 aufbauen); bis dahin überträgt ihr Tunnel
+nichts. Der Helper erneuert höchstens im Abstand von 10 Minuten, daher kann nach einem Neustart ein
+Gerät bis zu 10 Minuten abgeschnitten sein. Ein erneutes Verbinden stellt es sofort
+wieder her.&lt;/li&gt;
+&lt;li&gt;der Server in &lt;strong&gt;v0.1.0&lt;/strong&gt; lässt diese Peers auf &lt;code&gt;wg0&lt;/code&gt;: Er entfernt sie nie, und
+er kann ihre Adressen an neue Geräte vergeben (WireGuard leitet die
+Adresse dann an den neuen Peer). Leeren Sie nach seinem Neustart die Peers
+(&lt;code&gt;wg-quick down wg0 &amp;amp;&amp;amp; wg-quick up wg0&lt;/code&gt; oder &lt;code&gt;wg set … remove&lt;/code&gt;) und lassen Sie die
+Geräte sich erneut verbinden.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Für mehrere Gateways oder einen dauerhaften Audit-Trail benötigen die Pakete &lt;code&gt;store&lt;/code&gt;, &lt;code&gt;ipam&lt;/code&gt; und
+&lt;code&gt;tenant&lt;/code&gt; eine Datenbank dahinter.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="identity-provider"&gt;Identitätsanbieter&lt;span class="hx:absolute hx:-mt-20" id="identity-provider"&gt;&lt;/span&gt;
+&lt;a href="#identity-provider" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Standardmäßig meldet Claimward Personen mit &lt;strong&gt;GitHub&lt;/strong&gt; an (Device Flow): Legen Sie eine
+GitHub-OAuth-App mit aktiviertem &lt;strong&gt;Device Flow&lt;/strong&gt; an und beschränken Sie den Zugang mit
+&lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;. Für &lt;strong&gt;OIDC&lt;/strong&gt; setzen Sie &lt;code&gt;AUTH_PROVIDER=oidc&lt;/code&gt; mit einem
+nativen/öffentlichen PKCE-Client und beschränken mit &lt;code&gt;OIDC_ALLOWED_DOMAINS&lt;/code&gt;. Für
+&lt;strong&gt;go-authn&lt;/strong&gt; setzen Sie &lt;code&gt;AUTH_PROVIDER=go-authn&lt;/code&gt; mit dem eigenen Client des Gateways: Der
+Anbieter entscheidet dann, welche Schlüssel sich verbinden dürfen, und ein Gateway, das
+seine Liste nicht abrufen kann, lässt niemanden Neues zu. Siehe
+&lt;a href="https://claimward.github.io/docs/v0.4.0/de/identity-providers/"&gt;Identitätsanbieter&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="admin-api-and-webui"&gt;Admin-API und WebUI&lt;span class="hx:absolute hx:-mt-20" id="admin-api-and-webui"&gt;&lt;/span&gt;
+&lt;a href="#admin-api-and-webui" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Wenn &lt;code&gt;ADMIN_TOKEN&lt;/code&gt; gesetzt ist, stellt der Server eine eingebettete Svelte-WebUI unter
+&lt;code&gt;/admin/&lt;/code&gt; und eine API unter &lt;code&gt;/admin/api/&lt;/code&gt; bereit, geschützt durch
+&lt;code&gt;Authorization: Bearer &amp;lt;ADMIN_TOKEN&amp;gt;&lt;/code&gt; (in konstanter Zeit verglichen). Ohne es
+antwortet &lt;code&gt;/admin/&lt;/code&gt; mit &lt;code&gt;503&lt;/code&gt;. Die Dateien der WebUI werden ohne Authentifizierung ausgeliefert;
+sie fragt nach dem Token und sendet es bei jedem Aufruf mit.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Methode &amp;amp; Pfad&lt;/th&gt;
+&lt;th&gt;&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GET /admin/api/overview&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Anzahlen &lt;code&gt;{&amp;quot;tenants&amp;quot;, &amp;quot;peers&amp;quot;, &amp;quot;watchers&amp;quot;}&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GET /admin/api/tenants&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;alle Mandanten&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;POST /admin/api/tenants&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;einen anlegen: &lt;code&gt;id&lt;/code&gt; (oder ein Slug von &lt;code&gt;name&lt;/code&gt;), &lt;code&gt;name&lt;/code&gt;, &lt;code&gt;domains&lt;/code&gt;, &lt;code&gt;groups&lt;/code&gt;, &lt;code&gt;idps&lt;/code&gt;, &lt;code&gt;allowed_ips&lt;/code&gt;, &lt;code&gt;dns&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GET /admin/api/tenants/{id}&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;ein Mandant&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;PUT /admin/api/tenants/{id}&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;ersetzt seinen Namen, seine Mitgliedschaftslisten und Routen; erhöht &lt;code&gt;serial&lt;/code&gt; und pusht die Routen an seine Beobachter&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;DELETE /admin/api/tenants/{id}&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;löscht ihn (nicht &lt;code&gt;default&lt;/code&gt;); beendet seine Beobachtungen&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Stellen Sie &lt;code&gt;/admin/&lt;/code&gt; nur dort bereit, wo Administratoren es erreichen: Das Token ist ein statisches
+gemeinsames Geheimnis.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="metrics"&gt;Metriken&lt;span class="hx:absolute hx:-mt-20" id="metrics"&gt;&lt;/span&gt;
+&lt;a href="#metrics" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;GET /metrics&lt;/code&gt; liefert Prometheus-Metriken aus, ohne Authentifizierung:&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Metrik&lt;/th&gt;
+&lt;th&gt;&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;claimward_enrollments_total{tenant}&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;erfolgreiche Registrierungen&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;claimward_active_peers&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;registrierte Peers&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;claimward_tenants&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;konfigurierte Mandanten&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;claimward_route_watchers&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;aktive Beobachtungen des RouteService&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;claimward_tenant_route_serial{tenant}&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;die Routen-Seriennummer jedes Mandanten&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;</description></item></channel></rss>
