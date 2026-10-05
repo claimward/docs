@@ -6,8 +6,15 @@
   after it, so the server renders only the current one; in the browser the list
   is filled from <docs root>/versions.json, which the deploy job rewrites (the
   format mike writes: version, title, aliases, properties), so the MkDocs-built
-  v0.1.0 and the Hugo builds read the same file. Each option opens the current
-  page in that version when it exists there, otherwise that version's home.
+  v0.1.0 and the Hugo builds read the same file.
+
+  The site is multilingual: English at the root of a version, the other
+  languages under their code (<version>/fr/...). Each option opens, in that
+  version, the first of these that exists: the current page in the current
+  language; the same page in English (the releases built before the site was
+  translated, v0.1.0 to v0.2.1, are English only); the home in the current
+  language; the version's home. The language prefix is read from the home's
+  permalink, not guessed from the URL.
 
   Taken from the GT-Cloud documentation's selector, on Hextra's own navbar
   dropdown (assets/js/core/nav-menu.js), so its keyboard handling applies. */ -}}
@@ -17,12 +24,17 @@
 {{- $docsRoot := printf "%s/" (strings.TrimSuffix "/" (path.Dir $basePath)) -}}
 {{- $versionRoot := printf "%s%s/" $docsRoot $current -}}
 {{- $rest := strings.TrimPrefix $versionRoot $page.RelPermalink -}}
+{{- /* "fr/" in French, "" in English (the default language, at the root). */ -}}
+{{- $langPrefix := strings.TrimPrefix $versionRoot site.Home.RelPermalink -}}
+{{- /* The same page in the default language: same file names in every content/<lang>/. */ -}}
+{{- $restDefault := cond (ne $langPrefix "") (strings.TrimPrefix $langPrefix $rest) $rest -}}
 {{- $dev := site.Params.versions.development | default "dev" -}}
 {{- $itemClass := "hx:text-gray-600 hx:hover:text-gray-800 hx:dark:text-gray-400 hx:dark:hover:text-gray-200 hx:relative hx:cursor-pointer hx:whitespace-nowrap hx:rounded-sm hx:py-1.5 hx:transition-colors hx:ltr:pl-3 hx:ltr:pr-9 hx:rtl:pr-3 hx:rtl:pl-9 hx:flex hx:items-center hx:gap-1 hx:hover:bg-gray-100 hx:dark:hover:bg-neutral-800" -}}
 {{- $iconAttrs := `height="1em" class="hx:inline-block"` -}}
 <div class="cw-version-select hx:relative"
      data-docs-root="{{ $docsRoot }}" data-current="{{ $current }}"
-     data-rest="{{ $rest }}" data-dev="{{ $dev }}">
+     data-rest="{{ $rest }}" data-rest-default="{{ $restDefault }}"
+     data-lang-prefix="{{ $langPrefix }}" data-dev="{{ $dev }}">
   <button type="button" data-state="closed" aria-expanded="false" aria-haspopup="menu"
           title="{{ T "version" }}" aria-label="{{ T "version" }}: {{ $current }}"
           class="hextra-nav-menu-toggle cw-version-toggle hx:cursor-pointer hx:text-sm hx:relative hx:whitespace-nowrap hx:p-2 hx:flex hx:items-center hx:gap-1 hx:text-gray-600 hx:hover:text-gray-800 hx:dark:text-gray-400 hx:dark:hover:text-gray-200">
@@ -69,7 +81,6 @@
           a.setAttribute("role", "menuitem");
           a.className = itemClass;
           a.href = d.docsRoot + v.version + "/" + d.rest;
-          a.dataset.fallback = d.docsRoot + v.version + "/";
           a.innerHTML = icon(isDev(v) ? "development" : "release");
           var label = document.createElement("span");
           var aliases = Array.isArray(v.aliases) && v.aliases.length ? " (" + v.aliases.join(", ") + ")" : "";
@@ -82,12 +93,20 @@
             check.innerHTML = icon("check");
             a.appendChild(check);
           } else {
-            // The page may not exist in that version: check, else open its home.
+            // The page may not exist in that version, or not in this language:
+            // try the candidates in order, the version's home last.
+            var root = d.docsRoot + v.version + "/";
+            var tries = [d.rest, d.restDefault, d.langPrefix].map(function (p) { return root + p; })
+              .filter(function (u, i, all) { return u !== root && all.indexOf(u) === i; });
             a.addEventListener("click", function (e) {
               e.preventDefault();
-              fetch(a.href, { method: "HEAD" })
-                .then(function (r) { window.location.href = r.ok ? a.href : a.dataset.fallback; })
-                .catch(function () { window.location.href = a.dataset.fallback; });
+              var next = function (i) {
+                if (i >= tries.length) { window.location.href = root; return; }
+                fetch(tries[i], { method: "HEAD" })
+                  .then(function (r) { if (r.ok) { window.location.href = tries[i]; } else { next(i + 1); } })
+                  .catch(function () { next(i + 1); });
+              };
+              next(0);
             });
           }
           li.appendChild(a);

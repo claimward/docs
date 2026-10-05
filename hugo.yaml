@@ -6,8 +6,42 @@
 # This default is the development build of main.
 baseURL: "https://claimward.github.io/docs/dev/"
 title: "Claimward"
+# themes/hextra is the tannevaled/hextra fork (as GT-Cloud's documentation),
+# pinned at a release tag: upstream Hextra plus opt-in features (partial menu
+# items, combos, related-sites menu, page subtitle and history, darkreaderLock).
 theme: hextra
+
+# English is the default language and stays at the root of each version
+# (/docs/<version>/getting-started/), so every URL published before the site
+# was translated keeps working; the other languages live under their code
+# (/docs/<version>/fr/getting-started/). The releases built before (v0.1.0 to
+# v0.2.1) are English only: the version selector falls back to their English
+# page (layouts/_partials/custom/version-select.html).
 defaultContentLanguage: en
+defaultContentLanguageInSubdir: false
+
+# Each language has its own content directory, with the same file names, so
+# that a page and its translation are paired. A language is declared here only
+# once its content exists: a declared language without content would be an
+# empty entry in the language switch. The flags come from GT-Cloud's
+# documentation; they are lipis/flag-icons' 4x3 flags (MIT,
+# static/images/flags/LICENSE).
+languages:
+  en:
+    label: "English"
+    contentDir: content/en
+    weight: 1
+    params:
+      flag: images/flags/gb.svg
+  fr:
+    label: "Français"
+    contentDir: content/fr
+    weight: 2
+    params:
+      flag: images/flags/fr.svg
+      # Day before month: "5 octobre 2026".
+      dateFormat: "2 January 2006"
+      description: "Claimward : un VPN WireGuard Zero Trust auto-hébergé, où l'on se connecte avec GitHub, OpenID Connect ou go-authn."
 
 enableRobotsTXT: true
 # Git history dates every page: "Last updated on" at the bottom of each page.
@@ -56,6 +90,7 @@ menu:
       weight: 4
       params:
         type: theme-toggle
+        combo: true
     - name: Search
       weight: 5
       params:
@@ -68,6 +103,11 @@ menu:
 
 params:
   description: "Claimward: a self-hosted Zero-Trust WireGuard VPN that signs people in with GitHub, OpenID Connect or go-authn."
+
+  # The language switch (foot of the sidebar) shows the translate icon, then
+  # the language's flag.
+  languageSwitch:
+    icon: translate
 
   versions:
     # Name of the build made from main (published under /docs/dev/), shown
@@ -83,11 +123,21 @@ params:
       dark: images/brand/logo/claimward-mark.svg
       width: 32
       height: 32
+      # Related sites, opened from the chevron beside the title (the logo itself
+      # leads to the documentation's home). Only the project's landing page:
+      # the GitHub organisation is already the navbar's last item.
+      menu:
+        - name: Claimward
+          url: https://claimward.github.io/
+          logo: images/brand/logo/claimward-mark.svg
 
   theme:
     default: system
     # The theme toggle is in the navbar (menu above), not at the foot of the sidebar.
     displayToggle: false
+    # Dark Reader would darken the light theme itself (and the lockup with it);
+    # with the lock, the dark theme is our own.
+    darkreaderLock: true
 
   footer:
     enable: true
@@ -106,6 +156,13 @@ params:
 
   page:
     width: normal
+    # The front matter description as a subtitle under the title.
+    displayDescription: true
+    # "Created on ... by ... · Modified on ... by ..." at the foot of each page:
+    # creation from data/pagehistory.json, which the build writes with
+    # themes/hextra/scripts/page-history.sh (it needs the full git history);
+    # modification from git (enableGitInfo).
+    history: true
     contextMenu:
       enable: false
 
