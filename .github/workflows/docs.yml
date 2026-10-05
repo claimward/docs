@@ -68,7 +68,9 @@ jobs:
       # Each page's creation (first commit, followed across renames) and its
       # author, for the page history at its foot (params.page.history).
       - name: Page history
-        run: sh themes/hextra/scripts/page-history.sh > data/pagehistory.json
+        run: |
+          mkdir -p data
+          sh themes/hextra/scripts/page-history.sh > data/pagehistory.json
 
       # --panicOnWarning: a deprecated setting or a template warning fails the
       # build rather than scrolling by. A broken {{< relref >}} is an error.
