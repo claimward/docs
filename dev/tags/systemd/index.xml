@@ -1,0 +1,109 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Claimward – Systemd</title><link>https://claimward.github.io/docs/dev/tags/systemd/</link><description>Recent content in Systemd on Claimward</description><generator>Hugo -- gohugo.io</generator><language>en</language><atom:link href="https://claimward.github.io/docs/dev/tags/systemd/index.xml" rel="self" type="application/rss+xml"/><item><title>Linux app</title><link>https://claimward.github.io/docs/dev/components/linux-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/components/linux-app/</guid><description>
+&lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-linux" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-linux&lt;/code&gt;&lt;/a&gt;
+&lt;strong&gt;v0.2.0&lt;/strong&gt; is a &lt;strong&gt;window and a tray icon drawn in pure Go&lt;/strong&gt; with
+&lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt;: no webview, no GTK, no cgo
+(&lt;code&gt;CGO_ENABLED=0&lt;/code&gt;). A &lt;strong&gt;privileged helper&lt;/strong&gt; run by systemd owns the WireGuard
+tunnel. The logic is the macOS app&amp;rsquo;s: both use
+&lt;a href="https://claimward.github.io/docs/dev/components/client/"&gt;&lt;code&gt;pkg/appcore&lt;/code&gt; and &lt;code&gt;pkg/helper&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="design"&gt;Design&lt;span class="hx:absolute hx:-mt-20" id="design"&gt;&lt;/span&gt;
+&lt;a href="#design" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; claimward-app (your session)
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ├─ internal/view go-widgets/toolkit widgets, bound with go-widgets/mvvmtk
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ├─ internal/trayview tray icon + menu (StatusNotifierItem over D-Bus)
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ├─ internal/viewmodel all state as go-widgets/mvvm observables and commands
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; └─ appcore sign-in, tenant, session; drives the helper
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ X11 / Wayland │ unix socket, JSON, 0660 root:claimward
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ▼ ▼
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; the window, the tray claimward-helper (root, systemd)
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; enrolls with a configured server,
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; wireguard-go TUN + ip(8), route pushes&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;The app runs as you and never touches the network configuration or the
+server itself: everything goes through the &lt;a href="https://claimward.github.io/docs/dev/components/helper/"&gt;helper&lt;/a&gt;.
+The view model holds every piece of state and imports no widget; CI enforces
+MVVM with &lt;a href="https://github.com/go-widgets/mvvmlint" target="_blank" rel="noopener"&gt;mvvmlint&lt;/a&gt; and &amp;ldquo;no
+hand-drawn UI&amp;rdquo; with &lt;a href="https://github.com/go-widgets/bricolint" target="_blank" rel="noopener"&gt;bricolint&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="what-it-does"&gt;What it does&lt;span class="hx:absolute hx:-mt-20" id="what-it-does"&gt;&lt;/span&gt;
+&lt;a href="#what-it-does" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Status&lt;/strong&gt;: who is signed in, connected or not, the address and interface,
+the session&amp;rsquo;s tenant, whether the helper answers, the server. It is polled
+every 2 seconds.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Sign in&lt;/strong&gt;: for a device flow the window shows the code and an &lt;em&gt;Open sign-in
+page&lt;/em&gt; button (&lt;code&gt;xdg-open&lt;/code&gt;); the sign-in can be cancelled.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Tenant&lt;/strong&gt;: when the server refuses a connection because the person belongs
+to several, the window says so and offers a drop-down; &lt;em&gt;Choose tenant&lt;/em&gt; asks
+for the list ahead of time. The tenant cannot be changed while connected.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Connect / Disconnect / Sign out&lt;/strong&gt;, &lt;strong&gt;Settings&lt;/strong&gt; (server URL, provider,
+GitHub client ID, OIDC issuer and client ID), and the &lt;strong&gt;connection log&lt;/strong&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Tray&lt;/strong&gt;: a status line, &lt;em&gt;Connect&lt;/em&gt;, &lt;em&gt;Disconnect&lt;/em&gt;, &lt;em&gt;Open window&lt;/em&gt;, &lt;em&gt;Quit&lt;/em&gt;; the
+icon is in colour while connected. Closing the window leaves the app in the
+tray; &lt;em&gt;Quit&lt;/em&gt; leaves the tunnel as it is.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The tray needs a StatusNotifierItem host (KDE Plasma, GNOME with the
+&lt;em&gt;AppIndicator and KStatusNotifierItem Support&lt;/em&gt; extension, waybar…). Without
+one the app says so, and closing the window quits it.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="install"&gt;Install&lt;span class="hx:absolute hx:-mt-20" id="install"&gt;&lt;/span&gt;
+&lt;a href="#install" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Build as yourself (Go 1.27.1 or later), then install as root:&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;CGO_ENABLED&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt; go build -trimpath -o bin/ ./cmd/...
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo ./scripts/install.sh --server https://vpn.example.com&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;code&gt;install.sh&lt;/code&gt;:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;creates the &lt;code&gt;claimward&lt;/code&gt; group and adds you to it (&lt;code&gt;$SUDO_USER&lt;/code&gt;, or
+&lt;code&gt;--user&lt;/code&gt;): &lt;strong&gt;log out and back in&lt;/strong&gt; for it to apply;&lt;/li&gt;
+&lt;li&gt;installs &lt;code&gt;claimward-app&lt;/code&gt; to &lt;code&gt;/usr/local/bin&lt;/code&gt; and &lt;code&gt;claimward-helper&lt;/code&gt; to
+&lt;code&gt;/usr/local/sbin&lt;/code&gt; (&lt;code&gt;--prefix&lt;/code&gt; to change);&lt;/li&gt;
+&lt;li&gt;writes &lt;code&gt;/etc/claimward/helper.json&lt;/code&gt;, &lt;code&gt;root:root&lt;/code&gt;, mode &lt;code&gt;0644&lt;/code&gt;, with the
+server given (an existing file is kept);&lt;/li&gt;
+&lt;li&gt;installs and starts &lt;code&gt;claimward-helper.service&lt;/code&gt;, and waits for its socket;&lt;/li&gt;
+&lt;li&gt;installs the desktop entry and the icon.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Start &lt;strong&gt;Claimward VPN&lt;/strong&gt; from the desktop&amp;rsquo;s menu; &lt;code&gt;claimward-app -hidden&lt;/code&gt;
+starts in the tray (for an autostart entry). &lt;code&gt;sudo ./scripts/uninstall.sh&lt;/code&gt;
+removes it all and stops the helper, which takes the tunnel down; &lt;code&gt;--purge&lt;/code&gt;
+also removes &lt;code&gt;/etc/claimward&lt;/code&gt; and the group.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="configure"&gt;Configure&lt;span class="hx:absolute hx:-mt-20" id="configure"&gt;&lt;/span&gt;
+&lt;a href="#configure" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;The app: &lt;code&gt;~/.config/Claimward/config.json&lt;/code&gt;, written by the settings form,
+mode &lt;code&gt;0600&lt;/code&gt;, overridden by &lt;code&gt;CLAIMWARD_*&lt;/code&gt; variables (see the
+&lt;a href="https://claimward.github.io/docs/dev/components/client/#files-on-the-device"&gt;client library&lt;/a&gt;).
+The session is &lt;code&gt;~/.config/claimward/session.json&lt;/code&gt;, mode &lt;code&gt;0600&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;The helper: &lt;code&gt;/etc/claimward/helper.json&lt;/code&gt; (see
+&lt;a href="https://claimward.github.io/docs/dev/components/helper/"&gt;Privileged helper&lt;/a&gt;); after editing it,
+&lt;code&gt;sudo systemctl restart claimward-helper&lt;/code&gt;.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="the-hardened-unit"&gt;The hardened unit&lt;span class="hx:absolute hx:-mt-20" id="the-hardened-unit"&gt;&lt;/span&gt;
+&lt;a href="#the-hardened-unit" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;claimward-helper.service&lt;/code&gt; keeps only &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt;, &lt;code&gt;CAP_NET_RAW&lt;/code&gt; and
+&lt;code&gt;CAP_CHOWN&lt;/code&gt;, with &lt;code&gt;NoNewPrivileges&lt;/code&gt;, &lt;code&gt;ProtectSystem=strict&lt;/code&gt; and only &lt;code&gt;/run&lt;/code&gt;
+writable, &lt;code&gt;ProtectHome&lt;/code&gt;, &lt;code&gt;/dev/net/tun&lt;/code&gt; alone from &lt;code&gt;/dev&lt;/code&gt;, address families
+limited to unix, inet, inet6 and netlink, and the &lt;code&gt;@system-service&lt;/code&gt; system
+calls. &lt;code&gt;systemd-analyze security claimward-helper&lt;/code&gt; rates it 2.5 (OK). Being in
+the &lt;code&gt;claimward&lt;/code&gt; group means being allowed to bring the VPN up and down.&lt;/p&gt;
+&lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-blue-200 hx:bg-blue-100 hx:text-blue-900 hx:dark:border-blue-200/30 hx:dark:bg-blue-900/30 hx:dark:text-blue-200"&gt;
+&lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/&gt;&lt;/svg&gt;&lt;/div&gt;
+&lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Verified&lt;/strong&gt; in an Ubuntu 24.04 (arm64) virtual machine against a stand-in
+server. &lt;strong&gt;Not yet verified&lt;/strong&gt;, according to the README: a real GNOME or KDE
+desktop, Wayland, HiDPI, a sign-in against a real identity provider, and a
+real claimward-vpn-server. The session file is not yet in a keyring.&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description></item></channel></rss>
