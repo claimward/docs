@@ -1,0 +1,122 @@
+# Claimward documentation (Hugo + Hextra).
+#
+# Each documentation version is a separate build under
+# https://claimward.github.io/docs/<version>/: the CI sets the version through
+# --baseURL (a semver tag such as .../docs/v0.2.0/, or .../docs/dev/ for main).
+# This default is the development build of main.
+baseURL: "https://claimward.github.io/docs/dev/"
+title: "Claimward"
+theme: hextra
+defaultContentLanguage: en
+
+enableRobotsTXT: true
+# Git history dates every page: "Last updated on" at the bottom of each page.
+enableGitInfo: true
+
+markup:
+  goldmark:
+    renderer:
+      unsafe: true
+  highlight:
+    noClasses: false
+
+module:
+  hugoVersion:
+    extended: false
+    min: 0.146.0
+  # The logos and the favicon come from the Claimward brand repository
+  # (submodule branding/), published under /images/brand/; the lockup is also
+  # an asset, so that the home page can inline it and recolour it in dark mode.
+  mounts:
+    - source: static
+      target: static
+    - source: assets
+      target: assets
+    - source: branding/logo
+      target: static/images/brand/logo
+    - source: branding/favicon
+      target: static/images/brand/favicon
+    - source: branding/logo
+      target: assets/brand/logo
+    # Inter Medium and Bold, the wordmark's faces, for the headings (the
+    # brand's src/ also holds the script that outlines the wordmark: not published).
+    - source: branding/src
+      target: static/fonts/inter
+      files: ["**.woff2"]
+
+menu:
+  main:
+    # Navbar, left to right: version, theme, search, sources.
+    - name: Version
+      weight: 3
+      params:
+        type: partial
+        partial: custom/version-select.html
+    - name: Theme
+      weight: 4
+      params:
+        type: theme-toggle
+    - name: Search
+      weight: 5
+      params:
+        type: search
+    - name: GitHub
+      url: https://github.com/claimward
+      weight: 6
+      params:
+        icon: github
+
+params:
+  description: "Claimward: a self-hosted Zero-Trust WireGuard VPN that signs people in with GitHub, OpenID Connect or go-authn."
+
+  versions:
+    # Name of the build made from main (published under /docs/dev/), shown
+    # with a beaker icon; released versions (semver tags) get a tag icon.
+    development: dev
+
+  navbar:
+    displayTitle: true
+    displayLogo: true
+    logo:
+      # The teal mark reads on both themes; the wordmark is the site title.
+      path: images/brand/logo/claimward-mark.svg
+      dark: images/brand/logo/claimward-mark.svg
+      width: 32
+      height: 32
+
+  theme:
+    default: system
+    # The theme toggle is in the navbar (menu above), not at the foot of the sidebar.
+    displayToggle: false
+
+  footer:
+    enable: true
+    displayCopyright: true
+    displayPoweredBy: false
+
+  displayUpdatedDate: true
+  dateFormat: "January 2, 2006"
+
+  editURL:
+    enable: true
+    base: "https://github.com/claimward/docs/edit/main/content"
+
+  toc:
+    displayTags: true
+
+  page:
+    width: normal
+    contextMenu:
+      enable: false
+
+  highlight:
+    copy:
+      enable: true
+      display: hover
+
+  search:
+    enable: true
+    type: flexsearch
+    flexsearch:
+      index: content
+      tokenize: forward
