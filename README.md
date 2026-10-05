@@ -40,8 +40,8 @@ breaks links. A tag in another form publishes nothing.
 ## Languages
 
 English is the default and sits at the root of each version
-(`/docs/<version>/getting-started/`); French is under `/fr/`
-(`/docs/<version>/fr/getting-started/`). The language switch at the foot of
+(`/docs/<version>/getting-started/`); French, Spanish and German are under
+`/fr/`, `/es/` and `/de/` (`/docs/<version>/fr/getting-started/`). The language switch at the foot of
 the sidebar opens the same page in the other language, in the same version.
 
 To add a language `<lang>`:
