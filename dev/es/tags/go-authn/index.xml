@@ -1,0 +1,490 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Claimward – Go-Authn</title><link>https://claimward.github.io/docs/dev/es/tags/go-authn/</link><description>Recent content in Go-Authn on Claimward</description><generator>Hugo -- gohugo.io</generator><language>es</language><atom:link href="https://claimward.github.io/docs/dev/es/tags/go-authn/index.xml" rel="self" type="application/rss+xml"/><item><title>Servidor</title><link>https://claimward.github.io/docs/dev/es/components/server/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/es/components/server/</guid><description>
+&lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-server" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-server&lt;/code&gt;&lt;/a&gt;
+&lt;strong&gt;v0.2.0&lt;/strong&gt; es el plano de control. Verifica el bearer que presenta un dispositivo,
+asigna direcciones VPN y programa la pasarela WireGuard con un par por cada
+dispositivo registrado. Se ejecuta en el host Linux de la pasarela, junto a un &lt;code&gt;wg0&lt;/code&gt; existente.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="what-it-serves"&gt;Lo que sirve&lt;span class="hx:absolute hx:-mt-20" id="what-it-serves"&gt;&lt;/span&gt;
+&lt;a href="#what-it-serves" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Listener&lt;/th&gt;
+&lt;th&gt;Ruta&lt;/th&gt;
+&lt;th&gt;Función&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;LISTEN_ADDR&lt;/code&gt; (&lt;code&gt;:8443&lt;/code&gt;)&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;POST /api/v1/enroll&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;verificar, elegir el inquilino, asignar una dirección, añadir el par, devolver la configuración del túnel&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;GET /api/v1/tenants&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;los inquilinos a los que puede conectarse quien llama&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;POST /api/v1/heartbeat&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;renovar la concesión del dispositivo&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;POST /api/v1/deregister&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;eliminar el par&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;GET /healthz&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;estado de actividad (liveness)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;GET /metrics&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;métricas Prometheus&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;/admin/&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;API de administración y WebUI, cuando &lt;code&gt;ADMIN_TOKEN&lt;/code&gt; está definido&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GRPC_ADDR&lt;/code&gt; (&lt;code&gt;:8444&lt;/code&gt;)&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;claimward.routes.v1.RouteService/Watch&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;transmite las rutas del inquilino y sus actualizaciones&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Las solicitudes a la API llevan &lt;code&gt;Authorization: Bearer &amp;lt;token&amp;gt;&lt;/code&gt;: un token de acceso de GitHub,
+un ID token OIDC o un token de acceso de go-authn, según &lt;code&gt;AUTH_PROVIDER&lt;/code&gt;.
+Consulte el &lt;a href="https://claimward.github.io/docs/dev/es/reference/protocol/"&gt;protocolo de registro&lt;/a&gt; para
+los contenidos de las solicitudes.&lt;/p&gt;
+&lt;p&gt;Con &lt;code&gt;TLS_CERT&lt;/code&gt; y &lt;code&gt;TLS_KEY&lt;/code&gt;, ambos listeners usan TLS. Sin ellos, la API HTTP
+va en claro (termine TLS en un proxy), y también el RouteService, que los
+clientes entonces rechazan salvo en loopback: los dispositivos se conectan, pero no reciben actualizaciones
+de rutas en vivo.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="configuration"&gt;Configuración&lt;span class="hx:absolute hx:-mt-20" id="configuration"&gt;&lt;/span&gt;
+&lt;a href="#configuration" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Toda la configuración está en el entorno.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Variable&lt;/th&gt;
+&lt;th&gt;Obligatoria&lt;/th&gt;
+&lt;th&gt;Predeterminado&lt;/th&gt;
+&lt;th&gt;Notas&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;AUTH_PROVIDER&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;github&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;proveedor de identidad: &lt;code&gt;github&lt;/code&gt;, &lt;code&gt;oidc&lt;/code&gt; o &lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;lista CSV de organizaciones permitidas (&lt;code&gt;github&lt;/code&gt;): se admite a un miembro activo de cualquiera de ellas&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GITHUB_API_URL&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;https://api.github.com&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;se define para GitHub Enterprise&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;OIDC_ISSUER&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;oidc&lt;/code&gt;, &lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;URL del emisor (descubrimiento)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;OIDC_CLIENT_ID&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;oidc&lt;/code&gt;, &lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;la audiencia que deben llevar los tokens&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;OIDC_ALLOWED_DOMAINS&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;lista CSV de dominios de correo permitidos (&lt;code&gt;oidc&lt;/code&gt;)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GOAUTHN_GATEWAY_CLIENT_ID&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;el cliente propio de la pasarela en el proveedor (&lt;code&gt;wireguard_peers&lt;/code&gt;)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GOAUTHN_GATEWAY_SECRET_FILE&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;su secreto, &lt;strong&gt;solo desde un archivo&lt;/strong&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GOAUTHN_PEER_LIST_INTERVAL&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;30s&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;con qué frecuencia se obtiene la lista de claves registradas&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GOAUTHN_SSF&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;false&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;consultar también el flujo Shared Signals del proveedor, para que una desactivación se aplique de inmediato; el cliente de la pasarela debe ser allí un receptor SSF&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GOAUTHN_SSF_INTERVAL&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;5s&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;con qué frecuencia se consulta el flujo SSF&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;WG_ENDPOINT&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;✅&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;host:port&lt;/code&gt; público de la pasarela, anunciado a los clientes&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;WG_PRIVATE_KEY&lt;/code&gt; / &lt;code&gt;WG_PRIVATE_KEY_FILE&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;✅&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;la clave privada base64 de la pasarela (la variable prevalece sobre el archivo)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;WG_INTERFACE&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;wg0&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;interfaz que se gestiona&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;WG_DRYRUN&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;false&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;registrar en el log las operaciones sobre pares en lugar de aplicarlas (desarrollo local)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;VPN_CIDR&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;10.80.0.0/24&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;conjunto de direcciones IPv4; su primer host es el de la pasarela&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;PUSH_ROUTES&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;VPN_CIDR&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;rutas CSV del inquilino &lt;code&gt;default&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;DNS&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;servidores DNS CSV del inquilino &lt;code&gt;default&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;KEEPALIVE&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;25&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;keepalive persistente anunciado a los clientes (segundos)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;LEASE_TTL&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;24h&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;cuánto dura un registro sin heartbeat&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;LISTEN_ADDR&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;:8443&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;dirección de escucha HTTP&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GRPC_ADDR&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;:8444&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;dirección de escucha del RouteService&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GRPC_ENDPOINT&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;host:port&lt;/code&gt; del RouteService anunciado a los clientes; si está vacío, no observan&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;ADMIN_TOKEN&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;bearer de la API de administración y de la WebUI; vacío, las desactiva&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;TLS_CERT&lt;/code&gt; / &lt;code&gt;TLS_KEY&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;HTTPS, y TLS en el RouteService&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;DEBUG&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;cualquier valor: log de depuración (una línea por solicitud)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 data-hextra-search-id="authentication-providers"&gt;Proveedores de autenticación&lt;span class="hx:absolute hx:-mt-20" id="authentication-providers"&gt;&lt;/span&gt;
+&lt;a href="#authentication-providers" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;La autenticación es intercambiable detrás de la interfaz &lt;code&gt;Verifier&lt;/code&gt;
+(&lt;code&gt;internal/auth&lt;/code&gt;):&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;github&lt;/code&gt;&lt;/strong&gt; (predeterminado): el bearer es un token de acceso OAuth de GitHub obtenido con el
+flujo de dispositivo. El servidor lo resuelve mediante la API de GitHub (&lt;code&gt;/user&lt;/code&gt;,
+&lt;code&gt;/user/orgs&lt;/code&gt;) y, con &lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;, exige una pertenencia activa
+a una de esas organizaciones. No interviene ningún client secret.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;oidc&lt;/code&gt;&lt;/strong&gt;: el bearer es un ID token OIDC, verificado contra el emisor con
+la audiencia &lt;code&gt;OIDC_CLIENT_ID&lt;/code&gt; y la lista opcional de dominios de correo permitidos.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;go-authn&lt;/code&gt;&lt;/strong&gt;: el bearer es un token de acceso (&lt;code&gt;at+jwt&lt;/code&gt;) de un proveedor
+&lt;a href="https://github.com/go-authn/bridge" target="_blank" rel="noopener"&gt;go-authn/bridge&lt;/a&gt;, y la
+clave del dispositivo debe haber sido registrada allí por la misma persona. El servidor lee
+la lista firmada de claves registradas del proveedor
+(&lt;a href="https://github.com/go-authn/wireguard" target="_blank" rel="noopener"&gt;go-authn/wireguard&lt;/a&gt;) y retira de
+&lt;code&gt;wg0&lt;/code&gt; una clave que el proveedor revoca.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Consulte &lt;a href="https://claimward.github.io/docs/dev/es/identity-providers/"&gt;Proveedores de identidad&lt;/a&gt; para cada
+flujo de principio a fin.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="enrollment-rules"&gt;Reglas de registro&lt;span class="hx:absolute hx:-mt-20" id="enrollment-rules"&gt;&lt;/span&gt;
+&lt;a href="#enrollment-rules" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Una clave pertenece a quien la registró.&lt;/strong&gt; Se rechaza registrar una clave que posee
+otra identidad (&lt;code&gt;409 key_taken&lt;/code&gt;): una clave pública es pública, y apropiarse de una
+daría el poder de dar de baja el dispositivo de su propietario.&lt;/li&gt;
+&lt;li&gt;La misma clave registrada de nuevo por su propietario conserva su dirección y obtiene una nueva
+concesión.&lt;/li&gt;
+&lt;li&gt;La única IP permitida del par es la &lt;code&gt;/32&lt;/code&gt; del dispositivo, de modo que los dispositivos no pueden usar
+las direcciones de otros.&lt;/li&gt;
+&lt;li&gt;El inquilino es el que pidió quien llama, si es miembro, o su
+único inquilino. Consulte &lt;a href="https://claimward.github.io/docs/dev/es/tenants/"&gt;Inquilinos&lt;/a&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 data-hextra-search-id="how-it-programs-the-gateway"&gt;Cómo programa la pasarela&lt;span class="hx:absolute hx:-mt-20" id="how-it-programs-the-gateway"&gt;&lt;/span&gt;
+&lt;a href="#how-it-programs-the-gateway" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;El servidor usa &lt;a href="https://pkg.go.dev/golang.zx2c4.com/wireguard/wgctrl" target="_blank" rel="noopener"&gt;&lt;code&gt;wgctrl&lt;/code&gt;&lt;/a&gt;
+para añadir y eliminar pares en una interfaz existente, y comprueba al arrancar que
+la interfaz existe. La propia interfaz (su clave privada y su puerto de escucha)
+se deja a &lt;code&gt;wg-quick&lt;/code&gt; o a systemd-networkd en el arranque, lo que mantiene la configuración
+de la interfaz con privilegios fuera del servicio de larga duración.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="run-locally"&gt;Ejecución en local&lt;span class="hx:absolute hx:-mt-20" id="run-locally"&gt;&lt;/span&gt;
+&lt;a href="#run-locally" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Con &lt;code&gt;WG_DRYRUN=true&lt;/code&gt; no se toca ningún dispositivo WireGuard:&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;AUTH_PROVIDER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;oidc
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;OIDC_ISSUER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;https://accounts.google.com
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;OIDC_CLIENT_ID&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;xxxx.apps.googleusercontent.com
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;WG_ENDPOINT&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;vpn.example.com:51820
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;WG_PRIVATE_KEY&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;$(&lt;/span&gt;wg genkey&lt;span class="k"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;WG_DRYRUN&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nb"&gt;true&lt;/span&gt; &lt;span class="nv"&gt;LISTEN_ADDR&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;:8080
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;go run ./cmd/claimward-server&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copiar código"
+aria-label="Copiar código"
+data-copied-label="¡Copiado!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;code&gt;task run:dev&lt;/code&gt; hace lo mismo con inicio de sesión de GitHub y una clave efímera, y
+&lt;code&gt;task dex&lt;/code&gt; ejecuta un &lt;a href="https://dexidp.io/" target="_blank" rel="noopener"&gt;Dex&lt;/a&gt; local contra el que iniciar sesión
+(&lt;code&gt;deploy/dev/&lt;/code&gt;).&lt;/p&gt;
+&lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-amber-200 hx:bg-amber-100 hx:text-amber-900 hx:dark:border-amber-200/30 hx:dark:bg-amber-900/30 hx:dark:text-amber-200"&gt;
+&lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/&gt;&lt;/svg&gt;&lt;/div&gt;
+&lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Ejecútelo detrás de TLS.&lt;/strong&gt; Los tokens bearer son credenciales: sirva siempre la API por
+HTTPS, ya sea con &lt;code&gt;TLS_CERT&lt;/code&gt;/&lt;code&gt;TLS_KEY&lt;/code&gt; o detrás de un proxy que termine TLS, y
+dé al RouteService un certificado para que los dispositivos reciban actualizaciones de rutas en vivo.&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description></item><item><title>Proveedores de identidad</title><link>https://claimward.github.io/docs/dev/es/identity-providers/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/es/identity-providers/</guid><description>
+&lt;p&gt;El servidor y las aplicaciones seleccionan cada uno un proveedor por su nombre, y deben coincidir:
+&lt;code&gt;AUTH_PROVIDER&lt;/code&gt; en el servidor, &lt;code&gt;&amp;quot;provider&amp;quot;&lt;/code&gt; en el &lt;code&gt;config.json&lt;/code&gt; de la aplicación (o
+&lt;code&gt;CLAIMWARD_AUTH_PROVIDER&lt;/code&gt;). El bearer que obtiene la aplicación es opaco en la red;
+la forma en que el servidor lo verifica depende del proveedor.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Proveedor&lt;/th&gt;
+&lt;th&gt;Inicio de sesión en el dispositivo&lt;/th&gt;
+&lt;th&gt;Bearer enviado al servidor&lt;/th&gt;
+&lt;th&gt;Cómo lo verifica el servidor&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;github&lt;/code&gt; (por defecto)&lt;/td&gt;
+&lt;td&gt;OAuth device flow&lt;/td&gt;
+&lt;td&gt;access token OAuth de GitHub&lt;/td&gt;
+&lt;td&gt;API de GitHub (&lt;code&gt;/user&lt;/code&gt;, &lt;code&gt;/user/orgs&lt;/code&gt;), lista opcional de organizaciones permitidas&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;oidc&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;authorization code + PKCE, en el navegador&lt;/td&gt;
+&lt;td&gt;ID token OIDC&lt;/td&gt;
+&lt;td&gt;firma, emisor, audiencia; lista opcional de dominios de correo permitidos&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;device flow, y después registro de la clave&lt;/td&gt;
+&lt;td&gt;access token de go-authn (&lt;code&gt;at+jwt&lt;/code&gt;)&lt;/td&gt;
+&lt;td&gt;firma, emisor, audiencia, &lt;code&gt;typ&lt;/code&gt;; la clave debe estar registrada por el mismo sujeto&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 data-hextra-search-id="github"&gt;GitHub&lt;span class="hx:absolute hx:-mt-20" id="github"&gt;&lt;/span&gt;
+&lt;a href="#github" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;El proveedor por defecto. La aplicación ejecuta el &lt;strong&gt;device flow&lt;/strong&gt; de GitHub: muestra un código y la
+página donde introducirlo, y abre esa página en el navegador. Solo se necesita un client ID,
+sin secreto, así que cree una &lt;strong&gt;OAuth App&lt;/strong&gt; de GitHub con &lt;strong&gt;Device Flow&lt;/strong&gt;
+activado. La aplicación solicita &lt;code&gt;read:user&lt;/code&gt;, &lt;code&gt;user:email&lt;/code&gt; y &lt;code&gt;read:org&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;El servidor identifica a la persona a través de la API de GitHub con su token: su
+ID numérico es el sujeto (&lt;code&gt;github:&amp;lt;id&amp;gt;&lt;/code&gt;), sus organizaciones
+(&lt;code&gt;/user/orgs&lt;/code&gt;) son sus grupos para los &lt;a href="https://claimward.github.io/docs/dev/es/tenants/"&gt;inquilinos&lt;/a&gt;, y
+su correo público, cuando lo tiene, se considera verificado. Con
+&lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;, se exige una pertenencia activa a una de esas organizaciones.
+Establezca &lt;code&gt;GITHUB_API_URL&lt;/code&gt; para GitHub Enterprise.&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;AUTH_PROVIDER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;github
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;GITHUB_ALLOWED_ORGS&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;my-org,my-other-org&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copiar código"
+aria-label="Copiar código"
+data-copied-label="¡Copiado!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;h2 data-hextra-search-id="openid-connect"&gt;OpenID Connect&lt;span class="hx:absolute hx:-mt-20" id="openid-connect"&gt;&lt;/span&gt;
+&lt;a href="#openid-connect" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;AUTH_PROVIDER=oidc&lt;/code&gt; con &lt;code&gt;OIDC_ISSUER&lt;/code&gt; (descubierto mediante
+&lt;code&gt;/.well-known/openid-configuration&lt;/code&gt;) y &lt;code&gt;OIDC_CLIENT_ID&lt;/code&gt;, la audiencia que debe llevar el ID
+token. La aplicación ejecuta el flujo authorization code con PKCE: abre
+el navegador y recibe la redirección en &lt;code&gt;http://127.0.0.1:&amp;lt;port&amp;gt;/callback&lt;/code&gt;,
+con un puerto elegido en cada inicio de sesión. Solicita &lt;code&gt;openid profile email offline_access&lt;/code&gt;. Registre un cliente &lt;strong&gt;público/nativo&lt;/strong&gt;, sin secreto.&lt;/p&gt;
+&lt;p&gt;El servidor toma el sujeto, el correo y &lt;code&gt;email_verified&lt;/code&gt;, el
+&lt;code&gt;preferred_username&lt;/code&gt; y el claim &lt;code&gt;groups&lt;/code&gt; (una lista, o una única cadena). Con
+&lt;code&gt;OIDC_ALLOWED_DOMAINS&lt;/code&gt;, el dominio del correo debe ser uno de ellos.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="go-authn"&gt;go-authn&lt;span class="hx:absolute hx:-mt-20" id="go-authn"&gt;&lt;/span&gt;
+&lt;a href="#go-authn" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;a href="https://github.com/go-authn/bridge" target="_blank" rel="noopener"&gt;go-authn/bridge&lt;/a&gt; es un proveedor OpenID Connect
+situado delante de una federación SAML (RENATER, eduGAIN). Además sabe
+&lt;strong&gt;a quién pertenece cada clave WireGuard&lt;/strong&gt;, de modo que un token válido ya no basta para
+registrar un dispositivo:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;La aplicación inicia sesión con el &lt;strong&gt;device flow&lt;/strong&gt; del proveedor, scope
+&lt;code&gt;openid wireguard&lt;/code&gt;. Ese token abre el registro de claves del proveedor y
+nada más: el proveedor dirige un token que lleva uno de sus propios scopes
+únicamente a sí mismo.&lt;/li&gt;
+&lt;li&gt;En cada conexión, la aplicación registra la clave &lt;strong&gt;pública&lt;/strong&gt; del dispositivo
+(&lt;code&gt;POST /wireguard/key&lt;/code&gt;), lo que la renueva si ya pertenece a la persona,
+y después hace un refresh solo para &lt;code&gt;scope=openid&lt;/code&gt;. Así obtiene un &lt;strong&gt;access token&lt;/strong&gt;
+dirigido al servidor VPN. El proveedor rota los refresh tokens, y la
+aplicación conserva el nuevo. La clave privada nunca sale del dispositivo.&lt;/li&gt;
+&lt;li&gt;El servidor solo acepta un access token (&lt;code&gt;typ: at+jwt&lt;/code&gt;, RFC 9068) cuya
+audiencia sea &lt;code&gt;OIDC_CLIENT_ID&lt;/code&gt;, nunca un ID token. Registra la clave solo si
+la lista del proveedor la tiene &lt;strong&gt;registrada por el mismo sujeto&lt;/strong&gt;; en caso contrario
+responde &lt;code&gt;403 key_not_registered&lt;/code&gt;. Una concesión nunca sobrevive al
+registro de la clave.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;La lista procede de &lt;a href="https://github.com/go-authn/wireguard" target="_blank" rel="noopener"&gt;go-authn/wireguard&lt;/a&gt;:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;se &lt;strong&gt;obtiene con el cliente propio de la pasarela&lt;/strong&gt; (&lt;code&gt;client_credentials&lt;/code&gt;, scope
+&lt;code&gt;wireguard_peers&lt;/code&gt;) y el proveedor la firma solo para esa pasarela
+(&lt;code&gt;typ: wireguard-peers+jwt&lt;/code&gt;);&lt;/li&gt;
+&lt;li&gt;se vuelve a obtener cada &lt;code&gt;GOAUTHN_PEER_LIST_INTERVAL&lt;/code&gt; (30 segundos por
+defecto). Una clave que el proveedor retira (la persona o su institución
+desactivada, o el dispositivo eliminado) se quita de &lt;code&gt;wg0&lt;/code&gt; en la siguiente obtención,
+y se rechaza su heartbeat;&lt;/li&gt;
+&lt;li&gt;una lista &lt;strong&gt;más antigua que otra ya vista&lt;/strong&gt; se rechaza, lo que constituye la
+protección contra la reproducción (replay);&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;falla en cerrado&lt;/strong&gt;: una lista es válida cinco minutos y, pasado ese plazo, la pasarela
+no admite a nadie nuevo, mientras que los túneles ya activos terminan con sus concesiones;&lt;/li&gt;
+&lt;li&gt;la primera lista se obtiene &lt;strong&gt;antes de que el servidor escuche&lt;/strong&gt;: una pasarela que
+no puede leerla no arranca;&lt;/li&gt;
+&lt;li&gt;con &lt;code&gt;GOAUTHN_SSF=true&lt;/code&gt;, la pasarela también consulta el flujo Shared Signals del
+proveedor (SSF 1.0, entrega por poll, RFC 8936) cada &lt;code&gt;GOAUTHN_SSF_INTERVAL&lt;/code&gt;. Un
+evento solo provoca que la lista se obtenga de inmediato: es un desencadenante, nunca una
+decisión, así que un evento falsificado solo consigue una obtención adicional y nada más.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Los inquilinos se asocian según los &lt;code&gt;groups&lt;/code&gt; del token (eduPerson entitlements) y
+el &lt;code&gt;idp&lt;/code&gt; (el entity ID de la institución que dio fe), y según el dominio del correo
+solo cuando el proveedor ha verificado la dirección.&lt;/p&gt;
+&lt;h3 data-hextra-search-id="configuration"&gt;Configuración&lt;span class="hx:absolute hx:-mt-20" id="configuration"&gt;&lt;/span&gt;
+&lt;a href="#configuration" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;En el servidor:&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;AUTH_PROVIDER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;go-authn
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;OIDC_ISSUER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;https://login.example.org
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;OIDC_CLIENT_ID&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;claimward &lt;span class="c1"&gt;# the audience of the access tokens&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;GOAUTHN_GATEWAY_CLIENT_ID&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;claimward-gw &lt;span class="c1"&gt;# the gateway&amp;#39;s own client&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;GOAUTHN_GATEWAY_SECRET_FILE&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;/etc/claimward/claimward-gw.secret &lt;span class="c1"&gt;# from a file only&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;GOAUTHN_SSF&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nb"&gt;true&lt;/span&gt; &lt;span class="c1"&gt;# optional&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copiar código"
+aria-label="Copiar código"
+data-copied-label="¡Copiado!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;En el proveedor (la configuración de go-authn/bridge):&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-hcl" data-lang="hcl"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;wireguard&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt; lifetime&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;24h&amp;#34;&lt;/span&gt;&lt;span class="c1"&gt; # a key is listed this long; registering it again renews it
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt; max_keys&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="m"&gt;10&lt;/span&gt;&lt;span class="c1"&gt; # devices per person
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;client&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;claimward&amp;#34;&lt;/span&gt; {&lt;span class="c1"&gt; # the client people sign in with
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt; device&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="kt"&gt;true&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt; wireguard_keys&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="kt"&gt;true&lt;/span&gt;&lt;span class="c1"&gt; # its tokens, with the wireguard scope, may register a key
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt; refresh_lifetime&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;720h&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;client&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;claimward-gw&amp;#34;&lt;/span&gt; {&lt;span class="c1"&gt; # the gateway&amp;#39;s own client
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt; secret_file&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;/etc/bridge/claimward-gw.secret&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt; wireguard_peers&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;claimward&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="c1"&gt; # it reads the keys registered through these clients
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt; ssf_receiver&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="kt"&gt;true&lt;/span&gt;&lt;span class="c1"&gt; # optional: told at once when somebody is disabled
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copiar código"
+aria-label="Copiar código"
+data-copied-label="¡Copiado!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;En el &lt;code&gt;config.json&lt;/code&gt; de la aplicación:&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;server_url&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;https://vpn.example.com&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;provider&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;go-authn&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;oidc_issuer&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;https://login.example.org&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;oidc_client_id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;claimward&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copiar código"
+aria-label="Copiar código"
+data-copied-label="¡Copiado!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;h2 data-hextra-search-id="adding-a-provider"&gt;Añadir un proveedor&lt;span class="hx:absolute hx:-mt-20" id="adding-a-provider"&gt;&lt;/span&gt;
+&lt;a href="#adding-a-provider" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;En el servidor, implemente &lt;code&gt;Verifier&lt;/code&gt; (&lt;code&gt;internal/auth&lt;/code&gt;) y regístrelo en
+&lt;code&gt;auth.New&lt;/code&gt;. En el cliente, implemente &lt;code&gt;Provider&lt;/code&gt; (&lt;code&gt;pkg/auth&lt;/code&gt;) y regístrelo en
+&lt;code&gt;auth.New&lt;/code&gt;; un proveedor que guarda él mismo las claves de los dispositivos implementa también
+&lt;code&gt;KeyRegistrar&lt;/code&gt;.&lt;/p&gt;</description></item></channel></rss>
