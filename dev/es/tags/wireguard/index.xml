@@ -843,7 +843,7 @@ más allá de la subred de la VPN.&lt;/li&gt;
 &lt;li&gt;&lt;code&gt;GET /healthz&lt;/code&gt; es la sonda de actividad (liveness).&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h2 data-hextra-search-id="leases"&gt;Concesiones&lt;span class="hx:absolute hx:-mt-20" id="leases"&gt;&lt;/span&gt;
-&lt;a href="#leases" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;LEASE_TTL&lt;/code&gt; (24 horas por defecto) equilibra seguridad y rotación. El recolector
+&lt;a href="#leases" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;LEASE_TTL&lt;/code&gt; (24 horas por defecto) equilibra seguridad y rotación. El proceso de limpieza
 elimina los pares caducados cada minuto, de modo que los dispositivos revocados o desconectados desaparecen
 por sí solos. Para revocar uno de inmediato, anule el registro de su par, o elimínelo con
 &lt;code&gt;wg set wg0 peer &amp;lt;key&amp;gt; remove&lt;/code&gt;.&lt;/p&gt;
