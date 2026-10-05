@@ -833,7 +833,7 @@ to run co-located on the Linux gateway host.</p>
 <td><code>AUTH_PROVIDER</code></td>
 <td></td>
 <td><code>github</code></td>
-<td>identity provider: <code>github</code> or <code>oidc</code></td>
+<td>identity provider: <code>github</code>, <code>oidc</code> or <code>go-authn</code></td>
 </tr>
 <tr>
 <td><code>GITHUB_ALLOWED_ORGS</code></td>
@@ -864,6 +864,24 @@ to run co-located on the Linux gateway host.</p>
 <td></td>
 <td>—</td>
 <td>CSV email-domain allowlist (oidc)</td>
+</tr>
+<tr>
+<td><code>GOAUTHN_GATEWAY_CLIENT_ID</code></td>
+<td>when <code>go-authn</code></td>
+<td>—</td>
+<td>this gateway's own client at the provider</td>
+</tr>
+<tr>
+<td><code>GOAUTHN_GATEWAY_SECRET_FILE</code></td>
+<td>when <code>go-authn</code></td>
+<td>—</td>
+<td>its secret, from a file only</td>
+</tr>
+<tr>
+<td><code>GOAUTHN_PEER_LIST_INTERVAL</code></td>
+<td></td>
+<td><code>30s</code></td>
+<td>how often the list of registered keys is fetched</td>
 </tr>
 <tr>
 <td><code>WG_ENDPOINT</code></td>
@@ -942,6 +960,19 @@ to run co-located on the Linux gateway host.</p>
   membership in one of those orgs. No client secret is involved.</li>
 <li><strong><code>oidc</code></strong> — clients send an OIDC ID token, verified against the issuer with
   the audience and optional email-domain allowlist.</li>
+<li><strong><code>go-authn</code></strong>: the identity provider is <a href="https://github.com/go-authn/bridge">go-authn/bridge</a>,
+  an OpenID Connect provider in front of a SAML federation (RENATER,
+  eduGAIN). It also keeps <strong>whose each WireGuard key is</strong>:</li>
+<li>clients sign in with its device flow (<code>openid wireguard</code>);</li>
+<li>they register the device's <strong>public</strong> key there (<code>POST /wireguard/key</code>),
+    and send an <strong>access token</strong> (<code>at+jwt</code>) addressed to this server;</li>
+<li>the server enrolls the key only if the provider's list has it registered
+    by the same subject. The list is signed for this gateway alone, fetched
+    with its own client, and never accepted older than one already seen
+    (<a href="https://github.com/go-authn/wireguard">go-authn/wireguard</a>);</li>
+<li>a key the provider takes back (person or institution disabled, device
+    removed) is dropped from <code>wg0</code> at the next fetch;</li>
+<li>a list past its five minutes admits nobody new.</li>
 </ul>
 <p>The bearer is opaque on the wire, so adding a provider is server-local: implement
 <code>Verifier</code> and register it in the factory.</p>
