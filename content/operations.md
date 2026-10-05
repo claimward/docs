@@ -34,10 +34,17 @@ removes expired peers every minute, so revoked or offline devices drop off on
 their own. To revoke one now, deregister its peer, or remove it with
 `wg set wg0 peer <key> remove`.
 
-The v0.1.0 apps renew a lease only by connecting again (each connection
-enrolls again), and do not deregister on *Disconnect*. A device that stays
-connected for longer than `LEASE_TTL` loses its tunnel when its peer is
-reaped; set `LEASE_TTL` with that in mind.
+From claimward-vpn-client v0.3.0 (the next app releases), the helper renews
+the lease while the tunnel is up, at half of what is left (between 30 seconds
+and an hour), and deregisters on *Disconnect*. A shorter `LEASE_TTL` therefore
+costs more heartbeats, not dropped tunnels: a removal from a tenant, or a key
+the go-authn provider takes back, ends the tunnel at the next renewal (the
+server answers `403`). A server that has forgotten a device (`404`) gets it
+enrolled again. See [Leases]({{< relref "/architecture.md#leases" >}}).
+
+The v0.1.0 apps renew only by connecting again, and leave the peer until its
+lease ends after *Disconnect*: with them, a device that stays connected longer
+than `LEASE_TTL` loses its tunnel when its peer is reaped.
 
 ## State
 

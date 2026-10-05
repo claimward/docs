@@ -73,11 +73,38 @@ has ended, so a lost or revoked device falls off the gateway on its own. With
 go-authn a lease never outlives the key's registration at the provider.
 
 The server renews a lease on `POST /api/v1/heartbeat`, and removes a peer at
-once on `POST /api/v1/deregister`. **The v0.1.0 apps call neither**: they
-renew a lease by connecting again, which enrolls again, and a *Disconnect*
-takes the tunnel down on the device while the peer stays on the gateway until
-its lease ends. A tunnel kept up past its lease stops carrying traffic when the
-reaper removes the peer; connecting again fixes it.
+once on `POST /api/v1/deregister`.
+
+From **claimward-vpn-client v0.3.0**, that is from the app releases that carry
+it (the next app tags, not yet cut), the helper keeps the lease itself while
+the tunnel is up. It renews at half of what the lease has left, never sooner
+than 30 seconds nor later than an hour, and acts on the answer:
+
+| The server answers | The helper |
+|---|---|
+| a renewed lease | renews again at half of it |
+| `404 not_enrolled`: it forgot the device (the lease ran out, or the server restarted) | enrolls again with the same key and tenant, and brings the tunnel up from that answer; if that fails too, takes the tunnel down |
+| `403` (`not_a_member`, `key_not_registered`): access withdrawn | takes the tunnel down, and reports why (`last_error`) |
+| `401`, a `5xx`, or nothing | retries within a minute, sooner than the lease ends |
+
+The helper renews with the last bearer it was given. That is enough for a
+GitHub token, not for a go-authn access token, which expires in minutes and
+which only the app can refresh. So while the app runs, `pkg/appcore` hands the
+helper a fresh bearer (the helper's `renew` action) at 40% of what the lease
+has left, before the helper's own renewal is due. An app restarted under a
+running tunnel starts doing so at its first status poll.
+
+*Disconnect* (the helper's `down`) **deregisters** the peer, giving its
+address back at once. A helper that is stopping (its service manager stops
+it, or the machine shuts down) takes the tunnel down without deregistering,
+so a helper restarted finds the lease still there, and a stopped machine's
+lease runs out on the server.
+
+{{< callout type="info" >}}
+The v0.1.0 apps are built on earlier client versions, which do none of this:
+they renew a lease only by connecting again, and leave the peer on the gateway
+after *Disconnect* until its lease ends.
+{{< /callout >}}
 
 ## Trust boundaries
 

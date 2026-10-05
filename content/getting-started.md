@@ -132,8 +132,10 @@ Wintun adapter **Claimward** on Windows) with its `10.80.0.x/32` address, and
 routes to the tenant's networks through it.
 
 {{< callout type="warning" >}}
-The v0.1.0 apps do not renew their lease: a connection that stays up longer
-than `LEASE_TTL` (24 hours by default) is removed from the gateway. Connecting
-again enrolls again and starts a new lease. See
+Lease renewal comes with claimward-vpn-client v0.3.0, in the next app
+releases: from then on the helper renews the lease while the tunnel is up and
+deregisters on *Disconnect*. The v0.1.0 apps do not: a connection that stays
+up longer than `LEASE_TTL` (24 hours by default) is removed from the gateway,
+and connecting again starts a new lease. See
 [Leases]({{< relref "/architecture.md#leases" >}}).
 {{< /callout >}}
