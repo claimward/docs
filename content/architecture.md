@@ -75,10 +75,10 @@ go-authn a lease never outlives the key's registration at the provider.
 The server renews a lease on `POST /api/v1/heartbeat`, and removes a peer at
 once on `POST /api/v1/deregister`.
 
-From **claimward-vpn-client v0.3.0**, that is from the app releases that carry
+From **claimward-vpn-client v0.3.1**, that is from the app releases that carry
 it (the next app tags, not yet cut), the helper keeps the lease itself while
 the tunnel is up. It renews at half of what the lease has left, never sooner
-than 30 seconds nor later than an hour, and acts on the answer:
+than 30 seconds nor later than 10 minutes, and acts on the answer:
 
 | The server answers | The helper |
 |---|---|
@@ -91,7 +91,7 @@ The helper renews with the last bearer it was given. That is enough for a
 GitHub token, not for a go-authn access token, which expires in minutes and
 which only the app can refresh. So while the app runs, `pkg/appcore` hands the
 helper a fresh bearer (the helper's `renew` action) at 40% of what the lease
-has left, before the helper's own renewal is due. An app restarted under a
+has left (at most 8 minutes apart), before the helper's own renewal is due. An app restarted under a
 running tunnel starts doing so at its first status poll.
 
 *Disconnect* (the helper's `down`) **deregisters** the peer, giving its

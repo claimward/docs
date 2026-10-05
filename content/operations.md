@@ -34,9 +34,9 @@ removes expired peers every minute, so revoked or offline devices drop off on
 their own. To revoke one now, deregister its peer, or remove it with
 `wg set wg0 peer <key> remove`.
 
-From claimward-vpn-client v0.3.0 (the next app releases), the helper renews
+From claimward-vpn-client v0.3.1 (the next app releases), the helper renews
 the lease while the tunnel is up, at half of what is left (between 30 seconds
-and an hour), and deregisters on *Disconnect*. A shorter `LEASE_TTL` therefore
+and 10 minutes), and deregisters on *Disconnect*. A shorter `LEASE_TTL` therefore
 costs more heartbeats, not dropped tunnels: a removal from a tenant, or a key
 the go-authn provider takes back, ends the tunnel at the next renewal (the
 server answers `403`). A server that has forgotten a device (`404`) gets it
@@ -48,15 +48,26 @@ than `LEASE_TTL` loses its tunnel when its peer is reaped.
 
 ## State
 
-The v0.1.0 server keeps the enrolled peers, the address pool and the tenants
+The server keeps the enrolled peers, the address pool and the tenants
 **in memory**. A restart forgets them:
 
 - the tenants are back to `default` alone, from `PUSH_ROUTES` and `DNS`;
-- the peers already on `wg0` **stay there**: the server does not read them
-  back, so it never reaps them, and it may hand their addresses to new devices
-  (WireGuard then routes the address to the new peer). After a restart, flush
-  the peers (`wg-quick down wg0 && wg-quick up wg0`, or `wg set … remove`) and
-  have devices connect again.
+- from server **v0.2.0**, the peers a previous run left on `wg0` are
+  **removed at startup**: every peer whose only allowed IP is a `/32` inside
+  `VPN_CIDR`, the shape the server gives every peer. Any other peer
+  (configured by hand, a site-to-site link) is left alone. Kept, those peers
+  would be nobody's: never reaped, never checked against the provider's list,
+  so a person disabled before the restart would keep a working tunnel. Devices
+  find themselves unknown at their next lease renewal and enroll again (apps
+  built on claimward-vpn-client v0.3.1); until then their tunnel carries
+  nothing. The helper renews at most 10 minutes apart, so after a restart a
+  device can be cut off for up to 10 minutes. Reconnecting brings it back at
+  once.
+- the **v0.1.0** server leaves those peers on `wg0`: it never reaps them, and
+  it may hand their addresses to new devices (WireGuard then routes the
+  address to the new peer). After restarting it, flush the peers
+  (`wg-quick down wg0 && wg-quick up wg0`, or `wg set … remove`) and have
+  devices connect again.
 
 For several gateways or a durable audit trail, the `store`, `ipam` and
 `tenant` packages need a database behind them.
