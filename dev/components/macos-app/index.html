@@ -560,6 +560,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#tenants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tenants
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -760,6 +771,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#tenants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tenants
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -792,7 +814,7 @@ single-page app rendered in a webview</strong>.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a> claimward-app (tray process)
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a> ├─ systray            menu: status / Connect / Disconnect / Open / Quit
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a> ├─ uiserver           loopback HTTP: embedded Svelte SPA + token-guarded JSON API
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a> └─ appcore            OIDC login, enroll, drive the helper
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a> └─ appcore            sign-in, tenant choice, drive the helper (claimward-vpn-client)
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        │ spawns "ui" subprocess          │ Unix socket (JSON)
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        ▼                                 ▼
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>   webview (WKWebView)              claimward-helper (root LaunchDaemon)
@@ -805,7 +827,7 @@ unprivileged.</p>
 <h2 id="build">Build<a class="headerlink" href="#build" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">cd</span><span class="w"> </span>frontend<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>npm<span class="w"> </span>install<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>npm<span class="w"> </span>run<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>..<span class="w">   </span><span class="c1"># build the Svelte UI</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nv">CGO_ENABLED</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>go<span class="w"> </span>build<span class="w"> </span>-o<span class="w"> </span>bin/claimward-app<span class="w">    </span>./cmd/claimward-app
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nv">CGO_ENABLED</span><span class="o">=</span><span class="m">1</span><span class="w"> </span>go<span class="w"> </span>build<span class="w"> </span>-o<span class="w"> </span>bin/claimward-helper<span class="w">  </span>./cmd/claimward-helper
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nv">CGO_ENABLED</span><span class="o">=</span><span class="m">0</span><span class="w"> </span>go<span class="w"> </span>build<span class="w"> </span>-o<span class="w"> </span>bin/claimward-helper<span class="w">  </span>./cmd/claimward-helper
 </code></pre></div>
 <h2 id="configure">Configure<a class="headerlink" href="#configure" title="Permanent link">&para;</a></h2>
 <p><code>~/Library/Application Support/Claimward/config.json</code> (GitHub is the default):</p>
@@ -817,16 +839,26 @@ unprivileged.</p>
 </code></pre></div>
 <p>The app uses the GitHub <strong>device flow</strong>: clicking <strong>Connect</strong> shows a code to
 enter at the displayed URL. For OIDC, set <code>"provider": "oidc"</code> with
-<code>"oidc_issuer"</code> / <code>"oidc_client_id"</code>.</p>
+<code>"oidc_issuer"</code> / <code>"oidc_client_id"</code>; for go-authn, <code>"provider": "go-authn"</code>
+with the same two fields.</p>
 <h2 id="install-the-helper-and-run">Install the helper and run<a class="headerlink" href="#install-the-helper-and-run" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>sudo<span class="w"> </span>./scripts/install-helper.sh<span class="w">   </span><span class="c1"># installs the root LaunchDaemon</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>./bin/claimward-app<span class="w">                </span><span class="c1"># tray app → click Connect</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>sudo<span class="w"> </span>./scripts/install-helper.sh<span class="w"> </span>https://vpn.example.com<span class="w">   </span><span class="c1"># installs the root LaunchDaemon</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>./bin/claimward-app<span class="w">                                        </span><span class="c1"># tray app → click Connect</span>
 </code></pre></div>
+<p>The installer writes <code>/Library/Application Support/Claimward/helper.json</code>
+(root's, writable by root alone) with the servers the helper may connect to.
+The helper runs as root, so anything that can reach its socket could otherwise
+point it at a server of its own, answering with routes for every packet of the
+machine. It takes no tunnel configuration from a request, and its socket is
+<code>0660</code>, <code>root:admin</code>.</p>
+<h2 id="tenants">Tenants<a class="headerlink" href="#tenants" title="Permanent link">&para;</a></h2>
+<p>A person may belong to several tenants: the server matches them on email
+domain, groups and institution. The window offers the tenants when the server
+says there is a choice, or on request, and the choice holds for the session.
+A <strong>Connect</strong> from the menu bar that needs a choice opens the window.</p>
 <div class="admonition note">
-<p class="admonition-title">Hardening before shipping</p>
-<p>The MVP helper socket is <code>0666</code>; tighten to a dedicated group + <code>0660</code> with
-peer-credential checks, move session tokens to the Keychain, and ship a
-signed, notarized <code>.app</code>.</p>
+<p class="admonition-title">Still to come</p>
+<p>The session token in the Keychain, and a signed, notarized <code>.app</code>.</p>
 </div>
 
 

@@ -494,6 +494,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#tenants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tenants
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#how-it-programs-the-gateway" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -750,6 +761,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#tenants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tenants
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#how-it-programs-the-gateway" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -976,6 +998,15 @@ to run co-located on the Linux gateway host.</p>
 </ul>
 <p>The bearer is opaque on the wire, so adding a provider is server-local: implement
 <code>Verifier</code> and register it in the factory.</p>
+<h2 id="tenants">Tenants<a class="headerlink" href="#tenants" title="Permanent link">&para;</a></h2>
+<p>A person may belong to several tenants, and chooses one per session. A tenant
+lists <code>domains</code> (verified email), <code>groups</code> (the token's <code>groups</code> claim, GitHub
+organisations) and <code>idps</code> (go-authn's institution); a person matching none
+belongs to <code>default</code>. <code>GET /api/v1/tenants</code> offers the choice, and <code>enroll</code>
+takes the tenant chosen. A person in several who chose none gets <code>409
+tenant_required</code>. The heartbeat is refused once the person leaves the
+tenant, and the RouteService streams the routes of the tenant the device
+enrolled into, over TLS when <code>TLS_CERT</code>/<code>TLS_KEY</code> are set.</p>
 <h2 id="how-it-programs-the-gateway">How it programs the gateway<a class="headerlink" href="#how-it-programs-the-gateway" title="Permanent link">&para;</a></h2>
 <p>The server uses <a href="https://pkg.go.dev/golang.zx2c4.com/wireguard/wgctrl"><code>wgctrl</code></a>
 to add and remove peers on an existing interface. On enrollment it sets a peer
