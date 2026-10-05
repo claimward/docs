@@ -69,6 +69,17 @@ Auth is pluggable behind a `Verifier` interface (`internal/auth`):
 The bearer is opaque on the wire, so adding a provider is server-local: implement
 `Verifier` and register it in the factory.
 
+## Tenants
+
+A person may belong to several tenants, and chooses one per session. A tenant
+lists `domains` (verified email), `groups` (the token's `groups` claim, GitHub
+organisations) and `idps` (go-authn's institution); a person matching none
+belongs to `default`. `GET /api/v1/tenants` offers the choice, and `enroll`
+takes the tenant chosen. A person in several who chose none gets `409
+tenant_required`. The heartbeat is refused once the person leaves the
+tenant, and the RouteService streams the routes of the tenant the device
+enrolled into, over TLS when `TLS_CERT`/`TLS_KEY` are set.
+
 ## How it programs the gateway
 
 The server uses [`wgctrl`](https://pkg.go.dev/golang.zx2c4.com/wireguard/wgctrl)
