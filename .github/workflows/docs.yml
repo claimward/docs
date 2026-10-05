@@ -34,10 +34,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
         with:
-          # themes/hextra (imfing/hextra, pinned to a release tag) and
-          # branding (claimward/brand) are submodules.
+          # themes/hextra (the tannevaled/hextra fork, pinned to a release tag)
+          # and branding (claimward/brand) are submodules.
           submodules: recursive
-          # The whole history: each page's "Last updated on" comes from git.
+          # The whole history: each page's creation and modification come from git.
           fetch-depth: 0
 
       - name: Install Hugo ${{ env.HUGO_VERSION }}
@@ -64,6 +64,13 @@ jobs:
           fi
           echo "version=${version}" >> "$GITHUB_OUTPUT"
           echo "documentation version: ${version}"
+
+      # Each page's creation (first commit, followed across renames) and its
+      # author, for the page history at its foot (params.page.history).
+      - name: Page history
+        run: |
+          mkdir -p data
+          sh themes/hextra/scripts/page-history.sh > data/pagehistory.json
 
       # --panicOnWarning: a deprecated setting or a template warning fails the
       # build rather than scrolling by. A broken {{< relref >}} is an error.
