@@ -1,0 +1,142 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Claimward – Operations</title><link>https://claimward.github.io/docs/v0.2.0/tags/operations/</link><description>Recent content in Operations on Claimward</description><generator>Hugo -- gohugo.io</generator><language>en</language><atom:link href="https://claimward.github.io/docs/v0.2.0/tags/operations/index.xml" rel="self" type="application/rss+xml"/><item><title>Operations</title><link>https://claimward.github.io/docs/v0.2.0/operations/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/v0.2.0/operations/</guid><description>
+&lt;h2 data-hextra-search-id="tls"&gt;TLS&lt;span class="hx:absolute hx:-mt-20" id="tls"&gt;&lt;/span&gt;
+&lt;a href="#tls" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;The server speaks plain HTTP unless &lt;code&gt;TLS_CERT&lt;/code&gt;/&lt;code&gt;TLS_KEY&lt;/code&gt; are set. Bearer tokens
+are credentials, so &lt;strong&gt;always&lt;/strong&gt; put the API behind TLS, directly or through a
+reverse proxy (nginx, Caddy, a load balancer).&lt;/p&gt;
+&lt;p&gt;The same certificate serves the gRPC RouteService. A route watch carries the
+bearer token, and the clients refuse a plaintext watch except on loopback: a
+server without &lt;code&gt;TLS_CERT&lt;/code&gt;/&lt;code&gt;TLS_KEY&lt;/code&gt; (for instance behind a proxy that only
+terminates HTTPS) enrolls devices, but they get no live route updates, and it
+logs a warning at start-up. Set &lt;code&gt;GRPC_ENDPOINT&lt;/code&gt; to the &lt;code&gt;host:port&lt;/code&gt; the devices
+reach the RouteService at, with a name the certificate covers.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="gateway"&gt;Gateway&lt;span class="hx:absolute hx:-mt-20" id="gateway"&gt;&lt;/span&gt;
+&lt;a href="#gateway" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;Bring up &lt;code&gt;wg0&lt;/code&gt; with &lt;code&gt;wg-quick&lt;/code&gt; or systemd-networkd at boot; Claimward only
+manages its peers. Run the server with the rights to configure the interface
+(root, or &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt;).&lt;/li&gt;
+&lt;li&gt;Enable &lt;code&gt;net.ipv4.ip_forward&lt;/code&gt;, and NAT or firewall rules, if clients route
+beyond the VPN subnet.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;GET /healthz&lt;/code&gt; is the liveness probe.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 data-hextra-search-id="leases"&gt;Leases&lt;span class="hx:absolute hx:-mt-20" id="leases"&gt;&lt;/span&gt;
+&lt;a href="#leases" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;LEASE_TTL&lt;/code&gt; (24 hours by default) balances security and churn. The reaper
+removes expired peers every minute, so revoked or offline devices drop off on
+their own. To revoke one now, deregister its peer, or remove it with
+&lt;code&gt;wg set wg0 peer &amp;lt;key&amp;gt; remove&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;From claimward-vpn-client v0.3.1 (the apps from v0.2.0), the helper renews
+the lease while the tunnel is up, at half of what is left (between 30 seconds
+and 10 minutes), and deregisters on &lt;em&gt;Disconnect&lt;/em&gt;. A shorter &lt;code&gt;LEASE_TTL&lt;/code&gt; therefore
+costs more heartbeats, not dropped tunnels: a removal from a tenant, or a key
+the go-authn provider takes back, ends the tunnel at the next renewal (the
+server answers &lt;code&gt;403&lt;/code&gt;). A server that has forgotten a device (&lt;code&gt;404&lt;/code&gt;) gets it
+enrolled again. See &lt;a href="https://claimward.github.io/docs/v0.2.0/architecture/#leases"&gt;Leases&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;The v0.1.0 apps renew only by connecting again, and leave the peer until its
+lease ends after &lt;em&gt;Disconnect&lt;/em&gt;: with them, a device that stays connected longer
+than &lt;code&gt;LEASE_TTL&lt;/code&gt; loses its tunnel when its peer is reaped.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="state"&gt;State&lt;span class="hx:absolute hx:-mt-20" id="state"&gt;&lt;/span&gt;
+&lt;a href="#state" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;The server keeps the enrolled peers, the address pool and the tenants
+&lt;strong&gt;in memory&lt;/strong&gt;. A restart forgets them:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;the tenants are back to &lt;code&gt;default&lt;/code&gt; alone, from &lt;code&gt;PUSH_ROUTES&lt;/code&gt; and &lt;code&gt;DNS&lt;/code&gt;;&lt;/li&gt;
+&lt;li&gt;from server &lt;strong&gt;v0.2.0&lt;/strong&gt;, the peers a previous run left on &lt;code&gt;wg0&lt;/code&gt; are
+&lt;strong&gt;removed at startup&lt;/strong&gt;: every peer whose only allowed IP is a &lt;code&gt;/32&lt;/code&gt; inside
+&lt;code&gt;VPN_CIDR&lt;/code&gt;, the shape the server gives every peer. Any other peer
+(configured by hand, a site-to-site link) is left alone. Kept, those peers
+would be nobody&amp;rsquo;s: never reaped, never checked against the provider&amp;rsquo;s list,
+so a person disabled before the restart would keep a working tunnel. Devices
+find themselves unknown at their next lease renewal and enroll again (apps
+built on claimward-vpn-client v0.3.1); until then their tunnel carries
+nothing. The helper renews at most 10 minutes apart, so after a restart a
+device can be cut off for up to 10 minutes. Reconnecting brings it back at
+once.&lt;/li&gt;
+&lt;li&gt;the &lt;strong&gt;v0.1.0&lt;/strong&gt; server leaves those peers on &lt;code&gt;wg0&lt;/code&gt;: it never reaps them, and
+it may hand their addresses to new devices (WireGuard then routes the
+address to the new peer). After restarting it, flush the peers
+(&lt;code&gt;wg-quick down wg0 &amp;amp;&amp;amp; wg-quick up wg0&lt;/code&gt;, or &lt;code&gt;wg set … remove&lt;/code&gt;) and have
+devices connect again.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;For several gateways or a durable audit trail, the &lt;code&gt;store&lt;/code&gt;, &lt;code&gt;ipam&lt;/code&gt; and
+&lt;code&gt;tenant&lt;/code&gt; packages need a database behind them.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="identity-provider"&gt;Identity provider&lt;span class="hx:absolute hx:-mt-20" id="identity-provider"&gt;&lt;/span&gt;
+&lt;a href="#identity-provider" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;By default Claimward signs people in with &lt;strong&gt;GitHub&lt;/strong&gt; (device flow): create a
+GitHub OAuth App with &lt;strong&gt;Device Flow&lt;/strong&gt; enabled and restrict access with
+&lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;. For &lt;strong&gt;OIDC&lt;/strong&gt;, set &lt;code&gt;AUTH_PROVIDER=oidc&lt;/code&gt; with a
+native/public PKCE client, and restrict with &lt;code&gt;OIDC_ALLOWED_DOMAINS&lt;/code&gt;. For
+&lt;strong&gt;go-authn&lt;/strong&gt;, set &lt;code&gt;AUTH_PROVIDER=go-authn&lt;/code&gt; with the gateway&amp;rsquo;s own client: the
+provider then decides which keys may connect, and a gateway that cannot fetch
+its list admits nobody new. See
+&lt;a href="https://claimward.github.io/docs/v0.2.0/identity-providers/"&gt;Identity providers&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="admin-api-and-webui"&gt;Admin API and WebUI&lt;span class="hx:absolute hx:-mt-20" id="admin-api-and-webui"&gt;&lt;/span&gt;
+&lt;a href="#admin-api-and-webui" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;With &lt;code&gt;ADMIN_TOKEN&lt;/code&gt; set, the server serves an embedded Svelte WebUI at
+&lt;code&gt;/admin/&lt;/code&gt; and an API under &lt;code&gt;/admin/api/&lt;/code&gt;, guarded by
+&lt;code&gt;Authorization: Bearer &amp;lt;ADMIN_TOKEN&amp;gt;&lt;/code&gt; (compared in constant time). Without it,
+&lt;code&gt;/admin/&lt;/code&gt; answers &lt;code&gt;503&lt;/code&gt;. The WebUI&amp;rsquo;s files are served without authentication;
+it asks for the token and sends it with each call.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Method &amp;amp; path&lt;/th&gt;
+&lt;th&gt;&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GET /admin/api/overview&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;{&amp;quot;tenants&amp;quot;, &amp;quot;peers&amp;quot;, &amp;quot;watchers&amp;quot;}&lt;/code&gt; counts&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GET /admin/api/tenants&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;every tenant&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;POST /admin/api/tenants&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;create one: &lt;code&gt;id&lt;/code&gt; (or a slug of &lt;code&gt;name&lt;/code&gt;), &lt;code&gt;name&lt;/code&gt;, &lt;code&gt;domains&lt;/code&gt;, &lt;code&gt;groups&lt;/code&gt;, &lt;code&gt;idps&lt;/code&gt;, &lt;code&gt;allowed_ips&lt;/code&gt;, &lt;code&gt;dns&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GET /admin/api/tenants/{id}&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;one tenant&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;PUT /admin/api/tenants/{id}&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;replace its name, membership lists and routes; bumps &lt;code&gt;serial&lt;/code&gt; and pushes the routes to its watchers&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;DELETE /admin/api/tenants/{id}&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;delete it (not &lt;code&gt;default&lt;/code&gt;); ends its watches&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Serve &lt;code&gt;/admin/&lt;/code&gt; only where administrators reach it: the token is a static
+shared secret.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="metrics"&gt;Metrics&lt;span class="hx:absolute hx:-mt-20" id="metrics"&gt;&lt;/span&gt;
+&lt;a href="#metrics" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;GET /metrics&lt;/code&gt; serves Prometheus metrics, without authentication:&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Metric&lt;/th&gt;
+&lt;th&gt;&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;claimward_enrollments_total{tenant}&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;successful enrollments&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;claimward_active_peers&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;enrolled peers&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;claimward_tenants&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;configured tenants&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;claimward_route_watchers&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;active RouteService watches&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;claimward_tenant_route_serial{tenant}&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;each tenant&amp;rsquo;s route serial&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;</description></item></channel></rss>
