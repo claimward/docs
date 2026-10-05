@@ -7,7 +7,7 @@ tags: [linux, app, helper, systemd]
 ---
 
 [`claimward-vpn-app-linux`](https://github.com/claimward/claimward-vpn-app-linux)
-**v0.2.0** is a **window and a tray icon drawn in pure Go** with
+**v0.2.1** is a **window and a tray icon drawn in pure Go** with
 [go-widgets](https://github.com/go-widgets): no webview, no GTK, no cgo
 (`CGO_ENABLED=0`). A **privileged helper** run by systemd owns the WireGuard
 tunnel. The logic is the macOS app's: both use
@@ -52,7 +52,8 @@ hand-drawn UI" with [bricolint](https://github.com/go-widgets/bricolint).
 
 The tray needs a StatusNotifierItem host (KDE Plasma, GNOME with the
 *AppIndicator and KStatusNotifierItem Support* extension, waybar…). Without
-one the app says so, and closing the window quits it.
+one, or if the tray item cannot be put on the session bus, the app says so on
+start-up and closing the window quits it.
 
 ## Install
 
