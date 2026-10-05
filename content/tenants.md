@@ -30,7 +30,7 @@ which edit the three membership lists beside the routes. The default tenant
 cannot be deleted.
 
 {{< callout type="warning" >}}
-Tenants are kept **in memory** in v0.1.0: a restart of the server leaves only
+Tenants are kept **in memory** (v0.2.0): a restart of the server leaves only
 the `default` tenant, rebuilt from the environment.
 {{< /callout >}}
 

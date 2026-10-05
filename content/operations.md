@@ -34,7 +34,7 @@ removes expired peers every minute, so revoked or offline devices drop off on
 their own. To revoke one now, deregister its peer, or remove it with
 `wg set wg0 peer <key> remove`.
 
-From claimward-vpn-client v0.3.1 (the next app releases), the helper renews
+From claimward-vpn-client v0.3.1 (the apps from v0.2.0), the helper renews
 the lease while the tunnel is up, at half of what is left (between 30 seconds
 and 10 minutes), and deregisters on *Disconnect*. A shorter `LEASE_TTL` therefore
 costs more heartbeats, not dropped tunnels: a removal from a tenant, or a key

@@ -7,7 +7,7 @@ tags: [server, wireguard, grpc, github, oidc, go-authn]
 ---
 
 [`claimward-vpn-server`](https://github.com/claimward/claimward-vpn-server)
-**v0.1.0** is the control plane. It verifies the bearer a device presents,
+**v0.2.0** is the control plane. It verifies the bearer a device presents,
 allocates VPN addresses, and programs the WireGuard gateway with one peer per
 enrolled device. It runs on the Linux gateway host, beside an existing `wg0`.
 

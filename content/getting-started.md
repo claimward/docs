@@ -30,7 +30,7 @@ sudo sysctl -w net.ipv4.ip_forward=1   # if you route beyond the VPN subnet
 ## 2. Run the control plane
 
 ```sh
-go install github.com/claimward/claimward-vpn-server/cmd/claimward-server@v0.1.0
+go install github.com/claimward/claimward-vpn-server/cmd/claimward-server@v0.2.0
 
 export AUTH_PROVIDER=github                     # the default
 export GITHUB_ALLOWED_ORGS=claimward            # optional authorization (recommended)
@@ -132,8 +132,8 @@ Wintun adapter **Claimward** on Windows) with its `10.80.0.x/32` address, and
 routes to the tenant's networks through it.
 
 {{< callout type="warning" >}}
-Lease renewal comes with claimward-vpn-client v0.3.1, in the next app
-releases: from then on the helper renews the lease while the tunnel is up and
+Lease renewal comes with claimward-vpn-client v0.3.1, in the apps from
+v0.2.0: from then on the helper renews the lease while the tunnel is up and
 deregisters on *Disconnect*. The v0.1.0 apps do not: a connection that stays
 up longer than `LEASE_TTL` (24 hours by default) is removed from the gateway,
 and connecting again starts a new lease. See

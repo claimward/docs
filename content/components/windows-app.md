@@ -7,7 +7,7 @@ tags: [windows, app, helper, wintun]
 ---
 
 [`claimward-vpn-app-windows`](https://github.com/claimward/claimward-vpn-app-windows)
-**v0.1.0** is a desktop app with a notification-area (tray) icon. Everything is
+**v0.2.0** is a desktop app with a notification-area (tray) icon. Everything is
 Go with `CGO_ENABLED=0`: the window and the tray are drawn by
 [go-widgets](https://github.com/go-widgets) (no webview, no HTTP server in the
 app), and the tunnel is [wireguard-go](https://git.zx2c4.com/wireguard-go) on a

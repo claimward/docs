@@ -76,7 +76,7 @@ The server renews a lease on `POST /api/v1/heartbeat`, and removes a peer at
 once on `POST /api/v1/deregister`.
 
 From **claimward-vpn-client v0.3.1**, that is from the app releases that carry
-it (the next app tags, not yet cut), the helper keeps the lease itself while
+it (the macOS, Linux and Windows apps from v0.2.0), the helper keeps the lease itself while
 the tunnel is up. It renews at half of what the lease has left, never sooner
 than 30 seconds nor later than 10 minutes, and acts on the answer:
 

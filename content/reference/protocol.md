@@ -49,8 +49,8 @@ Response `200`:
 
 `allowed_ips` and `dns` are the tenant's. `dns` is left out when the tenant has
 none, `grpc_endpoint` when the server advertises no RouteService
-(`GRPC_ENDPOINT`). The protocol also has an optional `mtu`, which the v0.1.0
-server never sets.
+(`GRPC_ENDPOINT`). The protocol also has an optional `mtu`, which the server
+(v0.2.0) never sets.
 
 ## `GET /api/v1/tenants`
 

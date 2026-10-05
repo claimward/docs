@@ -7,7 +7,7 @@ tags: [client, go, wireguard, grpc]
 ---
 
 [`claimward-vpn-client`](https://github.com/claimward/claimward-vpn-client)
-**v0.2.1** is a Go **library**. It ships no binary: the runnable programs are
+**v0.3.1** is a Go **library**. It ships no binary: the runnable programs are
 the apps' (`cmd/claimward-app` and `cmd/claimward-helper` in each app
 repository). The server imports it too, for the wire types and the gRPC stubs.
 

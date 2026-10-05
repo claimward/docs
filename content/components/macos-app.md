@@ -7,7 +7,7 @@ tags: [macos, app, helper, svelte]
 ---
 
 [`claimward-vpn-app-osx`](https://github.com/claimward/claimward-vpn-app-osx)
-**v0.1.0** is a menu-bar (tray) app written in Go whose **whole user interface
+**v0.2.0** is a menu-bar (tray) app written in Go whose **whole user interface
 is a Svelte single-page app rendered in a webview**. Its logic (sign-in,
 tenant choice, connect) and its helper are the shared
 [`pkg/appcore` and `pkg/helper`]({{< relref "/components/client.md" >}}).
@@ -97,8 +97,8 @@ menu bar that the server refuses for want of a choice opens the window.
 attaches it to the release. When the signing secrets are set it signs the app
 with a Developer ID and notarizes and staples the DMG; without them it falls
 back to an ad-hoc signature, which Gatekeeper blocks on a downloaded DMG. The
-v0.1.0 DMG was built without the secrets, so it is **ad-hoc signed and not
-notarized**. The DMG holds the app (with the helper binary inside it); the
+repository holds no signing secrets, so the published DMGs (v0.1.0 and
+v0.2.0) are **ad-hoc signed and not notarized**. The DMG holds the app (with the helper binary inside it); the
 helper is installed as above.
 
 {{< callout type="info" >}}
