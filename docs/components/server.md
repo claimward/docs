@@ -21,12 +21,15 @@ See the [enrollment protocol](../reference/protocol.md) for payloads.
 
 | Variable | Required | Default | Notes |
 |----------|----------|---------|-------|
-| `AUTH_PROVIDER` | | `github` | identity provider: `github` or `oidc` |
+| `AUTH_PROVIDER` | | `github` | identity provider: `github`, `oidc` or `go-authn` |
 | `GITHUB_ALLOWED_ORGS` | | — | CSV org allowlist (github); members of any are allowed |
 | `GITHUB_API_URL` | | `https://api.github.com` | set for GitHub Enterprise |
 | `OIDC_ISSUER` | when `oidc` | — | issuer URL (discovery) |
 | `OIDC_CLIENT_ID` | when `oidc` | — | expected token audience |
 | `OIDC_ALLOWED_DOMAINS` | | — | CSV email-domain allowlist (oidc) |
+| `GOAUTHN_GATEWAY_CLIENT_ID` | when `go-authn` | — | this gateway's own client at the provider |
+| `GOAUTHN_GATEWAY_SECRET_FILE` | when `go-authn` | — | its secret, from a file only |
+| `GOAUTHN_PEER_LIST_INTERVAL` | | `30s` | how often the list of registered keys is fetched |
 | `WG_ENDPOINT` | ✅ | — | public `host:port` advertised to clients |
 | `WG_PRIVATE_KEY` / `WG_PRIVATE_KEY_FILE` | ✅ | — | base64 server key |
 | `WG_INTERFACE` | | `wg0` | kernel interface to manage |
@@ -49,6 +52,19 @@ Auth is pluggable behind a `Verifier` interface (`internal/auth`):
   membership in one of those orgs. No client secret is involved.
 - **`oidc`** — clients send an OIDC ID token, verified against the issuer with
   the audience and optional email-domain allowlist.
+- **`go-authn`**: the identity provider is [go-authn/bridge](https://github.com/go-authn/bridge),
+  an OpenID Connect provider in front of a SAML federation (RENATER,
+  eduGAIN). It also keeps **whose each WireGuard key is**:
+  - clients sign in with its device flow (`openid wireguard`);
+  - they register the device's **public** key there (`POST /wireguard/key`),
+    and send an **access token** (`at+jwt`) addressed to this server;
+  - the server enrolls the key only if the provider's list has it registered
+    by the same subject. The list is signed for this gateway alone, fetched
+    with its own client, and never accepted older than one already seen
+    ([go-authn/wireguard](https://github.com/go-authn/wireguard));
+  - a key the provider takes back (person or institution disabled, device
+    removed) is dropped from `wg0` at the next fetch;
+  - a list past its five minutes admits nobody new.
 
 The bearer is opaque on the wire, so adding a provider is server-local: implement
 `Verifier` and register it in the factory.
