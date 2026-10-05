@@ -51,6 +51,15 @@ languages:
       # Day, then "de" month "de" year: "5 de octubre de 2026".
       dateFormat: "2 de January de 2006"
       description: "Claimward: una VPN WireGuard Zero Trust autoalojada, en la que se inicia sesión con GitHub, OpenID Connect o go-authn."
+  de:
+    label: "Deutsch"
+    contentDir: content/de
+    weight: 4
+    params:
+      flag: images/flags/de.svg
+      # Day before month: "5. Oktober 2026".
+      dateFormat: "2. January 2006"
+      description: "Claimward: ein selbst gehostetes Zero-Trust-VPN auf Basis von WireGuard, bei dem man sich mit GitHub, OpenID Connect oder go-authn anmeldet."
 
 enableRobotsTXT: true
 # Git history dates every page: "Last updated on" at the bottom of each page.
