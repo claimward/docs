@@ -148,7 +148,7 @@ Against a server whose RouteService is not TLS the handshake fails before the
 token is sent, and the tunnel stays up without live route updates.&lt;/p&gt;
 &lt;p&gt;Stopping the helper takes the tunnel down.&lt;/p&gt;</description></item><item><title>Linux app</title><link>https://claimward.github.io/docs/dev/components/linux-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/components/linux-app/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-linux" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-linux&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.2.0&lt;/strong&gt; is a &lt;strong&gt;window and a tray icon drawn in pure Go&lt;/strong&gt; with
+&lt;strong&gt;v0.2.1&lt;/strong&gt; is a &lt;strong&gt;window and a tray icon drawn in pure Go&lt;/strong&gt; with
 &lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt;: no webview, no GTK, no cgo
 (&lt;code&gt;CGO_ENABLED=0&lt;/code&gt;). A &lt;strong&gt;privileged helper&lt;/strong&gt; run by systemd owns the WireGuard
 tunnel. The logic is the macOS app&amp;rsquo;s: both use
@@ -199,7 +199,8 @@ tray; &lt;em&gt;Quit&lt;/em&gt; leaves the tunnel as it is.&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;The tray needs a StatusNotifierItem host (KDE Plasma, GNOME with the
 &lt;em&gt;AppIndicator and KStatusNotifierItem Support&lt;/em&gt; extension, waybar…). Without
-one the app says so, and closing the window quits it.&lt;/p&gt;
+one, or if the tray item cannot be put on the session bus, the app says so on
+start-up and closing the window quits it.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="install"&gt;Install&lt;span class="hx:absolute hx:-mt-20" id="install"&gt;&lt;/span&gt;
 &lt;a href="#install" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Build as yourself (Go 1.27.1 or later), then install as root:&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
