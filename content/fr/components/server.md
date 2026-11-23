@@ -41,11 +41,11 @@ Toute la configuration se fait par l'environnement.
 | Variable | Requise | Défaut | Remarques |
 |----------|----------|---------|-------|
 | `AUTH_PROVIDER` | | `github` | fournisseur d'identité : `github`, `oidc` ou `go-authn` |
-| `GITHUB_ALLOWED_ORGS` | | — | liste CSV des organisations autorisées (`github`) : un membre actif de l'une d'elles est admis |
+| `GITHUB_ALLOWED_ORGS` | `github` | — | liste CSV des organisations autorisées : un membre actif de l'une d'elles est admis. **Obligatoire** depuis v0.4.0 : le serveur refuse de démarrer si elle est vide, sans option de contournement (rupture : la définir avant la mise à jour) |
 | `GITHUB_API_URL` | | `https://api.github.com` | à définir pour GitHub Enterprise |
 | `OIDC_ISSUER` | `oidc`, `go-authn` | — | URL de l'émetteur (découverte) |
 | `OIDC_CLIENT_ID` | `oidc`, `go-authn` | — | l'audience que les jetons doivent porter |
-| `OIDC_ALLOWED_DOMAINS` | | — | liste CSV des domaines de messagerie autorisés (`oidc`) |
+| `OIDC_ALLOWED_DOMAINS` | | — | liste CSV des domaines de messagerie autorisés (`oidc`) ; l'e-mail du jeton doit être vérifié |
 | `GOAUTHN_GATEWAY_CLIENT_ID` | `go-authn` | — | le client propre de la passerelle chez le fournisseur (`wireguard_peers`) |
 | `GOAUTHN_GATEWAY_SECRET_FILE` | `go-authn` | — | son secret, **uniquement depuis un fichier** |
 | `GOAUTHN_PEER_LIST_INTERVAL` | | `30s` | fréquence de récupération de la liste des clés enregistrées |
@@ -62,7 +62,9 @@ Toute la configuration se fait par l'environnement.
 | `KEEPALIVE` | | `25` | keepalive persistant annoncé aux clients (secondes) |
 | `LEASE_TTL` | | `24h` | durée d'un enrôlement sans heartbeat |
 | `LISTEN_ADDR` | | `:8443` | adresse d'écoute HTTP |
-| `GRPC_ADDR` | | `:8444` | adresse d'écoute du RouteService |
+| `GRPC_ADDR` | | `:8444` | adresse d'écoute du RouteService ; les flux `Watch` sont ré-autorisés toutes les 15 s et se terminent quand l'identité n'est plus admise |
+| `METRICS_ADDR` | | `127.0.0.1:9090` | écouteur séparé pour `/metrics` (boucle locale par défaut ; plus servi sur `LISTEN_ADDR`) |
+| `MAX_DEVICES_PER_SUBJECT` | | `5` | appareils qu'une identité peut enrôler |
 | `GRPC_ENDPOINT` | | — | `host:port` du RouteService annoncé aux clients ; vide, ils ne surveillent rien |
 | `ADMIN_TOKEN` | | — | jeton porteur pour l'API d'administration et la WebUI ; vide, elles sont désactivées |
 | `TLS_CERT` / `TLS_KEY` | | — | HTTPS, et TLS sur le RouteService |

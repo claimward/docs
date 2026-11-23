@@ -41,11 +41,11 @@ All configuration is in the environment.
 | Variable | Required | Default | Notes |
 |----------|----------|---------|-------|
 | `AUTH_PROVIDER` | | `github` | identity provider: `github`, `oidc` or `go-authn` |
-| `GITHUB_ALLOWED_ORGS` | | — | CSV organisation allowlist (`github`): an active member of any is allowed |
+| `GITHUB_ALLOWED_ORGS` | `github` | — | CSV organisation allowlist: an active member of any is allowed. **Required** since v0.4.0: the server refuses to start with it empty, and there is no opt-out (breaking: set it before upgrading) |
 | `GITHUB_API_URL` | | `https://api.github.com` | set for GitHub Enterprise |
 | `OIDC_ISSUER` | `oidc`, `go-authn` | — | issuer URL (discovery) |
 | `OIDC_CLIENT_ID` | `oidc`, `go-authn` | — | the audience tokens must carry |
-| `OIDC_ALLOWED_DOMAINS` | | — | CSV email-domain allowlist (`oidc`) |
+| `OIDC_ALLOWED_DOMAINS` | | — | CSV email-domain allowlist (`oidc`); the token's email must be verified |
 | `GOAUTHN_GATEWAY_CLIENT_ID` | `go-authn` | — | the gateway's own client at the provider (`wireguard_peers`) |
 | `GOAUTHN_GATEWAY_SECRET_FILE` | `go-authn` | — | its secret, **from a file only** |
 | `GOAUTHN_PEER_LIST_INTERVAL` | | `30s` | how often the list of registered keys is fetched |
@@ -62,7 +62,9 @@ All configuration is in the environment.
 | `KEEPALIVE` | | `25` | persistent keepalive advertised to clients (seconds) |
 | `LEASE_TTL` | | `24h` | how long an enrollment lasts without a heartbeat |
 | `LISTEN_ADDR` | | `:8443` | HTTP listen address |
-| `GRPC_ADDR` | | `:8444` | RouteService listen address |
+| `GRPC_ADDR` | | `:8444` | RouteService listen address; `Watch` streams are re-authorised every 15 s and end when the identity is no longer allowed |
+| `METRICS_ADDR` | | `127.0.0.1:9090` | separate listener for `/metrics` (loopback by default; it is no longer served on `LISTEN_ADDR`) |
+| `MAX_DEVICES_PER_SUBJECT` | | `5` | devices one identity may enroll |
 | `GRPC_ENDPOINT` | | — | `host:port` of the RouteService advertised to clients; empty, they do not watch |
 | `ADMIN_TOKEN` | | — | bearer for the admin API and WebUI; empty disables them |
 | `TLS_CERT` / `TLS_KEY` | | — | HTTPS, and TLS on the RouteService |
@@ -75,8 +77,8 @@ Authentication is pluggable behind the `Verifier` interface
 
 - **`github`** (default): the bearer is a GitHub OAuth access token from the
   device flow. The server resolves it through the GitHub API (`/user`,
-  `/user/orgs`) and, with `GITHUB_ALLOWED_ORGS`, requires an active membership
-  of one of those organisations. No client secret is involved.
+  `/user/orgs`) and, with `GITHUB_ALLOWED_ORGS` (required), requires an active
+  membership of one of those organisations. No client secret is involved.
 - **`oidc`**: the bearer is an OIDC ID token, verified against the issuer with
   the audience `OIDC_CLIENT_ID` and the optional email-domain allowlist.
 - **`go-authn`**: the bearer is an access token (`at+jwt`) from a

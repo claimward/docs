@@ -33,7 +33,7 @@ sudo sysctl -w net.ipv4.ip_forward=1   # if you route beyond the VPN subnet
 go install github.com/claimward/claimward-vpn-server/cmd/claimward-server@v0.2.0
 
 export AUTH_PROVIDER=github                     # the default
-export GITHUB_ALLOWED_ORGS=claimward            # optional authorization (recommended)
+export GITHUB_ALLOWED_ORGS=claimward            # required authorization (the server refuses to start without it)
 export WG_ENDPOINT=vpn.example.com:51820
 export WG_PRIVATE_KEY_FILE=/etc/wireguard/server.key
 export VPN_CIDR=10.80.0.0/24
