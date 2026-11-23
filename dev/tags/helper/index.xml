@@ -275,11 +275,20 @@ helper is installed as above.&lt;/p&gt;
 &lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-blue-200 hx:bg-blue-100 hx:text-blue-900 hx:dark:border-blue-200/30 hx:dark:bg-blue-900/30 hx:dark:text-blue-200"&gt;
 &lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/&gt;&lt;/svg&gt;&lt;/div&gt;
 &lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
-&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Still to come:&lt;/strong&gt; the session token in the Keychain (it is a &lt;code&gt;0600&lt;/code&gt; file
-today), the helper installed with SMJobBless, a release signed with a
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Still to come:&lt;/strong&gt; the helper installed with SMJobBless, a release signed with a
 Developer ID, and DNS applied on macOS.&lt;/div&gt;
 &lt;/div&gt;
-&lt;/div&gt;</description></item><item><title>Linux app</title><link>https://claimward.github.io/docs/dev/components/linux-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/components/linux-app/</guid><description>
+&lt;/div&gt;
+&lt;h2 data-hextra-search-id="session-and-servers"&gt;Session and servers&lt;span class="hx:absolute hx:-mt-20" id="session-and-servers"&gt;&lt;/span&gt;
+&lt;a href="#session-and-servers" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;The session (tokens and the device&amp;rsquo;s WireGuard key) lives in &lt;code&gt;session.enc&lt;/code&gt;,
+sealed with AES-GCM; the key is held in the login &lt;strong&gt;Keychain&lt;/strong&gt;. It is never
+written to disk in clear and there is no plaintext fallback: if the Keychain is
+locked or unavailable (client v0.5.0 and later), sign-in fails with an error
+saying so. A &lt;code&gt;0600&lt;/code&gt; &lt;code&gt;session.json&lt;/code&gt; from an older version is moved into the
+store on first start, or deleted if that fails.&lt;/p&gt;
+&lt;p&gt;The server must be an &lt;strong&gt;https&lt;/strong&gt; URL, and the window&amp;rsquo;s launch token travels in
+a header only (never in a URL, in the process arguments or in logs); the
+handoff to a running instance goes through a file.&lt;/p&gt;</description></item><item><title>Linux app</title><link>https://claimward.github.io/docs/dev/components/linux-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/components/linux-app/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-linux" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-linux&lt;/code&gt;&lt;/a&gt;
 &lt;strong&gt;v0.2.1&lt;/strong&gt; is a &lt;strong&gt;window and a tray icon drawn in pure Go&lt;/strong&gt; with
 &lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt;: no webview, no GTK, no cgo
@@ -350,6 +359,8 @@ data-copied-label="Copied!"
 &lt;/button&gt;
 &lt;/div&gt;
 &lt;/div&gt;
+&lt;p&gt;&lt;code&gt;--server&lt;/code&gt; accepts &lt;strong&gt;https URLs only&lt;/strong&gt;: the sign-in token is sent to that
+server, so a plain &lt;code&gt;http://&lt;/code&gt; URL is refused.&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;install.sh&lt;/code&gt;:&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;creates the &lt;code&gt;claimward&lt;/code&gt; group and adds you to it (&lt;code&gt;$SUDO_USER&lt;/code&gt;, or
@@ -369,7 +380,14 @@ also removes &lt;code&gt;/etc/claimward&lt;/code&gt; and the group.&lt;/p&gt;
 &lt;a href="#configure" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;The app: &lt;code&gt;~/.config/Claimward/config.json&lt;/code&gt;, written by the settings form,
 mode &lt;code&gt;0600&lt;/code&gt;, overridden by &lt;code&gt;CLAIMWARD_*&lt;/code&gt; variables (see the
 &lt;a href="https://claimward.github.io/docs/dev/components/client/#files-on-the-device"&gt;client library&lt;/a&gt;).
-The session is &lt;code&gt;~/.config/claimward/session.json&lt;/code&gt;, mode &lt;code&gt;0600&lt;/code&gt;.&lt;/p&gt;
+The session (tokens and the device&amp;rsquo;s WireGuard key) is kept in the desktop&amp;rsquo;s
+&lt;strong&gt;Secret Service&lt;/strong&gt; keyring through &lt;code&gt;secret-tool&lt;/code&gt;, and is never written to disk
+in clear. &lt;strong&gt;A Secret Service provider is required&lt;/strong&gt; (client v0.5.0 and later):
+install and unlock one such as gnome-keyring or KeePassXC, and install
+&lt;code&gt;secret-tool&lt;/code&gt; (&lt;code&gt;libsecret-tools&lt;/code&gt;). Without one, sign-in fails with an error
+naming what is missing; there is no plaintext fallback, on a headless server
+either. A &lt;code&gt;session.json&lt;/code&gt; left by an older version is moved into the keyring on
+first start, or deleted if the keyring refuses it.&lt;/p&gt;
 &lt;p&gt;The helper: &lt;code&gt;/etc/claimward/helper.json&lt;/code&gt; (see
 &lt;a href="https://claimward.github.io/docs/dev/components/helper/"&gt;Privileged helper&lt;/a&gt;); after editing it,
 &lt;code&gt;sudo systemctl restart claimward-helper&lt;/code&gt;.&lt;/p&gt;
@@ -386,7 +404,7 @@ the &lt;code&gt;claimward&lt;/code&gt; group means being allowed to bring the VP
 &lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Verified&lt;/strong&gt; in an Ubuntu 24.04 (arm64) virtual machine against a stand-in
 server. &lt;strong&gt;Not yet verified&lt;/strong&gt;, according to the README: a real GNOME or KDE
 desktop, Wayland, HiDPI, a sign-in against a real identity provider, and a
-real claimward-vpn-server. The session file is not yet in a keyring.&lt;/div&gt;
+real claimward-vpn-server.&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;</description></item><item><title>Windows app</title><link>https://claimward.github.io/docs/dev/components/windows-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/components/windows-app/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-windows" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-windows&lt;/code&gt;&lt;/a&gt;
@@ -459,11 +477,17 @@ data-copied-label="Copied!"
 &lt;/div&gt;
 &lt;p&gt;It copies the programs and &lt;code&gt;wintun.dll&lt;/code&gt; to &lt;code&gt;C:\Program Files\Claimward&lt;/code&gt;,
 creates the local group &lt;strong&gt;Claimward Users&lt;/strong&gt; and adds you to it, writes
-&lt;code&gt;C:\ProgramData\Claimward\helper.json&lt;/code&gt;, registers and starts the
+&lt;code&gt;C:\ProgramData\Claimward\helper.json&lt;/code&gt; (after checking that directory, see
+below), registers and starts the
 &lt;strong&gt;ClaimwardHelper&lt;/strong&gt; service, and adds a &lt;strong&gt;Claimward VPN&lt;/strong&gt; Start Menu shortcut.
 Membership takes effect at your &lt;strong&gt;next sign-in to Windows&lt;/strong&gt;; until then the
 socket refuses you. Add other people with
 &lt;code&gt;Add-LocalGroupMember -Group 'Claimward Users' -Member &amp;lt;name&amp;gt;&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;-Server&lt;/code&gt; accepts &lt;strong&gt;https URLs only&lt;/strong&gt;: the sign-in token is sent to that server.&lt;/p&gt;
+&lt;p&gt;ProgramData lets every user create directories, so the installer &lt;strong&gt;refuses&lt;/strong&gt; a
+pre-existing &lt;code&gt;C:\ProgramData\Claimward&lt;/code&gt; that is a reparse point (a link) or
+that is not owned by SYSTEM (&lt;code&gt;S-1-5-18&lt;/code&gt;) or Administrators (&lt;code&gt;S-1-5-32-544&lt;/code&gt;):
+inspect and remove it, then run the installer again.&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;.\uninstall.ps1&lt;/code&gt; removes the service, the shortcut and the programs;
 &lt;code&gt;-RemoveData&lt;/code&gt; also removes &lt;code&gt;C:\ProgramData\Claimward&lt;/code&gt; and the group. There is
 no MSI yet.&lt;/p&gt;
@@ -473,7 +497,11 @@ WireGuard LLC and is not in the repository.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="configure"&gt;Configure&lt;span class="hx:absolute hx:-mt-20" id="configure"&gt;&lt;/span&gt;
 &lt;a href="#configure" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;The app reads &lt;code&gt;%AppData%\Claimward\config.json&lt;/code&gt;, then &lt;code&gt;CLAIMWARD_*&lt;/code&gt; variables
 (see the &lt;a href="https://claimward.github.io/docs/dev/components/client/#files-on-the-device"&gt;client library&lt;/a&gt;).
-The session is &lt;code&gt;%AppData%\claimward\session.json&lt;/code&gt;.&lt;/p&gt;
+The session is sealed with &lt;strong&gt;DPAPI&lt;/strong&gt; in a per-user file, &lt;code&gt;session.dpapi&lt;/code&gt;, under
+&lt;code&gt;%AppData%\claimward&lt;/code&gt;. It is never written in clear and there is no plaintext
+fallback: if DPAPI fails (client v0.5.0 and later), sign-in fails with an error
+saying so. A &lt;code&gt;session.json&lt;/code&gt; from an older version is moved into DPAPI on first
+start, or deleted if that fails.&lt;/p&gt;
 &lt;p&gt;The helper reads &lt;code&gt;C:\ProgramData\Claimward\helper.json&lt;/code&gt;:&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;
@@ -499,8 +527,7 @@ sets and checks are described under
 &lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-blue-200 hx:bg-blue-100 hx:text-blue-900 hx:dark:border-blue-200/30 hx:dark:bg-blue-900/30 hx:dark:text-blue-200"&gt;
 &lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/&gt;&lt;/svg&gt;&lt;/div&gt;
 &lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
-&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Still to come:&lt;/strong&gt; an MSI installer, and the session in the Windows Credential
-Manager (DPAPI) rather than a per-user file.&lt;/div&gt;
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Still to come:&lt;/strong&gt; an MSI installer.&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;</description></item><item><title>Architecture</title><link>https://claimward.github.io/docs/dev/architecture/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/architecture/</guid><description>
 &lt;p&gt;Claimward separates a &lt;strong&gt;control plane&lt;/strong&gt;, the server, from the &lt;strong&gt;data plane&lt;/strong&gt;,
@@ -636,7 +663,8 @@ configuration: it enrolls only with the servers that configuration names and
 takes no tunnel configuration from a request. See
 &lt;a href="https://claimward.github.io/docs/dev/components/helper/"&gt;Privileged helper&lt;/a&gt;.&lt;/li&gt;
 &lt;li&gt;The &lt;strong&gt;app&lt;/strong&gt; runs as the person. It holds the session (bearer token and device
-key) in a &lt;code&gt;0600&lt;/code&gt; file in their configuration directory.&lt;/li&gt;
+key) in the platform&amp;rsquo;s secret store (macOS Keychain, Windows DPAPI, Linux
+Secret Service), never in clear on disk: with no usable store, sign-in fails.&lt;/li&gt;
 &lt;li&gt;A route watch carries the bearer token, so it runs over &lt;strong&gt;TLS&lt;/strong&gt; except to a
 loopback address.&lt;/li&gt;
 &lt;li&gt;The wire contract lives in one place,

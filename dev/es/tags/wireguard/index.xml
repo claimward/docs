@@ -323,7 +323,7 @@ dé al RouteService un certificado para que los dispositivos reciban actualizaci
 &lt;/div&gt;
 &lt;/div&gt;</description></item><item><title>Biblioteca cliente</title><link>https://claimward.github.io/docs/dev/es/components/client/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/es/components/client/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-client" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-client&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.3.1&lt;/strong&gt; es una &lt;strong&gt;biblioteca&lt;/strong&gt; Go. No incluye ningún binario: los programas ejecutables
+&lt;strong&gt;v0.5.0&lt;/strong&gt; es una &lt;strong&gt;biblioteca&lt;/strong&gt; Go. No incluye ningún binario: los programas ejecutables
 son los de las aplicaciones (&lt;code&gt;cmd/claimward-app&lt;/code&gt; y &lt;code&gt;cmd/claimward-helper&lt;/code&gt; en el repositorio
 de cada aplicación). El servidor también la importa, por los tipos de red y los stubs gRPC.&lt;/p&gt;
 &lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-blue-200 hx:bg-blue-100 hx:text-blue-900 hx:dark:border-blue-200/30 hx:dark:bg-blue-900/30 hx:dark:text-blue-200"&gt;
@@ -393,7 +393,7 @@ el módulo que solo contiene la biblioteca es la base sobre la que se construyen
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;pkg/tokenstore&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;la sesión (bearer, token de refresco, clave privada del dispositivo, inquilino elegido) en un archivo JSON &lt;code&gt;0600&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;la sesión (bearer, token de refresco, clave privada del dispositivo, inquilino elegido) en el almacén de secretos del sistema: Keychain de macOS, DPAPI de Windows, Secret Service de Linux; sin alternativa en texto claro&lt;/td&gt;
 &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
@@ -411,8 +411,8 @@ el módulo que solo contiene la biblioteca es la base sobre la que se construyen
 &lt;td&gt;la configuración de la aplicación (&lt;code&gt;appcore.Config&lt;/code&gt;), &lt;code&gt;0600&lt;/code&gt;, sustituida por las variables &lt;code&gt;CLAIMWARD_*&lt;/code&gt;&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
-&lt;td&gt;&lt;code&gt;&amp;lt;config dir&amp;gt;/claimward/session.json&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;la sesión (&lt;code&gt;pkg/tokenstore&lt;/code&gt;), &lt;code&gt;0600&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;&amp;lt;config dir&amp;gt;/claimward/session.enc&lt;/code&gt; (macOS), &lt;code&gt;session.dpapi&lt;/code&gt; (Windows)&lt;/td&gt;
+&lt;td&gt;la sesión sellada; su clave está en el Keychain, o el blob está protegido por DPAPI. En Linux, la propia sesión está en el Secret Service.&lt;/td&gt;
 &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
@@ -534,8 +534,16 @@ envío no se aplican.&lt;/li&gt;
 ejecutable que llama a &lt;code&gt;wgtun.Up&lt;/code&gt;, de lo cual se encarga el empaquetado de la aplicación
 de Windows. La dirección, las rutas, el DNS y la MTU se configuran mediante &lt;code&gt;winipcfg&lt;/code&gt; (la API IP
 Helper, Go puro, &lt;code&gt;CGO_ENABLED=0&lt;/code&gt;).&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Almacén de la sesión.&lt;/strong&gt; Un archivo &lt;code&gt;0600&lt;/code&gt;; trasladarlo al almacén de secretos de la plataforma
-está aún pendiente.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Almacén de la sesión.&lt;/strong&gt; El almacén de secretos de la plataforma: el Keychain de inicio de
+sesión de macOS (guarda una clave AES-GCM; la sesión se sella en &lt;code&gt;session.enc&lt;/code&gt;), DPAPI de
+Windows (&lt;code&gt;session.dpapi&lt;/code&gt;), el Secret Service de Linux mediante &lt;code&gt;secret-tool&lt;/code&gt;. Desde
+&lt;strong&gt;v0.5.0&lt;/strong&gt; no hay alternativa en texto claro y &lt;code&gt;CLAIMWARD_ALLOW_PLAINTEXT_SESSION&lt;/code&gt;
+no tiene efecto: sin un almacén utilizable, guardar la sesión falla y el inicio de
+sesión falla con un error que nombra lo que falta (en Linux, instale y desbloquee un proveedor
+de Secret Service como gnome-keyring o KeePassXC, e instale &lt;code&gt;secret-tool&lt;/code&gt;).
+Un &lt;code&gt;session.json&lt;/code&gt; antiguo se lee una vez, se traslada al almacén y se elimina, o se
+elimina si el almacén lo rechaza. Las pruebas de otros paquetes usan
+&lt;code&gt;tokenstore.UseMemory()&lt;/code&gt;.&lt;/li&gt;
 &lt;/ul&gt;</description></item><item><title>Primeros pasos</title><link>https://claimward.github.io/docs/dev/es/getting-started/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/es/getting-started/</guid><description>
 &lt;p&gt;Esta guía recorre la puesta en marcha de una pasarela y la conexión de un primer
 dispositivo. La pasarela es un host Linux; el dispositivo ejecuta una de las tres aplicaciones de escritorio.&lt;/p&gt;
@@ -835,7 +843,8 @@ configuración: solo se registra en los servidores que nombra esa configuración
 no acepta ninguna configuración de túnel procedente de una petición. Véase
 &lt;a href="https://claimward.github.io/docs/dev/es/components/helper/"&gt;Helper con privilegios&lt;/a&gt;.&lt;/li&gt;
 &lt;li&gt;La &lt;strong&gt;aplicación&lt;/strong&gt; se ejecuta como la persona. Guarda la sesión (token bearer y clave
-del dispositivo) en un archivo &lt;code&gt;0600&lt;/code&gt; de su directorio de configuración.&lt;/li&gt;
+del dispositivo) en el almacén de secretos de la plataforma (Keychain de macOS, DPAPI de Windows,
+Secret Service de Linux), nunca en claro en el disco: sin un almacén utilizable, el inicio de sesión falla.&lt;/li&gt;
 &lt;li&gt;Una observación de rutas lleva el token bearer, por eso pasa por &lt;strong&gt;TLS&lt;/strong&gt; salvo hacia una
 dirección de loopback.&lt;/li&gt;
 &lt;li&gt;El contrato de comunicación está en un solo lugar,

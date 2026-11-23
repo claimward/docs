@@ -275,8 +275,17 @@ helper is installed as above.&lt;/p&gt;
 &lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-blue-200 hx:bg-blue-100 hx:text-blue-900 hx:dark:border-blue-200/30 hx:dark:bg-blue-900/30 hx:dark:text-blue-200"&gt;
 &lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/&gt;&lt;/svg&gt;&lt;/div&gt;
 &lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
-&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Still to come:&lt;/strong&gt; the session token in the Keychain (it is a &lt;code&gt;0600&lt;/code&gt; file
-today), the helper installed with SMJobBless, a release signed with a
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Still to come:&lt;/strong&gt; the helper installed with SMJobBless, a release signed with a
 Developer ID, and DNS applied on macOS.&lt;/div&gt;
 &lt;/div&gt;
-&lt;/div&gt;</description></item></channel></rss>
+&lt;/div&gt;
+&lt;h2 data-hextra-search-id="session-and-servers"&gt;Session and servers&lt;span class="hx:absolute hx:-mt-20" id="session-and-servers"&gt;&lt;/span&gt;
+&lt;a href="#session-and-servers" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;The session (tokens and the device&amp;rsquo;s WireGuard key) lives in &lt;code&gt;session.enc&lt;/code&gt;,
+sealed with AES-GCM; the key is held in the login &lt;strong&gt;Keychain&lt;/strong&gt;. It is never
+written to disk in clear and there is no plaintext fallback: if the Keychain is
+locked or unavailable (client v0.5.0 and later), sign-in fails with an error
+saying so. A &lt;code&gt;0600&lt;/code&gt; &lt;code&gt;session.json&lt;/code&gt; from an older version is moved into the
+store on first start, or deleted if that fails.&lt;/p&gt;
+&lt;p&gt;The server must be an &lt;strong&gt;https&lt;/strong&gt; URL, and the window&amp;rsquo;s launch token travels in
+a header only (never in a URL, in the process arguments or in logs); the
+handoff to a running instance goes through a file.&lt;/p&gt;</description></item></channel></rss>

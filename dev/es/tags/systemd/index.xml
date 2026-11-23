@@ -69,6 +69,8 @@ data-copied-label="¡Copiado!"
 &lt;/button&gt;
 &lt;/div&gt;
 &lt;/div&gt;
+&lt;p&gt;&lt;code&gt;--server&lt;/code&gt; acepta &lt;strong&gt;solo URL https&lt;/strong&gt;: el token de inicio de sesión se envía a ese
+servidor, así que una URL &lt;code&gt;http://&lt;/code&gt; simple se rechaza.&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;install.sh&lt;/code&gt;:&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;crea el grupo &lt;code&gt;claimward&lt;/code&gt; y le añade a usted (&lt;code&gt;$SUDO_USER&lt;/code&gt;, o
@@ -88,7 +90,14 @@ elimina además &lt;code&gt;/etc/claimward&lt;/code&gt; y el grupo.&lt;/p&gt;
 &lt;a href="#configure" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;La aplicación: &lt;code&gt;~/.config/Claimward/config.json&lt;/code&gt;, escrito por el formulario de ajustes,
 modo &lt;code&gt;0600&lt;/code&gt;, sobrescrito por las variables &lt;code&gt;CLAIMWARD_*&lt;/code&gt; (véase la
 &lt;a href="https://claimward.github.io/docs/dev/es/components/client/#files-on-the-device"&gt;biblioteca cliente&lt;/a&gt;).
-La sesión es &lt;code&gt;~/.config/claimward/session.json&lt;/code&gt;, modo &lt;code&gt;0600&lt;/code&gt;.&lt;/p&gt;
+La sesión (tokens y la clave WireGuard del dispositivo) se guarda en el llavero
+&lt;strong&gt;Secret Service&lt;/strong&gt; del escritorio mediante &lt;code&gt;secret-tool&lt;/code&gt;, y nunca se escribe en claro en
+el disco. &lt;strong&gt;Se requiere un proveedor de Secret Service&lt;/strong&gt; (cliente v0.5.0 y posteriores):
+instale y desbloquee uno, como gnome-keyring o KeePassXC, e instale &lt;code&gt;secret-tool&lt;/code&gt;
+(&lt;code&gt;libsecret-tools&lt;/code&gt;). Sin él, el inicio de sesión falla con un error que nombra lo que
+falta; no hay alternativa en texto claro, tampoco en un servidor sin interfaz gráfica.
+Un &lt;code&gt;session.json&lt;/code&gt; dejado por una versión anterior se traslada al llavero en el primer
+arranque, o se elimina si el llavero lo rechaza.&lt;/p&gt;
 &lt;p&gt;El helper: &lt;code&gt;/etc/claimward/helper.json&lt;/code&gt; (véase
 &lt;a href="https://claimward.github.io/docs/dev/es/components/helper/"&gt;Helper con privilegios&lt;/a&gt;); después de editarlo,
 &lt;code&gt;sudo systemctl restart claimward-helper&lt;/code&gt;.&lt;/p&gt;
@@ -105,6 +114,6 @@ grupo &lt;code&gt;claimward&lt;/code&gt; significa tener permiso para activar y 
 &lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Verificado&lt;/strong&gt; en una máquina virtual Ubuntu 24.04 (arm64) frente a un servidor
 sustituto. &lt;strong&gt;Aún no verificado&lt;/strong&gt;, según el README: un escritorio GNOME o KDE
 real, Wayland, HiDPI, un inicio de sesión con un proveedor de identidad real, y un
-claimward-vpn-server real. El archivo de sesión todavía no está en un llavero.&lt;/div&gt;
+claimward-vpn-server real.&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;</description></item></channel></rss>

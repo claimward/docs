@@ -217,6 +217,8 @@ data-copied-label="Copié !"
 &lt;/button&gt;
 &lt;/div&gt;
 &lt;/div&gt;
+&lt;p&gt;&lt;code&gt;--server&lt;/code&gt; n&amp;rsquo;accepte que des &lt;strong&gt;URL https&lt;/strong&gt; : le jeton de connexion est envoyé à ce
+serveur, donc une URL &lt;code&gt;http://&lt;/code&gt; simple est refusée.&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;install.sh&lt;/code&gt; :&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;crée le groupe &lt;code&gt;claimward&lt;/code&gt; et vous y ajoute (&lt;code&gt;$SUDO_USER&lt;/code&gt;, ou
@@ -236,7 +238,14 @@ supprime aussi &lt;code&gt;/etc/claimward&lt;/code&gt; et le groupe.&lt;/p&gt;
 &lt;a href="#configure" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;L&amp;rsquo;application : &lt;code&gt;~/.config/Claimward/config.json&lt;/code&gt;, écrit par le formulaire des paramètres,
 mode &lt;code&gt;0600&lt;/code&gt;, surchargé par les variables &lt;code&gt;CLAIMWARD_*&lt;/code&gt; (voir la
 &lt;a href="https://claimward.github.io/docs/dev/fr/components/client/#files-on-the-device"&gt;bibliothèque client&lt;/a&gt;).
-La session est &lt;code&gt;~/.config/claimward/session.json&lt;/code&gt;, mode &lt;code&gt;0600&lt;/code&gt;.&lt;/p&gt;
+La session (jetons et clé WireGuard de l&amp;rsquo;appareil) est conservée dans le trousseau
+&lt;strong&gt;Secret Service&lt;/strong&gt; du bureau via &lt;code&gt;secret-tool&lt;/code&gt;, et n&amp;rsquo;est jamais écrite en clair sur le
+disque. &lt;strong&gt;Un fournisseur de Secret Service est requis&lt;/strong&gt; (client v0.5.0 et ultérieur) :
+installez et déverrouillez-en un, tel que gnome-keyring ou KeePassXC, et installez
+&lt;code&gt;secret-tool&lt;/code&gt; (&lt;code&gt;libsecret-tools&lt;/code&gt;). Sans cela, la connexion échoue avec une erreur qui
+nomme ce qui manque ; il n&amp;rsquo;y a aucun repli en clair, y compris sur un serveur sans
+interface. Un &lt;code&gt;session.json&lt;/code&gt; laissé par une ancienne version est déplacé dans le trousseau
+au premier démarrage, ou supprimé si le trousseau le refuse.&lt;/p&gt;
 &lt;p&gt;Le helper : &lt;code&gt;/etc/claimward/helper.json&lt;/code&gt; (voir
 &lt;a href="https://claimward.github.io/docs/dev/fr/components/helper/"&gt;Helper privilégié&lt;/a&gt;) ; après l&amp;rsquo;avoir modifié,
 &lt;code&gt;sudo systemctl restart claimward-helper&lt;/code&gt;.&lt;/p&gt;
@@ -253,6 +262,6 @@ au groupe &lt;code&gt;claimward&lt;/code&gt; signifie être autorisé à activer
 &lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Vérifié&lt;/strong&gt; dans une machine virtuelle Ubuntu 24.04 (arm64) face à un serveur
 de substitution. &lt;strong&gt;Pas encore vérifié&lt;/strong&gt;, selon le README : un vrai bureau GNOME ou KDE,
 Wayland, HiDPI, une connexion auprès d&amp;rsquo;un vrai fournisseur d&amp;rsquo;identité, et un
-vrai claimward-vpn-server. Le fichier de session n&amp;rsquo;est pas encore dans un trousseau.&lt;/div&gt;
+vrai claimward-vpn-server.&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;</description></item></channel></rss>

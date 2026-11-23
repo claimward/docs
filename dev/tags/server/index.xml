@@ -838,7 +838,8 @@ configuration: it enrolls only with the servers that configuration names and
 takes no tunnel configuration from a request. See
 &lt;a href="https://claimward.github.io/docs/dev/components/helper/"&gt;Privileged helper&lt;/a&gt;.&lt;/li&gt;
 &lt;li&gt;The &lt;strong&gt;app&lt;/strong&gt; runs as the person. It holds the session (bearer token and device
-key) in a &lt;code&gt;0600&lt;/code&gt; file in their configuration directory.&lt;/li&gt;
+key) in the platform&amp;rsquo;s secret store (macOS Keychain, Windows DPAPI, Linux
+Secret Service), never in clear on disk: with no usable store, sign-in fails.&lt;/li&gt;
 &lt;li&gt;A route watch carries the bearer token, so it runs over &lt;strong&gt;TLS&lt;/strong&gt; except to a
 loopback address.&lt;/li&gt;
 &lt;li&gt;The wire contract lives in one place,

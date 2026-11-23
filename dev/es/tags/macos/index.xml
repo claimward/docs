@@ -275,8 +275,17 @@ helper se instala como se ha descrito más arriba.&lt;/p&gt;
 &lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-blue-200 hx:bg-blue-100 hx:text-blue-900 hx:dark:border-blue-200/30 hx:dark:bg-blue-900/30 hx:dark:text-blue-200"&gt;
 &lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/&gt;&lt;/svg&gt;&lt;/div&gt;
 &lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
-&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Pendiente:&lt;/strong&gt; el token de sesión en el Keychain (hoy es un archivo &lt;code&gt;0600&lt;/code&gt;),
-el helper instalado con SMJobBless, una versión firmada con un
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Pendiente:&lt;/strong&gt; el helper instalado con SMJobBless, una versión firmada con un
 Developer ID, y el DNS aplicado en macOS.&lt;/div&gt;
 &lt;/div&gt;
-&lt;/div&gt;</description></item></channel></rss>
+&lt;/div&gt;
+&lt;h2 data-hextra-search-id="sesión-y-servidores"&gt;Sesión y servidores&lt;span class="hx:absolute hx:-mt-20" id="sesión-y-servidores"&gt;&lt;/span&gt;
+&lt;a href="#sesi%c3%b3n-y-servidores" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;La sesión (tokens y la clave WireGuard del dispositivo) vive en &lt;code&gt;session.enc&lt;/code&gt;, sellada
+con AES-GCM; la clave se guarda en el &lt;strong&gt;Keychain&lt;/strong&gt; de inicio de sesión. Nunca se escribe
+en claro en el disco y no hay alternativa en texto claro: si el Keychain está bloqueado o
+no disponible (cliente v0.5.0 y posteriores), el inicio de sesión falla con un error que
+lo indica. Un &lt;code&gt;session.json&lt;/code&gt; &lt;code&gt;0600&lt;/code&gt; de una versión anterior se traslada al almacén en el
+primer arranque, o se elimina si eso falla.&lt;/p&gt;
+&lt;p&gt;El servidor debe ser una URL &lt;strong&gt;https&lt;/strong&gt;, y el token de lanzamiento de la ventana viaja solo
+en una cabecera (nunca en una URL, en los argumentos del proceso ni en los registros); el
+traspaso a una instancia en ejecución se hace mediante un archivo.&lt;/p&gt;</description></item></channel></rss>

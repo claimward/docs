@@ -217,6 +217,8 @@ data-copied-label="Kopiert!"
 &lt;/button&gt;
 &lt;/div&gt;
 &lt;/div&gt;
+&lt;p&gt;&lt;code&gt;--server&lt;/code&gt; akzeptiert &lt;strong&gt;nur https-URLs&lt;/strong&gt;: Das Anmeldetoken wird an diesen
+Server gesendet, daher wird eine einfache &lt;code&gt;http://&lt;/code&gt;-URL abgewiesen.&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;install.sh&lt;/code&gt;:&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;legt die Gruppe &lt;code&gt;claimward&lt;/code&gt; an und fügt Sie ihr hinzu (&lt;code&gt;$SUDO_USER&lt;/code&gt; oder
@@ -236,7 +238,15 @@ entfernt außerdem &lt;code&gt;/etc/claimward&lt;/code&gt; und die Gruppe.&lt;/p
 &lt;a href="#configure" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Die App: &lt;code&gt;~/.config/Claimward/config.json&lt;/code&gt;, vom Einstellungsformular geschrieben,
 Modus &lt;code&gt;0600&lt;/code&gt;, überschrieben durch die Variablen &lt;code&gt;CLAIMWARD_*&lt;/code&gt; (siehe die
 &lt;a href="https://claimward.github.io/docs/dev/de/components/client/#files-on-the-device"&gt;Client-Bibliothek&lt;/a&gt;).
-Die Sitzung ist &lt;code&gt;~/.config/claimward/session.json&lt;/code&gt;, Modus &lt;code&gt;0600&lt;/code&gt;.&lt;/p&gt;
+Die Sitzung (Tokens und der WireGuard-Schlüssel des Geräts) liegt im
+&lt;strong&gt;Secret-Service&lt;/strong&gt;-Schlüsselbund des Desktops, über &lt;code&gt;secret-tool&lt;/code&gt;, und wird nie im
+Klartext auf die Platte geschrieben. &lt;strong&gt;Ein Secret-Service-Anbieter ist erforderlich&lt;/strong&gt;
+(Client v0.5.0 und neuer): Installieren und entsperren Sie einen, etwa gnome-keyring oder
+KeePassXC, und installieren Sie &lt;code&gt;secret-tool&lt;/code&gt; (&lt;code&gt;libsecret-tools&lt;/code&gt;). Ohne ihn schlägt die
+Anmeldung mit einem Fehler fehl, der benennt, was fehlt; es gibt keinen Klartext-Fallback,
+auch nicht auf einem Server ohne Oberfläche. Eine von einer älteren Version hinterlassene
+&lt;code&gt;session.json&lt;/code&gt; wird beim ersten Start in den Schlüsselbund verschoben oder gelöscht, wenn
+der Schlüsselbund sie ablehnt.&lt;/p&gt;
 &lt;p&gt;Der Helper: &lt;code&gt;/etc/claimward/helper.json&lt;/code&gt; (siehe
 &lt;a href="https://claimward.github.io/docs/dev/de/components/helper/"&gt;Privilegierter Helper&lt;/a&gt;); führen Sie nach dem Bearbeiten
 &lt;code&gt;sudo systemctl restart claimward-helper&lt;/code&gt; aus.&lt;/p&gt;
@@ -253,6 +263,6 @@ der Gruppe &lt;code&gt;claimward&lt;/code&gt; zu sein bedeutet, das VPN auf- und
 &lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Geprüft&lt;/strong&gt; in einer virtuellen Maschine mit Ubuntu 24.04 (arm64) gegen einen
 Ersatzserver. &lt;strong&gt;Noch nicht geprüft&lt;/strong&gt;, laut README: ein echter GNOME- oder KDE-Desktop,
 Wayland, HiDPI, eine Anmeldung bei einem echten Identitätsanbieter und ein
-echter claimward-vpn-server. Die Sitzungsdatei liegt noch nicht in einem Schlüsselbund.&lt;/div&gt;
+echter claimward-vpn-server.&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;</description></item></channel></rss>

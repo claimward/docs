@@ -69,6 +69,8 @@ data-copied-label="Copied!"
 &lt;/button&gt;
 &lt;/div&gt;
 &lt;/div&gt;
+&lt;p&gt;&lt;code&gt;--server&lt;/code&gt; accepts &lt;strong&gt;https URLs only&lt;/strong&gt;: the sign-in token is sent to that
+server, so a plain &lt;code&gt;http://&lt;/code&gt; URL is refused.&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;install.sh&lt;/code&gt;:&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;creates the &lt;code&gt;claimward&lt;/code&gt; group and adds you to it (&lt;code&gt;$SUDO_USER&lt;/code&gt;, or
@@ -88,7 +90,14 @@ also removes &lt;code&gt;/etc/claimward&lt;/code&gt; and the group.&lt;/p&gt;
 &lt;a href="#configure" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;The app: &lt;code&gt;~/.config/Claimward/config.json&lt;/code&gt;, written by the settings form,
 mode &lt;code&gt;0600&lt;/code&gt;, overridden by &lt;code&gt;CLAIMWARD_*&lt;/code&gt; variables (see the
 &lt;a href="https://claimward.github.io/docs/dev/components/client/#files-on-the-device"&gt;client library&lt;/a&gt;).
-The session is &lt;code&gt;~/.config/claimward/session.json&lt;/code&gt;, mode &lt;code&gt;0600&lt;/code&gt;.&lt;/p&gt;
+The session (tokens and the device&amp;rsquo;s WireGuard key) is kept in the desktop&amp;rsquo;s
+&lt;strong&gt;Secret Service&lt;/strong&gt; keyring through &lt;code&gt;secret-tool&lt;/code&gt;, and is never written to disk
+in clear. &lt;strong&gt;A Secret Service provider is required&lt;/strong&gt; (client v0.5.0 and later):
+install and unlock one such as gnome-keyring or KeePassXC, and install
+&lt;code&gt;secret-tool&lt;/code&gt; (&lt;code&gt;libsecret-tools&lt;/code&gt;). Without one, sign-in fails with an error
+naming what is missing; there is no plaintext fallback, on a headless server
+either. A &lt;code&gt;session.json&lt;/code&gt; left by an older version is moved into the keyring on
+first start, or deleted if the keyring refuses it.&lt;/p&gt;
 &lt;p&gt;The helper: &lt;code&gt;/etc/claimward/helper.json&lt;/code&gt; (see
 &lt;a href="https://claimward.github.io/docs/dev/components/helper/"&gt;Privileged helper&lt;/a&gt;); after editing it,
 &lt;code&gt;sudo systemctl restart claimward-helper&lt;/code&gt;.&lt;/p&gt;
@@ -105,6 +114,6 @@ the &lt;code&gt;claimward&lt;/code&gt; group means being allowed to bring the VP
 &lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Verified&lt;/strong&gt; in an Ubuntu 24.04 (arm64) virtual machine against a stand-in
 server. &lt;strong&gt;Not yet verified&lt;/strong&gt;, according to the README: a real GNOME or KDE
 desktop, Wayland, HiDPI, a sign-in against a real identity provider, and a
-real claimward-vpn-server. The session file is not yet in a keyring.&lt;/div&gt;
+real claimward-vpn-server.&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;</description></item></channel></rss>

@@ -323,7 +323,7 @@ donnez un certificat au RouteService afin que les appareils reçoivent les mises
 &lt;/div&gt;
 &lt;/div&gt;</description></item><item><title>Bibliothèque client</title><link>https://claimward.github.io/docs/dev/fr/components/client/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/fr/components/client/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-client" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-client&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.3.1&lt;/strong&gt; est une &lt;strong&gt;bibliothèque&lt;/strong&gt; Go. Elle ne fournit aucun binaire : les programmes exécutables
+&lt;strong&gt;v0.5.0&lt;/strong&gt; est une &lt;strong&gt;bibliothèque&lt;/strong&gt; Go. Elle ne fournit aucun binaire : les programmes exécutables
 sont ceux des applications (&lt;code&gt;cmd/claimward-app&lt;/code&gt; et &lt;code&gt;cmd/claimward-helper&lt;/code&gt; dans le dépôt
 de chaque application). Le serveur l&amp;rsquo;importe aussi, pour les types réseau et les stubs gRPC.&lt;/p&gt;
 &lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-blue-200 hx:bg-blue-100 hx:text-blue-900 hx:dark:border-blue-200/30 hx:dark:bg-blue-900/30 hx:dark:text-blue-200"&gt;
@@ -393,7 +393,7 @@ c&amp;rsquo;est sur le module réduit à la bibliothèque que s&amp;rsquo;appuie
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;pkg/tokenstore&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;la session (bearer, jeton de rafraîchissement, clé privée de l&amp;rsquo;appareil, locataire choisi) dans un fichier JSON &lt;code&gt;0600&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;la session (bearer, jeton de rafraîchissement, clé privée de l&amp;rsquo;appareil, locataire choisi) dans le magasin de secrets du système : Keychain macOS, DPAPI Windows, Secret Service Linux ; aucun repli en clair&lt;/td&gt;
 &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
@@ -411,8 +411,8 @@ c&amp;rsquo;est sur le module réduit à la bibliothèque que s&amp;rsquo;appuie
 &lt;td&gt;la configuration de l&amp;rsquo;application (&lt;code&gt;appcore.Config&lt;/code&gt;), &lt;code&gt;0600&lt;/code&gt;, surchargée par les variables &lt;code&gt;CLAIMWARD_*&lt;/code&gt;&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
-&lt;td&gt;&lt;code&gt;&amp;lt;config dir&amp;gt;/claimward/session.json&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;la session (&lt;code&gt;pkg/tokenstore&lt;/code&gt;), &lt;code&gt;0600&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;&amp;lt;config dir&amp;gt;/claimward/session.enc&lt;/code&gt; (macOS), &lt;code&gt;session.dpapi&lt;/code&gt; (Windows)&lt;/td&gt;
+&lt;td&gt;la session scellée ; sa clé est dans le Keychain, ou le blob est protégé par DPAPI. Sous Linux, la session elle-même est dans le Secret Service.&lt;/td&gt;
 &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
@@ -534,8 +534,16 @@ contenus dans un envoi ne sont pas appliqués.&lt;/li&gt;
 l&amp;rsquo;exécutable qui appelle &lt;code&gt;wgtun.Up&lt;/code&gt;, ce dont se charge le packaging de l&amp;rsquo;application
 Windows. L&amp;rsquo;adresse, les routes, le DNS et le MTU sont configurés via &lt;code&gt;winipcfg&lt;/code&gt; (l&amp;rsquo;API IP
 Helper, en Go pur, &lt;code&gt;CGO_ENABLED=0&lt;/code&gt;).&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Stockage de la session.&lt;/strong&gt; Un fichier &lt;code&gt;0600&lt;/code&gt; ; son déplacement vers le magasin de secrets de la
-plateforme reste à venir.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Stockage de la session.&lt;/strong&gt; Le magasin de secrets de la plateforme : le Keychain de
+session macOS (qui détient une clé AES-GCM ; la session est scellée dans &lt;code&gt;session.enc&lt;/code&gt;), DPAPI
+sous Windows (&lt;code&gt;session.dpapi&lt;/code&gt;), le Secret Service Linux via &lt;code&gt;secret-tool&lt;/code&gt;. Depuis
+&lt;strong&gt;v0.5.0&lt;/strong&gt;, il n&amp;rsquo;y a aucun repli en clair et &lt;code&gt;CLAIMWARD_ALLOW_PLAINTEXT_SESSION&lt;/code&gt;
+est sans effet : sans magasin utilisable, l&amp;rsquo;enregistrement de la session échoue et la
+connexion échoue avec une erreur qui nomme ce qui manque (sous Linux, installez et déverrouillez
+un fournisseur de Secret Service tel que gnome-keyring ou KeePassXC, ainsi que &lt;code&gt;secret-tool&lt;/code&gt;).
+Un ancien &lt;code&gt;session.json&lt;/code&gt; est lu une fois, déplacé dans le magasin et supprimé, ou
+supprimé si le magasin le refuse. Les tests des autres paquets utilisent
+&lt;code&gt;tokenstore.UseMemory()&lt;/code&gt;.&lt;/li&gt;
 &lt;/ul&gt;</description></item><item><title>Prise en main</title><link>https://claimward.github.io/docs/dev/fr/getting-started/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/fr/getting-started/</guid><description>
 &lt;p&gt;Ce guide décrit la mise en place d&amp;rsquo;une passerelle et la connexion d&amp;rsquo;un premier appareil. La
 passerelle est un hôte Linux ; l&amp;rsquo;appareil exécute l&amp;rsquo;une des trois applications de bureau.&lt;/p&gt;
@@ -835,7 +843,8 @@ configuration : il ne s&amp;rsquo;enrôle qu&amp;rsquo;auprès des serveurs que 
 n&amp;rsquo;accepte aucune configuration de tunnel venant d&amp;rsquo;une requête. Voir
 &lt;a href="https://claimward.github.io/docs/dev/fr/components/helper/"&gt;Helper privilégié&lt;/a&gt;.&lt;/li&gt;
 &lt;li&gt;L&amp;rsquo;&lt;strong&gt;application&lt;/strong&gt; s&amp;rsquo;exécute sous l&amp;rsquo;identité de la personne. Elle détient la session (jeton porteur et clé
-de l&amp;rsquo;appareil) dans un fichier &lt;code&gt;0600&lt;/code&gt; de son répertoire de configuration.&lt;/li&gt;
+de l&amp;rsquo;appareil) dans le magasin de secrets de la plateforme (Keychain macOS, DPAPI Windows, Secret
+Service Linux), jamais en clair sur le disque : sans magasin utilisable, la connexion échoue.&lt;/li&gt;
 &lt;li&gt;Une surveillance des routes transporte le jeton porteur, elle passe donc par &lt;strong&gt;TLS&lt;/strong&gt; sauf vers une
 adresse de bouclage.&lt;/li&gt;
 &lt;li&gt;Le contrat de communication se trouve en un seul endroit,

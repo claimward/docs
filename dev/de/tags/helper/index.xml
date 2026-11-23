@@ -275,11 +275,20 @@ Helper wird wie oben beschrieben installiert.&lt;/p&gt;
 &lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-blue-200 hx:bg-blue-100 hx:text-blue-900 hx:dark:border-blue-200/30 hx:dark:bg-blue-900/30 hx:dark:text-blue-200"&gt;
 &lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/&gt;&lt;/svg&gt;&lt;/div&gt;
 &lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
-&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Noch ausstehend:&lt;/strong&gt; das Sitzungstoken in der Keychain (heute ist es eine Datei mit &lt;code&gt;0600&lt;/code&gt;),
-der mit SMJobBless installierte Helper, ein mit einer
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Noch ausstehend:&lt;/strong&gt; der mit SMJobBless installierte Helper, ein mit einer
 Developer ID signiertes Release und unter macOS angewendetes DNS.&lt;/div&gt;
 &lt;/div&gt;
-&lt;/div&gt;</description></item><item><title>Linux-App</title><link>https://claimward.github.io/docs/dev/de/components/linux-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/de/components/linux-app/</guid><description>
+&lt;/div&gt;
+&lt;h2 data-hextra-search-id="sitzung-und-server"&gt;Sitzung und Server&lt;span class="hx:absolute hx:-mt-20" id="sitzung-und-server"&gt;&lt;/span&gt;
+&lt;a href="#sitzung-und-server" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Die Sitzung (Tokens und der WireGuard-Schlüssel des Geräts) liegt in &lt;code&gt;session.enc&lt;/code&gt;,
+versiegelt mit AES-GCM; der Schlüssel liegt in der Login-&lt;strong&gt;Keychain&lt;/strong&gt;. Sie wird nie im
+Klartext auf die Platte geschrieben, und es gibt keinen Klartext-Fallback: Ist die Keychain
+gesperrt oder nicht verfügbar (Client v0.5.0 und neuer), schlägt die Anmeldung mit einem
+entsprechenden Fehler fehl. Eine &lt;code&gt;session.json&lt;/code&gt; mit &lt;code&gt;0600&lt;/code&gt; aus einer älteren Version wird
+beim ersten Start in den Speicher verschoben oder gelöscht, wenn das fehlschlägt.&lt;/p&gt;
+&lt;p&gt;Der Server muss eine &lt;strong&gt;https&lt;/strong&gt;-URL sein, und das Start-Token des Fensters wird nur in einem
+Header übertragen (nie in einer URL, in den Prozessargumenten oder in Logs); die Übergabe
+an eine laufende Instanz erfolgt über eine Datei.&lt;/p&gt;</description></item><item><title>Linux-App</title><link>https://claimward.github.io/docs/dev/de/components/linux-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/de/components/linux-app/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-linux" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-linux&lt;/code&gt;&lt;/a&gt;
 &lt;strong&gt;v0.2.1&lt;/strong&gt; ist ein &lt;strong&gt;Fenster und ein Symbol im Infobereich, in reinem Go gezeichnet&lt;/strong&gt; mit
 &lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt;: keine Webview, kein GTK, kein cgo
@@ -350,6 +359,8 @@ data-copied-label="Kopiert!"
 &lt;/button&gt;
 &lt;/div&gt;
 &lt;/div&gt;
+&lt;p&gt;&lt;code&gt;--server&lt;/code&gt; akzeptiert &lt;strong&gt;nur https-URLs&lt;/strong&gt;: Das Anmeldetoken wird an diesen
+Server gesendet, daher wird eine einfache &lt;code&gt;http://&lt;/code&gt;-URL abgewiesen.&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;install.sh&lt;/code&gt;:&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;legt die Gruppe &lt;code&gt;claimward&lt;/code&gt; an und fügt Sie ihr hinzu (&lt;code&gt;$SUDO_USER&lt;/code&gt; oder
@@ -369,7 +380,15 @@ entfernt außerdem &lt;code&gt;/etc/claimward&lt;/code&gt; und die Gruppe.&lt;/p
 &lt;a href="#configure" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Die App: &lt;code&gt;~/.config/Claimward/config.json&lt;/code&gt;, vom Einstellungsformular geschrieben,
 Modus &lt;code&gt;0600&lt;/code&gt;, überschrieben durch die Variablen &lt;code&gt;CLAIMWARD_*&lt;/code&gt; (siehe die
 &lt;a href="https://claimward.github.io/docs/dev/de/components/client/#files-on-the-device"&gt;Client-Bibliothek&lt;/a&gt;).
-Die Sitzung ist &lt;code&gt;~/.config/claimward/session.json&lt;/code&gt;, Modus &lt;code&gt;0600&lt;/code&gt;.&lt;/p&gt;
+Die Sitzung (Tokens und der WireGuard-Schlüssel des Geräts) liegt im
+&lt;strong&gt;Secret-Service&lt;/strong&gt;-Schlüsselbund des Desktops, über &lt;code&gt;secret-tool&lt;/code&gt;, und wird nie im
+Klartext auf die Platte geschrieben. &lt;strong&gt;Ein Secret-Service-Anbieter ist erforderlich&lt;/strong&gt;
+(Client v0.5.0 und neuer): Installieren und entsperren Sie einen, etwa gnome-keyring oder
+KeePassXC, und installieren Sie &lt;code&gt;secret-tool&lt;/code&gt; (&lt;code&gt;libsecret-tools&lt;/code&gt;). Ohne ihn schlägt die
+Anmeldung mit einem Fehler fehl, der benennt, was fehlt; es gibt keinen Klartext-Fallback,
+auch nicht auf einem Server ohne Oberfläche. Eine von einer älteren Version hinterlassene
+&lt;code&gt;session.json&lt;/code&gt; wird beim ersten Start in den Schlüsselbund verschoben oder gelöscht, wenn
+der Schlüsselbund sie ablehnt.&lt;/p&gt;
 &lt;p&gt;Der Helper: &lt;code&gt;/etc/claimward/helper.json&lt;/code&gt; (siehe
 &lt;a href="https://claimward.github.io/docs/dev/de/components/helper/"&gt;Privilegierter Helper&lt;/a&gt;); führen Sie nach dem Bearbeiten
 &lt;code&gt;sudo systemctl restart claimward-helper&lt;/code&gt; aus.&lt;/p&gt;
@@ -386,7 +405,7 @@ der Gruppe &lt;code&gt;claimward&lt;/code&gt; zu sein bedeutet, das VPN auf- und
 &lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Geprüft&lt;/strong&gt; in einer virtuellen Maschine mit Ubuntu 24.04 (arm64) gegen einen
 Ersatzserver. &lt;strong&gt;Noch nicht geprüft&lt;/strong&gt;, laut README: ein echter GNOME- oder KDE-Desktop,
 Wayland, HiDPI, eine Anmeldung bei einem echten Identitätsanbieter und ein
-echter claimward-vpn-server. Die Sitzungsdatei liegt noch nicht in einem Schlüsselbund.&lt;/div&gt;
+echter claimward-vpn-server.&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;</description></item><item><title>Windows-App</title><link>https://claimward.github.io/docs/dev/de/components/windows-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/de/components/windows-app/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-windows" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-windows&lt;/code&gt;&lt;/a&gt;
@@ -459,11 +478,17 @@ data-copied-label="Kopiert!"
 &lt;/div&gt;
 &lt;p&gt;Es kopiert die Programme und &lt;code&gt;wintun.dll&lt;/code&gt; nach &lt;code&gt;C:\Program Files\Claimward&lt;/code&gt;,
 legt die lokale Gruppe &lt;strong&gt;Claimward Users&lt;/strong&gt; an und fügt Sie ihr hinzu, schreibt
-&lt;code&gt;C:\ProgramData\Claimward\helper.json&lt;/code&gt;, registriert und startet den Dienst
+&lt;code&gt;C:\ProgramData\Claimward\helper.json&lt;/code&gt; (nach einer Prüfung dieses Verzeichnisses, siehe
+unten), registriert und startet den Dienst
 &lt;strong&gt;ClaimwardHelper&lt;/strong&gt; und fügt eine Startmenü-Verknüpfung &lt;strong&gt;Claimward VPN&lt;/strong&gt; hinzu.
 Die Mitgliedschaft wird bei Ihrer &lt;strong&gt;nächsten Anmeldung an Windows&lt;/strong&gt; wirksam; bis dahin
 weist der Socket Sie ab. Fügen Sie weitere Personen hinzu mit
 &lt;code&gt;Add-LocalGroupMember -Group 'Claimward Users' -Member &amp;lt;name&amp;gt;&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;-Server&lt;/code&gt; akzeptiert &lt;strong&gt;nur https-URLs&lt;/strong&gt;: Das Anmeldetoken wird an diesen Server gesendet.&lt;/p&gt;
+&lt;p&gt;ProgramData erlaubt jedem Benutzer, Verzeichnisse anzulegen; daher &lt;strong&gt;verweigert&lt;/strong&gt; das
+Installationsprogramm ein bereits vorhandenes &lt;code&gt;C:\ProgramData\Claimward&lt;/code&gt;, das ein Reparsepunkt
+(ein Link) ist oder weder SYSTEM (&lt;code&gt;S-1-5-18&lt;/code&gt;) noch Administrators (&lt;code&gt;S-1-5-32-544&lt;/code&gt;) gehört:
+Prüfen und entfernen Sie es und führen Sie das Installationsprogramm dann erneut aus.&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;.\uninstall.ps1&lt;/code&gt; entfernt den Dienst, die Verknüpfung und die Programme;
 &lt;code&gt;-RemoveData&lt;/code&gt; entfernt außerdem &lt;code&gt;C:\ProgramData\Claimward&lt;/code&gt; und die Gruppe. Ein
 MSI gibt es noch nicht.&lt;/p&gt;
@@ -473,7 +498,11 @@ WireGuard LLC signiert und liegt nicht im Repository.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="configure"&gt;Konfiguration&lt;span class="hx:absolute hx:-mt-20" id="configure"&gt;&lt;/span&gt;
 &lt;a href="#configure" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Die App liest &lt;code&gt;%AppData%\Claimward\config.json&lt;/code&gt;, dann die Variablen &lt;code&gt;CLAIMWARD_*&lt;/code&gt;
 (siehe die &lt;a href="https://claimward.github.io/docs/dev/de/components/client/#files-on-the-device"&gt;Client-Bibliothek&lt;/a&gt;).
-Die Sitzung ist &lt;code&gt;%AppData%\claimward\session.json&lt;/code&gt;.&lt;/p&gt;
+Die Sitzung wird mit &lt;strong&gt;DPAPI&lt;/strong&gt; in einer Datei pro Benutzer versiegelt, &lt;code&gt;session.dpapi&lt;/code&gt;, unter
+&lt;code&gt;%AppData%\claimward&lt;/code&gt;. Sie wird nie im Klartext geschrieben, und es gibt keinen
+Klartext-Fallback: Schlägt DPAPI fehl (Client v0.5.0 und neuer), schlägt die Anmeldung mit
+einem entsprechenden Fehler fehl. Eine &lt;code&gt;session.json&lt;/code&gt; aus einer älteren Version wird beim
+ersten Start in DPAPI verschoben oder gelöscht, wenn das fehlschlägt.&lt;/p&gt;
 &lt;p&gt;Der Helper liest &lt;code&gt;C:\ProgramData\Claimward\helper.json&lt;/code&gt;:&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;
@@ -499,8 +528,7 @@ setzt und prüft, sind unter
 &lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-blue-200 hx:bg-blue-100 hx:text-blue-900 hx:dark:border-blue-200/30 hx:dark:bg-blue-900/30 hx:dark:text-blue-200"&gt;
 &lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/&gt;&lt;/svg&gt;&lt;/div&gt;
 &lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
-&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Noch ausstehend:&lt;/strong&gt; ein MSI-Installationsprogramm und die Sitzung in der Windows-Anmeldeinformationsverwaltung
-(DPAPI) statt in einer Datei pro Benutzer.&lt;/div&gt;
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Noch ausstehend:&lt;/strong&gt; ein MSI-Installationsprogramm.&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;</description></item><item><title>Architektur</title><link>https://claimward.github.io/docs/dev/de/architecture/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/de/architecture/</guid><description>
 &lt;p&gt;Claimward trennt eine &lt;strong&gt;Steuerungsebene&lt;/strong&gt;, den Server, von der &lt;strong&gt;Datenebene&lt;/strong&gt;,
@@ -636,7 +664,8 @@ Konfiguration: Er registriert sich nur bei den Servern, die diese Konfiguration 
 übernimmt keine Tunnelkonfiguration aus einer Anfrage. Siehe
 &lt;a href="https://claimward.github.io/docs/dev/de/components/helper/"&gt;Privilegierter Helper&lt;/a&gt;.&lt;/li&gt;
 &lt;li&gt;Die &lt;strong&gt;App&lt;/strong&gt; läuft unter dem Benutzer der Person. Sie hält die Sitzung (Bearer-Token und Geräteschlüssel)
-in einer Datei mit &lt;code&gt;0600&lt;/code&gt; in deren Konfigurationsverzeichnis.&lt;/li&gt;
+im Geheimnisspeicher der Plattform (macOS-Keychain, Windows-DPAPI, Linux-Secret-Service), nie
+im Klartext auf der Platte: ohne nutzbaren Speicher schlägt die Anmeldung fehl.&lt;/li&gt;
 &lt;li&gt;Eine Beobachtung der Routen überträgt das Bearer-Token, daher läuft sie über &lt;strong&gt;TLS&lt;/strong&gt;, außer zu einer
 Loopback-Adresse.&lt;/li&gt;
 &lt;li&gt;Der Wire-Vertrag liegt an einer einzigen Stelle,

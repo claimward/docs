@@ -838,7 +838,8 @@ configuration : il ne s&amp;rsquo;enrôle qu&amp;rsquo;auprès des serveurs que 
 n&amp;rsquo;accepte aucune configuration de tunnel venant d&amp;rsquo;une requête. Voir
 &lt;a href="https://claimward.github.io/docs/dev/fr/components/helper/"&gt;Helper privilégié&lt;/a&gt;.&lt;/li&gt;
 &lt;li&gt;L&amp;rsquo;&lt;strong&gt;application&lt;/strong&gt; s&amp;rsquo;exécute sous l&amp;rsquo;identité de la personne. Elle détient la session (jeton porteur et clé
-de l&amp;rsquo;appareil) dans un fichier &lt;code&gt;0600&lt;/code&gt; de son répertoire de configuration.&lt;/li&gt;
+de l&amp;rsquo;appareil) dans le magasin de secrets de la plateforme (Keychain macOS, DPAPI Windows, Secret
+Service Linux), jamais en clair sur le disque : sans magasin utilisable, la connexion échoue.&lt;/li&gt;
 &lt;li&gt;Une surveillance des routes transporte le jeton porteur, elle passe donc par &lt;strong&gt;TLS&lt;/strong&gt; sauf vers une
 adresse de bouclage.&lt;/li&gt;
 &lt;li&gt;Le contrat de communication se trouve en un seul endroit,

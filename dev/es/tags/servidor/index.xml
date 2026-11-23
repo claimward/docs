@@ -838,7 +838,8 @@ configuración: solo se registra en los servidores que nombra esa configuración
 no acepta ninguna configuración de túnel procedente de una petición. Véase
 &lt;a href="https://claimward.github.io/docs/dev/es/components/helper/"&gt;Helper con privilegios&lt;/a&gt;.&lt;/li&gt;
 &lt;li&gt;La &lt;strong&gt;aplicación&lt;/strong&gt; se ejecuta como la persona. Guarda la sesión (token bearer y clave
-del dispositivo) en un archivo &lt;code&gt;0600&lt;/code&gt; de su directorio de configuración.&lt;/li&gt;
+del dispositivo) en el almacén de secretos de la plataforma (Keychain de macOS, DPAPI de Windows,
+Secret Service de Linux), nunca en claro en el disco: sin un almacén utilizable, el inicio de sesión falla.&lt;/li&gt;
 &lt;li&gt;Una observación de rutas lleva el token bearer, por eso pasa por &lt;strong&gt;TLS&lt;/strong&gt; salvo hacia una
 dirección de loopback.&lt;/li&gt;
 &lt;li&gt;El contrato de comunicación está en un solo lugar,

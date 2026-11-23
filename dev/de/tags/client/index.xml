@@ -1,6 +1,6 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Claimward – Client</title><link>https://claimward.github.io/docs/dev/de/tags/client/</link><description>Recent content in Client on Claimward</description><generator>Hugo -- gohugo.io</generator><language>de</language><atom:link href="https://claimward.github.io/docs/dev/de/tags/client/index.xml" rel="self" type="application/rss+xml"/><item><title>Client-Bibliothek</title><link>https://claimward.github.io/docs/dev/de/components/client/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/de/components/client/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-client" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-client&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.3.1&lt;/strong&gt; ist eine Go-&lt;strong&gt;Bibliothek&lt;/strong&gt;. Sie liefert kein Binary aus: Die ausführbaren Programme sind
+&lt;strong&gt;v0.5.0&lt;/strong&gt; ist eine Go-&lt;strong&gt;Bibliothek&lt;/strong&gt;. Sie liefert kein Binary aus: Die ausführbaren Programme sind
 die der Apps (&lt;code&gt;cmd/claimward-app&lt;/code&gt; und &lt;code&gt;cmd/claimward-helper&lt;/code&gt; in jedem App-Repository).
 Auch der Server importiert sie, für die Wire-Typen und die gRPC-Stubs.&lt;/p&gt;
 &lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-blue-200 hx:bg-blue-100 hx:text-blue-900 hx:dark:border-blue-200/30 hx:dark:bg-blue-900/30 hx:dark:text-blue-200"&gt;
@@ -70,7 +70,7 @@ das reine Bibliotheksmodul ist die Grundlage der Apps.&lt;/div&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;pkg/tokenstore&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;die Sitzung (Bearer-Token, Refresh-Token, privater Schlüssel des Geräts, gewählter Mandant) in einer JSON-Datei mit &lt;code&gt;0600&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;die Sitzung (Bearer-Token, Refresh-Token, privater Schlüssel des Geräts, gewählter Mandant) im Geheimnisspeicher des Betriebssystems: macOS-Keychain, Windows-DPAPI, Linux-Secret-Service; kein Klartext-Fallback&lt;/td&gt;
 &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
@@ -88,8 +88,8 @@ das reine Bibliotheksmodul ist die Grundlage der Apps.&lt;/div&gt;
 &lt;td&gt;die Konfiguration der App (&lt;code&gt;appcore.Config&lt;/code&gt;), &lt;code&gt;0600&lt;/code&gt;, überschrieben durch die Variablen &lt;code&gt;CLAIMWARD_*&lt;/code&gt;&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
-&lt;td&gt;&lt;code&gt;&amp;lt;config dir&amp;gt;/claimward/session.json&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;die Sitzung (&lt;code&gt;pkg/tokenstore&lt;/code&gt;), &lt;code&gt;0600&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;&amp;lt;config dir&amp;gt;/claimward/session.enc&lt;/code&gt; (macOS), &lt;code&gt;session.dpapi&lt;/code&gt; (Windows)&lt;/td&gt;
+&lt;td&gt;die versiegelte Sitzung; ihr Schlüssel liegt in der Keychain, oder der Blob ist durch DPAPI geschützt. Unter Linux liegt die Sitzung selbst im Secret Service.&lt;/td&gt;
 &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
@@ -211,6 +211,14 @@ Push werden nicht angewendet.&lt;/li&gt;
 ausführbaren Datei liegen, die &lt;code&gt;wgtun.Up&lt;/code&gt; aufruft, worum sich das Packaging der Windows-App
 kümmert. Adresse, Routen, DNS und MTU werden über &lt;code&gt;winipcfg&lt;/code&gt; gesetzt (die IP
 Helper API, reines Go, &lt;code&gt;CGO_ENABLED=0&lt;/code&gt;).&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Sitzungsspeicher.&lt;/strong&gt; Eine Datei mit &lt;code&gt;0600&lt;/code&gt;; die Verlagerung in den Geheimnisspeicher der Plattform
-steht noch aus.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Sitzungsspeicher.&lt;/strong&gt; Der Geheimnisspeicher der Plattform: die Login-Keychain von macOS
+(sie hält einen AES-GCM-Schlüssel; die Sitzung ist in &lt;code&gt;session.enc&lt;/code&gt; versiegelt), Windows-DPAPI
+(&lt;code&gt;session.dpapi&lt;/code&gt;), der Linux-Secret-Service über &lt;code&gt;secret-tool&lt;/code&gt;. Seit
+&lt;strong&gt;v0.5.0&lt;/strong&gt; gibt es keinen Klartext-Fallback, und &lt;code&gt;CLAIMWARD_ALLOW_PLAINTEXT_SESSION&lt;/code&gt;
+hat keine Wirkung: ohne nutzbaren Speicher schlägt das Speichern der Sitzung fehl, und die
+Anmeldung schlägt mit einem Fehler fehl, der benennt, was fehlt (unter Linux einen Secret-Service-Anbieter
+wie gnome-keyring oder KeePassXC installieren und entsperren, dazu &lt;code&gt;secret-tool&lt;/code&gt;).
+Eine ältere &lt;code&gt;session.json&lt;/code&gt; wird einmal gelesen, in den Speicher verschoben und gelöscht, oder
+gelöscht, wenn der Speicher sie ablehnt. Tests anderer Pakete verwenden
+&lt;code&gt;tokenstore.UseMemory()&lt;/code&gt;.&lt;/li&gt;
 &lt;/ul&gt;</description></item></channel></rss>
