@@ -49,8 +49,11 @@ Antwort `200`:
 
 `allowed_ips` und `dns` sind die des Mandanten. `dns` entfällt, wenn der Mandant
 keine hat, `grpc_endpoint`, wenn der Server keinen RouteService ankündigt
-(`GRPC_ENDPOINT`). Das Protokoll kennt außerdem ein optionales `mtu`, das der Server
-(v0.2.0) nie setzt.
+(`GRPC_ENDPOINT`). `mtu` ist die Tunnel-MTU in Bytes (eine ganze Zahl,
+1280 bis 9000) und entfällt, wenn der Server keine anzukündigen hat. Seit Server v0.7.0 ist sie immer
+gesetzt: `TUNNEL_MTU` oder die Uplink-MTU minus 80 (höchstens 1420). Der Client wendet sie an und senkt
+sie dann auf seinen eigenen Pfad (Schnittstellen-MTU zum Endpunkt minus 60 für IPv4, 80 für IPv6,
+nie unter 1280); er erhöht sie nie. Fehlt sie, gilt 1420.
 
 ## `GET /api/v1/tenants`
 

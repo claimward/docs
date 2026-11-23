@@ -28,6 +28,7 @@ c'est sur le module réduit à la bibliothèque que s'appuient les applications.
 | `pkg/browser` | ouvre une URL dans le navigateur par défaut avec des chemins d'ouverture absolus, pour fonctionner depuis des applications graphiques |
 | `pkg/client` | `Enroll`, `Tenants`, `Heartbeat`, `Deregister` auprès du serveur, et `TunnelConfig` pour transformer une `EnrollResponse` en `wgtun.Config` |
 | `pkg/wgkey` | génération et analyse des clés WireGuard |
+| `pkg/pathmtu` | ajuste le MTU du tunnel au chemin : le `mtu` du serveur (1420 par défaut), abaissé au MTU de l'interface vers le point d'accès moins 60 (IPv4) ou 80 (IPv6), jamais sous 1280, jamais au-dessus de la valeur du serveur ; bibliothèque standard seule |
 | `pkg/wgtun` | tunnel WireGuard en espace utilisateur avec `wireguard-go`, plus l'adresse et les routes : `ifconfig`/`route` sur macOS, `ip` sur Linux, un adaptateur Wintun via `winipcfg` sur Windows (avec DNS et MTU) ; nécessite des privilèges |
 | `pkg/routeclient` | surveille le RouteService du serveur et signale les mises à jour de routes ; TLS sauf vers la boucle locale |
 | `pkg/appcore` | la logique des applications, commune aux trois : connexion, locataire choisi pour la session, connexion et déconnexion via le helper, état pour l'interface |

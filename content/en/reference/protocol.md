@@ -49,8 +49,11 @@ Response `200`:
 
 `allowed_ips` and `dns` are the tenant's. `dns` is left out when the tenant has
 none, `grpc_endpoint` when the server advertises no RouteService
-(`GRPC_ENDPOINT`). The protocol also has an optional `mtu`, which the server
-(v0.2.0) never sets.
+(`GRPC_ENDPOINT`). `mtu` is the tunnel MTU in bytes (an integer,
+1280 to 9000), left out when the server has none to advertise. Since server v0.7.0 it is always
+set: `TUNNEL_MTU`, or the uplink MTU minus 80 (at most 1420). The client applies it, then lowers
+it to fit its own path (the interface MTU towards the endpoint minus 60 for IPv4, 80 for IPv6,
+never below 1280); it never raises it. Absent means 1420.
 
 ## `GET /api/v1/tenants`
 

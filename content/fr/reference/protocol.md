@@ -49,8 +49,11 @@ Réponse `200` :
 
 `allowed_ips` et `dns` sont ceux du locataire. `dns` est omis lorsque le locataire n'en a
 aucun, `grpc_endpoint` lorsque le serveur n'annonce aucun RouteService
-(`GRPC_ENDPOINT`). Le protocole comporte aussi un `mtu` facultatif, que le serveur
-(v0.2.0) ne définit jamais.
+(`GRPC_ENDPOINT`). `mtu` est le MTU du tunnel en octets (un entier,
+de 1280 à 9000), omis lorsque le serveur n'en annonce aucun. Depuis le serveur v0.7.0 il est toujours
+défini : `TUNNEL_MTU`, ou le MTU de la liaison montante moins 80 (au plus 1420). Le client l'applique,
+puis l'abaisse pour tenir dans son propre chemin (MTU de l'interface vers le point d'accès moins 60 en
+IPv4, 80 en IPv6, jamais sous 1280) ; il ne l'augmente jamais. Absent, il vaut 1420.
 
 ## `GET /api/v1/tenants`
 

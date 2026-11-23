@@ -28,6 +28,7 @@ the library-only module is what the apps build on.
 | `pkg/browser` | opens a URL in the default browser with absolute opener paths, so it works from GUI apps |
 | `pkg/client` | `Enroll`, `Tenants`, `Heartbeat`, `Deregister` against the server, and `TunnelConfig` to turn an `EnrollResponse` into a `wgtun.Config` |
 | `pkg/wgkey` | WireGuard key generation and parsing |
+| `pkg/pathmtu` | fits the tunnel MTU to the path: the server's `mtu` (default 1420), lowered to the interface MTU towards the endpoint minus 60 (IPv4) or 80 (IPv6), never below 1280, never above the server's value; standard library only |
 | `pkg/wgtun` | userspace WireGuard tunnel with `wireguard-go`, plus address and routes: `ifconfig`/`route` on macOS, `ip` on Linux, a Wintun adapter through `winipcfg` on Windows (with DNS and MTU); needs privileges |
 | `pkg/routeclient` | watches the server's RouteService and reports route updates; TLS except to loopback |
 | `pkg/appcore` | the apps' logic, shared by the three: sign-in, the tenant chosen for the session, connect and disconnect through the helper, status for the UI |
