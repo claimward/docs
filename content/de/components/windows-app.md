@@ -64,11 +64,19 @@ Set-ExecutionPolicy -Scope Process Bypass
 
 Es kopiert die Programme und `wintun.dll` nach `C:\Program Files\Claimward`,
 legt die lokale Gruppe **Claimward Users** an und fügt Sie ihr hinzu, schreibt
-`C:\ProgramData\Claimward\helper.json`, registriert und startet den Dienst
+`C:\ProgramData\Claimward\helper.json` (nach einer Prüfung dieses Verzeichnisses, siehe
+unten), registriert und startet den Dienst
 **ClaimwardHelper** und fügt eine Startmenü-Verknüpfung **Claimward VPN** hinzu.
 Die Mitgliedschaft wird bei Ihrer **nächsten Anmeldung an Windows** wirksam; bis dahin
 weist der Socket Sie ab. Fügen Sie weitere Personen hinzu mit
 `Add-LocalGroupMember -Group 'Claimward Users' -Member <name>`.
+
+`-Server` akzeptiert **nur https-URLs**: Das Anmeldetoken wird an diesen Server gesendet.
+
+ProgramData erlaubt jedem Benutzer, Verzeichnisse anzulegen; daher **verweigert** das
+Installationsprogramm ein bereits vorhandenes `C:\ProgramData\Claimward`, das ein Reparsepunkt
+(ein Link) ist oder weder SYSTEM (`S-1-5-18`) noch Administrators (`S-1-5-32-544`) gehört:
+Prüfen und entfernen Sie es und führen Sie das Installationsprogramm dann erneut aus.
 
 `.\uninstall.ps1` entfernt den Dienst, die Verknüpfung und die Programme;
 `-RemoveData` entfernt außerdem `C:\ProgramData\Claimward` und die Gruppe. Ein
@@ -82,7 +90,11 @@ WireGuard LLC signiert und liegt nicht im Repository.
 
 Die App liest `%AppData%\Claimward\config.json`, dann die Variablen `CLAIMWARD_*`
 (siehe die [Client-Bibliothek]({{< relref "/components/client.md#files-on-the-device" >}})).
-Die Sitzung ist `%AppData%\claimward\session.json`.
+Die Sitzung wird mit **DPAPI** in einer Datei pro Benutzer versiegelt, `session.dpapi`, unter
+`%AppData%\claimward`. Sie wird nie im Klartext geschrieben, und es gibt keinen
+Klartext-Fallback: Schlägt DPAPI fehl (Client v0.5.0 und neuer), schlägt die Anmeldung mit
+einem entsprechenden Fehler fehl. Eine `session.json` aus einer älteren Version wird beim
+ersten Start in DPAPI verschoben oder gelöscht, wenn das fehlschlägt.
 
 Der Helper liest `C:\ProgramData\Claimward\helper.json`:
 
@@ -100,6 +112,5 @@ setzt und prüft, sind unter
 [Privilegierter Helper]({{< relref "/components/helper.md#the-socket-windows" >}}) beschrieben.
 
 {{< callout type="info" >}}
-**Noch ausstehend:** ein MSI-Installationsprogramm und die Sitzung in der Windows-Anmeldeinformationsverwaltung
-(DPAPI) statt in einer Datei pro Benutzer.
+**Noch ausstehend:** ein MSI-Installationsprogramm.
 {{< /callout >}}

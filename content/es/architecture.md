@@ -116,7 +116,8 @@ después de *Disconnect* hasta que termina su concesión.
   no acepta ninguna configuración de túnel procedente de una petición. Véase
   [Helper con privilegios]({{< relref "/components/helper.md" >}}).
 - La **aplicación** se ejecuta como la persona. Guarda la sesión (token bearer y clave
-  del dispositivo) en un archivo `0600` de su directorio de configuración.
+  del dispositivo) en el almacén de secretos de la plataforma (Keychain de macOS, DPAPI de Windows,
+  Secret Service de Linux), nunca en claro en el disco: sin un almacén utilizable, el inicio de sesión falla.
 - Una observación de rutas lleva el token bearer, por eso pasa por **TLS** salvo hacia una
   dirección de loopback.
 - El contrato de comunicación está en un solo lugar,

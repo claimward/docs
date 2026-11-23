@@ -7,7 +7,7 @@ tags: [client, go, wireguard, grpc]
 ---
 
 [`claimward-vpn-client`](https://github.com/claimward/claimward-vpn-client)
-**v0.3.1** is a Go **library**. It ships no binary: the runnable programs are
+**v0.5.0** is a Go **library**. It ships no binary: the runnable programs are
 the apps' (`cmd/claimward-app` and `cmd/claimward-helper` in each app
 repository). The server imports it too, for the wire types and the gRPC stubs.
 
@@ -33,14 +33,14 @@ the library-only module is what the apps build on.
 | `pkg/appcore` | the apps' logic, shared by the three: sign-in, the tenant chosen for the session, connect and disconnect through the helper, status for the UI |
 | `pkg/helper` | the privileged helper, shared by the three apps: enrolls, owns the tunnel, watches route pushes |
 | `pkg/hproto`, `pkg/helperclient` | the helper's socket protocol, and the app's client for it |
-| `pkg/tokenstore` | the session (bearer, refresh token, device private key, chosen tenant) in a `0600` JSON file |
+| `pkg/tokenstore` | the session (bearer, refresh token, device private key, chosen tenant) in the OS secret store: macOS Keychain, Windows DPAPI, Linux Secret Service; no plaintext fallback |
 
 ## Files on the device
 
 | File | What |
 |---|---|
 | `<config dir>/Claimward/config.json` | the app's configuration (`appcore.Config`), `0600`, overridden by `CLAIMWARD_*` variables |
-| `<config dir>/claimward/session.json` | the session (`pkg/tokenstore`), `0600` |
+| `<config dir>/claimward/session.enc` (macOS), `session.dpapi` (Windows) | the sealed session; its key is in the Keychain, or the blob is DPAPI-protected. On Linux the session itself is in the Secret Service. |
 
 `<config dir>` is Go's `os.UserConfigDir()`: `~/Library/Application Support` on
 macOS, `~/.config` on Linux, `%AppData%` on Windows.
@@ -122,5 +122,13 @@ A long-lived client renews its lease with `c.Heartbeat` before
   executable that calls `wgtun.Up`, which the Windows app's packaging takes
   care of. Address, routes, DNS and MTU are set through `winipcfg` (the IP
   Helper API, pure Go, `CGO_ENABLED=0`).
-- **Session store.** A `0600` file; moving it to the platform's secret store is
-  still to come.
+- **Session store.** The platform's secret store: the macOS login Keychain
+  (holding an AES-GCM key; the session is sealed in `session.enc`), Windows
+  DPAPI (`session.dpapi`), the Linux Secret Service through `secret-tool`. Since
+  **v0.5.0** there is no plaintext fallback and `CLAIMWARD_ALLOW_PLAINTEXT_SESSION`
+  has no effect: with no usable store, saving the session fails and sign-in
+  fails with an error naming what is missing (on Linux, install and unlock a
+  Secret Service provider such as gnome-keyring or KeePassXC, and `secret-tool`).
+  A legacy `session.json` is read once, moved into the store and deleted, or
+  deleted if the store refuses it. Tests of other packages use
+  `tokenstore.UseMemory()`.

@@ -46,8 +46,7 @@ webview ; les applications Linux et Windows sont en Go pur
 
 {{< callout type="info" >}}
 **État d'avancement.** Ce sont des premières versions. Restent à venir, selon chaque
-dépôt : le jeton de session dans le magasin de secrets de la plateforme (Keychain,
-un trousseau, le Gestionnaire d'identification Windows), une application macOS signée
+dépôt : une application macOS signée
 et notarisée, un MSI pour Windows, l'application des DNS sur macOS et Linux, et un état
 côté serveur qui survive à un redémarrage. Le README de chaque dépôt liste ce qui reste à faire.
 {{< /callout >}}

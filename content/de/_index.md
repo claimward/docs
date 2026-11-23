@@ -46,8 +46,7 @@ Webview; die Linux- und die Windows-App sind reines Go
 
 {{< callout type="info" >}}
 **Stand.** Dies sind erste Releases. Laut den jeweiligen Repositorys steht
-noch aus: das Sitzungstoken im Geheimnisspeicher der Plattform (Keychain,
-ein Schlüsselbund, die Windows-Anmeldeinformationsverwaltung), eine signierte und notarisierte macOS-App,
+noch aus: eine signierte und notarisierte macOS-App,
 ein MSI für Windows, unter macOS und Linux angewendetes DNS sowie ein Zustand auf dem Server,
 der einen Neustart übersteht. Das README jedes Repositorys listet auf, was noch fehlt.
 {{< /callout >}}

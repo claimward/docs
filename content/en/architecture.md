@@ -116,7 +116,8 @@ after *Disconnect* until its lease ends.
   takes no tunnel configuration from a request. See
   [Privileged helper]({{< relref "/components/helper.md" >}}).
 - The **app** runs as the person. It holds the session (bearer token and device
-  key) in a `0600` file in their configuration directory.
+  key) in the platform's secret store (macOS Keychain, Windows DPAPI, Linux
+  Secret Service), never in clear on disk: with no usable store, sign-in fails.
 - A route watch carries the bearer token, so it runs over **TLS** except to a
   loopback address.
 - The wire contract lives in one place,

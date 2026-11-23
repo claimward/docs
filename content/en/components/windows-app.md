@@ -64,11 +64,19 @@ Set-ExecutionPolicy -Scope Process Bypass
 
 It copies the programs and `wintun.dll` to `C:\Program Files\Claimward`,
 creates the local group **Claimward Users** and adds you to it, writes
-`C:\ProgramData\Claimward\helper.json`, registers and starts the
+`C:\ProgramData\Claimward\helper.json` (after checking that directory, see
+below), registers and starts the
 **ClaimwardHelper** service, and adds a **Claimward VPN** Start Menu shortcut.
 Membership takes effect at your **next sign-in to Windows**; until then the
 socket refuses you. Add other people with
 `Add-LocalGroupMember -Group 'Claimward Users' -Member <name>`.
+
+`-Server` accepts **https URLs only**: the sign-in token is sent to that server.
+
+ProgramData lets every user create directories, so the installer **refuses** a
+pre-existing `C:\ProgramData\Claimward` that is a reparse point (a link) or
+that is not owned by SYSTEM (`S-1-5-18`) or Administrators (`S-1-5-32-544`):
+inspect and remove it, then run the installer again.
 
 `.\uninstall.ps1` removes the service, the shortcut and the programs;
 `-RemoveData` also removes `C:\ProgramData\Claimward` and the group. There is
@@ -82,7 +90,11 @@ WireGuard LLC and is not in the repository.
 
 The app reads `%AppData%\Claimward\config.json`, then `CLAIMWARD_*` variables
 (see the [client library]({{< relref "/components/client.md#files-on-the-device" >}})).
-The session is `%AppData%\claimward\session.json`.
+The session is sealed with **DPAPI** in a per-user file, `session.dpapi`, under
+`%AppData%\claimward`. It is never written in clear and there is no plaintext
+fallback: if DPAPI fails (client v0.5.0 and later), sign-in fails with an error
+saying so. A `session.json` from an older version is moved into DPAPI on first
+start, or deleted if that fails.
 
 The helper reads `C:\ProgramData\Claimward\helper.json`:
 
@@ -100,6 +112,5 @@ sets and checks are described under
 [Privileged helper]({{< relref "/components/helper.md#the-socket-windows" >}}).
 
 {{< callout type="info" >}}
-**Still to come:** an MSI installer, and the session in the Windows Credential
-Manager (DPAPI) rather than a per-user file.
+**Still to come:** an MSI installer.
 {{< /callout >}}

@@ -7,7 +7,7 @@ tags: [client, go, wireguard, grpc]
 ---
 
 [`claimward-vpn-client`](https://github.com/claimward/claimward-vpn-client)
-**v0.3.1** ist eine Go-**Bibliothek**. Sie liefert kein Binary aus: Die ausführbaren Programme sind
+**v0.5.0** ist eine Go-**Bibliothek**. Sie liefert kein Binary aus: Die ausführbaren Programme sind
 die der Apps (`cmd/claimward-app` und `cmd/claimward-helper` in jedem App-Repository).
 Auch der Server importiert sie, für die Wire-Typen und die gRPC-Stubs.
 
@@ -33,14 +33,14 @@ das reine Bibliotheksmodul ist die Grundlage der Apps.
 | `pkg/appcore` | die Logik der Apps, gemeinsam für alle drei: Anmeldung, der für die Sitzung gewählte Mandant, Verbinden und Trennen über den Helper, Status für die Oberfläche |
 | `pkg/helper` | der privilegierte Helper, gemeinsam für die drei Apps: registriert, besitzt den Tunnel, beobachtet gepushte Routen |
 | `pkg/hproto`, `pkg/helperclient` | das Socket-Protokoll des Helpers und der Client der App dafür |
-| `pkg/tokenstore` | die Sitzung (Bearer-Token, Refresh-Token, privater Schlüssel des Geräts, gewählter Mandant) in einer JSON-Datei mit `0600` |
+| `pkg/tokenstore` | die Sitzung (Bearer-Token, Refresh-Token, privater Schlüssel des Geräts, gewählter Mandant) im Geheimnisspeicher des Betriebssystems: macOS-Keychain, Windows-DPAPI, Linux-Secret-Service; kein Klartext-Fallback |
 
 ## Dateien auf dem Gerät {#files-on-the-device}
 
 | Datei | Was |
 |---|---|
 | `<config dir>/Claimward/config.json` | die Konfiguration der App (`appcore.Config`), `0600`, überschrieben durch die Variablen `CLAIMWARD_*` |
-| `<config dir>/claimward/session.json` | die Sitzung (`pkg/tokenstore`), `0600` |
+| `<config dir>/claimward/session.enc` (macOS), `session.dpapi` (Windows) | die versiegelte Sitzung; ihr Schlüssel liegt in der Keychain, oder der Blob ist durch DPAPI geschützt. Unter Linux liegt die Sitzung selbst im Secret Service. |
 
 `<config dir>` ist Go's `os.UserConfigDir()`: `~/Library/Application Support` unter
 macOS, `~/.config` unter Linux, `%AppData%` unter Windows.
@@ -122,5 +122,13 @@ Ein langlebiger Client erneuert seine Lease mit `c.Heartbeat` vor
   ausführbaren Datei liegen, die `wgtun.Up` aufruft, worum sich das Packaging der Windows-App
   kümmert. Adresse, Routen, DNS und MTU werden über `winipcfg` gesetzt (die IP
   Helper API, reines Go, `CGO_ENABLED=0`).
-- **Sitzungsspeicher.** Eine Datei mit `0600`; die Verlagerung in den Geheimnisspeicher der Plattform
-  steht noch aus.
+- **Sitzungsspeicher.** Der Geheimnisspeicher der Plattform: die Login-Keychain von macOS
+  (sie hält einen AES-GCM-Schlüssel; die Sitzung ist in `session.enc` versiegelt), Windows-DPAPI
+  (`session.dpapi`), der Linux-Secret-Service über `secret-tool`. Seit
+  **v0.5.0** gibt es keinen Klartext-Fallback, und `CLAIMWARD_ALLOW_PLAINTEXT_SESSION`
+  hat keine Wirkung: ohne nutzbaren Speicher schlägt das Speichern der Sitzung fehl, und die
+  Anmeldung schlägt mit einem Fehler fehl, der benennt, was fehlt (unter Linux einen Secret-Service-Anbieter
+  wie gnome-keyring oder KeePassXC installieren und entsperren, dazu `secret-tool`).
+  Eine ältere `session.json` wird einmal gelesen, in den Speicher verschoben und gelöscht, oder
+  gelöscht, wenn der Speicher sie ablehnt. Tests anderer Pakete verwenden
+  `tokenstore.UseMemory()`.

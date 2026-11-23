@@ -46,8 +46,7 @@ webview; las aplicaciones Linux y Windows son Go puro
 
 {{< callout type="info" >}}
 **Estado.** Son las primeras versiones publicadas. Queda por llegar, según cada
-repositorio: el token de sesión en el almacén de secretos de la plataforma (Keychain,
-un llavero, el Administrador de credenciales de Windows), una aplicación macOS firmada
+repositorio: una aplicación macOS firmada
 y notarizada, un MSI para Windows, el DNS aplicado en macOS y Linux, y un estado en el
 servidor que sobreviva a un reinicio. El README de cada repositorio enumera lo que falta.
 {{< /callout >}}

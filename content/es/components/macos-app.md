@@ -102,7 +102,19 @@ v0.2.0) están **firmados ad hoc y no notarizados**. El DMG contiene la aplicaci
 helper se instala como se ha descrito más arriba.
 
 {{< callout type="info" >}}
-**Pendiente:** el token de sesión en el Keychain (hoy es un archivo `0600`),
-el helper instalado con SMJobBless, una versión firmada con un
+**Pendiente:** el helper instalado con SMJobBless, una versión firmada con un
 Developer ID, y el DNS aplicado en macOS.
 {{< /callout >}}
+
+## Sesión y servidores
+
+La sesión (tokens y la clave WireGuard del dispositivo) vive en `session.enc`, sellada
+con AES-GCM; la clave se guarda en el **Keychain** de inicio de sesión. Nunca se escribe
+en claro en el disco y no hay alternativa en texto claro: si el Keychain está bloqueado o
+no disponible (cliente v0.5.0 y posteriores), el inicio de sesión falla con un error que
+lo indica. Un `session.json` `0600` de una versión anterior se traslada al almacén en el
+primer arranque, o se elimina si eso falla.
+
+El servidor debe ser una URL **https**, y el token de lanzamiento de la ventana viaja solo
+en una cabecera (nunca en una URL, en los argumentos del proceso ni en los registros); el
+traspaso a una instancia en ejecución se hace mediante un archivo.

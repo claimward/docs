@@ -64,11 +64,19 @@ Set-ExecutionPolicy -Scope Process Bypass
 
 Copia los programas y `wintun.dll` en `C:\Program Files\Claimward`,
 crea el grupo local **Claimward Users** y le añade a usted, escribe
-`C:\ProgramData\Claimward\helper.json`, registra e inicia el servicio
+`C:\ProgramData\Claimward\helper.json` (tras comprobar ese directorio, véase más
+abajo), registra e inicia el servicio
 **ClaimwardHelper**, y añade un acceso directo **Claimward VPN** al menú Inicio.
 La pertenencia surte efecto en su **próximo inicio de sesión en Windows**; hasta entonces el
 socket le rechaza. Añada a otras personas con
 `Add-LocalGroupMember -Group 'Claimward Users' -Member <name>`.
+
+`-Server` acepta **solo URL https**: el token de inicio de sesión se envía a ese servidor.
+
+ProgramData permite a cualquier usuario crear directorios, así que el instalador **rechaza**
+un `C:\ProgramData\Claimward` preexistente que sea un punto de reanálisis (un enlace) o
+que no pertenezca a SYSTEM (`S-1-5-18`) ni a Administrators (`S-1-5-32-544`):
+inspecciónelo y elimínelo, y vuelva a ejecutar el instalador.
 
 `.\uninstall.ps1` elimina el servicio, el acceso directo y los programas;
 `-RemoveData` elimina además `C:\ProgramData\Claimward` y el grupo. Todavía no
@@ -82,7 +90,11 @@ WireGuard LLC y no está en el repositorio.
 
 La aplicación lee `%AppData%\Claimward\config.json` y después las variables `CLAIMWARD_*`
 (véase la [biblioteca cliente]({{< relref "/components/client.md#files-on-the-device" >}})).
-La sesión es `%AppData%\claimward\session.json`.
+La sesión se sella con **DPAPI** en un archivo por usuario, `session.dpapi`, bajo
+`%AppData%\claimward`. Nunca se escribe en claro y no hay alternativa en texto claro: si
+DPAPI falla (cliente v0.5.0 y posteriores), el inicio de sesión falla con un error que lo
+indica. Un `session.json` de una versión anterior se traslada a DPAPI en el primer
+arranque, o se elimina si eso falla.
 
 El helper lee `C:\ProgramData\Claimward\helper.json`:
 
@@ -100,6 +112,5 @@ establece y comprueba se describen en
 [Helper con privilegios]({{< relref "/components/helper.md#the-socket-windows" >}}).
 
 {{< callout type="info" >}}
-**Pendiente:** un instalador MSI, y la sesión en el Administrador de credenciales
-de Windows (DPAPI) en lugar de un archivo por usuario.
+**Pendiente:** un instalador MSI.
 {{< /callout >}}
