@@ -18,15 +18,48 @@ Eine Person gehört jedem Mandanten an, der eines der folgenden Merkmale nennt:
 | `domains` | der Domain einer **verifizierten** E-Mail-Adresse (eine nicht verifizierte ist eine Zeichenkette, die die Person eingegeben hat) |
 | `groups` | dem Claim `groups` des Tokens (OIDC; go-authn: eduPerson-Entitlements) oder den GitHub-Organisationen der Person |
 | `idps` | der Einrichtung, die für sie gebürgt hat: das `idp` von go-authn, eine SAML-Entity-ID |
+| `members` | GitHub-**Logins**, einzeln benannt und an die numerische ID des Kontos gebunden (unten) |
 
-Eine Person, auf die nichts davon zutrifft, gehört dem Mandanten `default` an, und nur dann.
+{{< callout type="warning" >}}
+**Eine Person, die zu keinem Mandanten passt, wird abgewiesen** (v0.5.0,
+Breaking Change): `403 not_a_member` auf `/api/v1/tenants` und
+`/api/v1/enroll`, und das gRPC-`Watch` wird abgelehnt. Es gibt keinen
+Ersatz-Mandanten mehr: Der Mandant `default` nimmt nur diejenigen auf, die seine
+eigenen `domains`, `groups`, `idps` oder `members` benennen. Eine unbekannte
+Mandanten-ID ist ein Fehler, nie die Routen des Mandanten `default`.
+{{< /callout >}}
+
+**Migration von v0.4.x.** Wer bisher in `default` landete, muss dort jetzt
+benannt werden: Geben Sie dem `default`-Eintrag von `TENANTS_FILE` die
+`domains`, `groups`, `idps` oder `members`, die diese Personen benennen, und
+starten Sie neu. Der allein aus `PUSH_ROUTES` und `DNS` erzeugte Mandant
+`default` benennt niemanden.
+
+### Benannte Mitglieder {#members}
+
+`members` listet GitHub-Logins auf, lesbar, aber umbenennbar: Ein Login kann
+freigegeben und von jemand anderem registriert werden. Der Server **bindet**
+deshalb jeden Login an die numerische ID des Kontos. Beim Laden eines Mandanten
+(`TENANTS_FILE`) oder beim Anlegen oder Ändern über die Admin-API ruft er
+`GET {GITHUB_API_URL}/users/{login}` auf (10 s Zeitlimit, Antwort auf 64 KiB
+begrenzt, das Konto muss ein `User` sein) und speichert das Paar im
+schreibgeschützten Feld `pinned`. Eine Person ist Mitglied, wenn das Subject
+ihres Tokens `github:<id>` einer gebundenen ID entspricht: Ein umbenanntes
+Konto, dessen alter Login jetzt jemand anderem gehört, wird abgewiesen. Ein
+**nicht auflösbarer Login ist ein Fehler**: Der Server startet nicht, und die
+Admin-API antwortet mit `400`. Admin-API und WebUI zeigen die Logins; um einer
+Umbenennung zu folgen, bearbeiten Sie den Mandanten erneut. Die Auflösung ist
+anonym (60 Anfragen pro Stunde und Adresse bei github.com).
+
+Ein benanntes Mitglied wird vom GitHub-Eingangstor auch ohne Zugehörigkeit zu
+einer erlaubten Organisation zugelassen (siehe [Identitätsanbieter]({{< relref "/identity-providers.md" >}})).
 
 ## Woher die Mandanten kommen {#where-tenants-come-from}
 
 Der Server startet mit einem Mandanten, `default`, dessen Routen `PUSH_ROUTES`
 (standardmäßig `VPN_CIDR`) und dessen DNS-Server `DNS` sind. Weitere Mandanten werden
 über die [Admin-API und WebUI]({{< relref "/operations.md#admin-api-and-webui" >}}) angelegt, bearbeitet und gelöscht,
-die neben den Routen die drei Mitgliedschaftslisten bearbeiten. Der Standardmandant
+die neben den Routen die vier Mitgliedschaftslisten bearbeiten. Der Standardmandant
 kann nicht gelöscht werden.
 
 {{< callout type="warning" >}}

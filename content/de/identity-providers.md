@@ -27,8 +27,11 @@ Der Server ermittelt die Person über die GitHub-API mit deren Token: Ihre
 numerische ID ist das Subject (`github:<id>`), ihre Organisationen
 (`/user/orgs`) sind ihre Gruppen für die [Mandanten]({{< relref "/tenants.md" >}}), und
 ihre öffentliche E-Mail-Adresse, sofern sie eine hat, gilt als verifiziert. Mit
-`GITHUB_ALLOWED_ORGS` ist eine aktive Mitgliedschaft in einer dieser Organisationen
-erforderlich. Setzen Sie `GITHUB_API_URL` für GitHub Enterprise.
+`GITHUB_ALLOWED_ORGS` lässt eine aktive Mitgliedschaft in einer dieser Organisationen
+zu, ebenso ein benannter `members`-Eintrag eines Mandanten (an die Konto-ID
+gebunden, siehe [Mandanten]({{< relref "/tenants.md#members" >}})). Die Liste ist nur
+optional, wenn ein Mandant Mitglieder hat: Ohne beides startet der Server nicht.
+Setzen Sie `GITHUB_API_URL` für GitHub Enterprise.
 
 ```sh
 AUTH_PROVIDER=github

@@ -18,15 +18,47 @@ Una persona pertenece a todo inquilino que nombre cualquiera de estos elementos:
 | `domains` | el dominio de una dirección de correo **verificada** (una no verificada es una cadena que la persona escribió) |
 | `groups` | la claim `groups` del token (OIDC; go-authn: entitlements eduPerson), o las organizaciones de GitHub de la persona |
 | `idps` | la institución que respondió por ella: el `idp` de go-authn, un entity ID SAML |
+| `members` | **logins** de GitHub, nombrados uno a uno y fijados al identificador numérico de la cuenta (más abajo) |
 
-Una persona que no coincide con ninguno pertenece al inquilino `default`, y solo en ese caso.
+{{< callout type="warning" >}}
+**Una persona que no coincide con ningún inquilino es rechazada** (v0.5.0,
+cambio incompatible): `403 not_a_member` en `/api/v1/tenants` y
+`/api/v1/enroll`, y el `Watch` gRPC es rechazado. Ya no hay inquilino de
+reserva: el inquilino `default` solo recibe a quienes nombran sus propios
+`domains`, `groups`, `idps` o `members`. Un ID de inquilino desconocido es un
+error, nunca las rutas del inquilino `default`.
+{{< /callout >}}
+
+**Migración desde v0.4.x.** Quienes antes caían en `default` ahora deben ser
+nombrados por él: dé a la entrada `default` de `TENANTS_FILE` los `domains`,
+`groups`, `idps` o `members` que los nombran y reinicie. El inquilino `default`
+creado solo con `PUSH_ROUTES` y `DNS` no nombra a nadie.
+
+### Miembros nombrados {#members}
+
+`members` lista logins de GitHub, legibles pero renombrables: un login puede
+liberarse y ser registrado por otra persona. El servidor **fija** por tanto cada
+login al identificador numérico de la cuenta. Al cargar un inquilino
+(`TENANTS_FILE`) o al crearlo o actualizarlo mediante la API de administración,
+llama a `GET {GITHUB_API_URL}/users/{login}` (10 s de tiempo límite, respuesta
+limitada a 64 KiB, la cuenta debe ser un `User`) y guarda el par en el campo
+`pinned`, de solo lectura. Una persona es miembro cuando el sujeto de su token es
+`github:<id>` para un ID fijado: una cuenta renombrada cuyo antiguo login
+pertenece ahora a otra persona es rechazada. Un **login no resoluble es un
+error**: el servidor se niega a arrancar y la API de administración responde
+`400`. La API y la WebUI muestran los logins; para seguir un cambio de nombre,
+edite de nuevo el inquilino. La resolución es anónima (60 solicitudes por hora y
+dirección en github.com).
+
+Un miembro nombrado también es admitido por la puerta de entrada de GitHub sin
+pertenecer a una organización permitida (véase los [proveedores de identidad]({{< relref "/identity-providers.md" >}})).
 
 ## De dónde vienen los inquilinos {#where-tenants-come-from}
 
 El servidor arranca con un solo inquilino, `default`, cuyas rutas son `PUSH_ROUTES`
 (por defecto `VPN_CIDR`) y cuyos servidores DNS son `DNS`. Los demás inquilinos se
 crean, modifican y eliminan mediante la [API de administración y la WebUI]({{< relref "/operations.md#admin-api-and-webui" >}}),
-que modifican las tres listas de pertenencia junto a las rutas. El inquilino por defecto
+que modifican las cuatro listas de pertenencia junto a las rutas. El inquilino por defecto
 no se puede eliminar.
 
 {{< callout type="warning" >}}

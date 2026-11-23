@@ -95,7 +95,7 @@ elle demande le jeton et l'envoie avec chaque appel.
 |---|---|
 | `GET /admin/api/overview` | comptes `{"tenants", "peers", "watchers"}` |
 | `GET /admin/api/tenants` | tous les locataires |
-| `POST /admin/api/tenants` | en crée un : `id` (ou un slug de `name`), `name`, `domains`, `groups`, `idps`, `allowed_ips`, `dns` |
+| `POST /admin/api/tenants` | en crée un : `id` (ou un slug de `name`), `name`, `domains`, `groups`, `idps`, `members` (logins ; `pinned` est en lecture seule, `400` si un login ne se résout pas), `allowed_ips`, `dns` |
 | `GET /admin/api/tenants/{id}` | un locataire |
 | `PUT /admin/api/tenants/{id}` | remplace son nom, ses listes d'appartenance et ses routes ; incrémente `serial` et pousse les routes vers ses observateurs |
 | `DELETE /admin/api/tenants/{id}` | le supprime (sauf `default`) ; met fin à ses surveillances |

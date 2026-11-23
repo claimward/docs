@@ -18,15 +18,48 @@ Une personne appartient à tout locataire qui mentionne l'un des éléments suiv
 | `domains` | le domaine d'une adresse e-mail **vérifiée** (une adresse non vérifiée n'est qu'une chaîne saisie par la personne) |
 | `groups` | la revendication `groups` du jeton (OIDC ; go-authn : droits eduPerson), ou les organisations GitHub de la personne |
 | `idps` | l'établissement qui s'est porté garant d'elle : l'`idp` de go-authn, un entity ID SAML |
+| `members` | des **logins** GitHub, nommés un à un, épinglés à l'identifiant numérique du compte (ci-dessous) |
 
-Une personne qui ne correspond à aucun appartient au locataire `default`, et seulement dans ce cas.
+{{< callout type="warning" >}}
+**Une personne qui ne correspond à aucun locataire est refusée** (v0.5.0,
+changement incompatible) : `403 not_a_member` sur `/api/v1/tenants` et
+`/api/v1/enroll`, et le `Watch` gRPC est refusé. Il n'y a plus de locataire de
+repli : le locataire `default` ne reçoit que les personnes que ses propres
+`domains`, `groups`, `idps` ou `members` désignent. Un identifiant de locataire
+inconnu est une erreur, jamais les routes du locataire `default`.
+{{< /callout >}}
+
+**Migration depuis v0.4.x.** Les personnes qui tombaient dans `default` doivent
+maintenant y être désignées : donnez à l'entrée `default` de `TENANTS_FILE` les
+`domains`, `groups`, `idps` ou `members` qui les désignent, puis redémarrez. Le
+locataire `default` construit à partir de `PUSH_ROUTES` et `DNS` seuls ne
+désigne personne.
+
+### Membres nommés {#members}
+
+`members` liste des logins GitHub, lisibles mais renommables : un login peut être
+libéré puis pris par quelqu'un d'autre. Le serveur **épingle** donc chaque login à
+l'identifiant numérique du compte. Lorsqu'un locataire est chargé (`TENANTS_FILE`)
+ou créé ou modifié via l'API d'administration, il appelle
+`GET {GITHUB_API_URL}/users/{login}` (délai de 10 s, réponse limitée à 64 Kio,
+le compte doit être un `User`) et enregistre la paire dans le champ `pinned`, en
+lecture seule. Une personne est membre quand le sujet de son jeton est
+`github:<id>` pour un identifiant épinglé : un compte renommé dont l'ancien login
+appartient désormais à quelqu'un d'autre est refusé. Un **login introuvable est
+une erreur** : le serveur refuse de démarrer, et l'API d'administration répond
+`400`. L'API et la WebUI montrent les logins ; pour suivre un renommage, modifiez
+à nouveau le locataire. La résolution est anonyme (60 requêtes par heure et par
+adresse sur github.com).
+
+Un membre nommé est aussi admis par la porte d'entrée GitHub sans appartenir à
+une organisation autorisée (voir les [fournisseurs d'identité]({{< relref "/identity-providers.md" >}})).
 
 ## D'où viennent les locataires {#where-tenants-come-from}
 
 Le serveur démarre avec un seul locataire, `default`, dont les routes sont `PUSH_ROUTES`
 (par défaut `VPN_CIDR`) et dont les serveurs DNS sont `DNS`. Les autres locataires sont
 créés, modifiés et supprimés via l'[API d'administration et la WebUI]({{< relref "/operations.md#admin-api-and-webui" >}}),
-qui modifient les trois listes d'appartenance à côté des routes. Le locataire par défaut
+qui modifient les quatre listes d'appartenance à côté des routes. Le locataire par défaut
 ne peut pas être supprimé.
 
 {{< callout type="warning" >}}

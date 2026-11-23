@@ -95,7 +95,7 @@ it asks for the token and sends it with each call.
 |---|---|
 | `GET /admin/api/overview` | `{"tenants", "peers", "watchers"}` counts |
 | `GET /admin/api/tenants` | every tenant |
-| `POST /admin/api/tenants` | create one: `id` (or a slug of `name`), `name`, `domains`, `groups`, `idps`, `allowed_ips`, `dns` |
+| `POST /admin/api/tenants` | create one: `id` (or a slug of `name`), `name`, `domains`, `groups`, `idps`, `members` (logins; `pinned` is read-only, `400` if a login does not resolve), `allowed_ips`, `dns` |
 | `GET /admin/api/tenants/{id}` | one tenant |
 | `PUT /admin/api/tenants/{id}` | replace its name, membership lists and routes; bumps `serial` and pushes the routes to its watchers |
 | `DELETE /admin/api/tenants/{id}` | delete it (not `default`); ends its watches |

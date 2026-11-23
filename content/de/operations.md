@@ -95,7 +95,7 @@ sie fragt nach dem Token und sendet es bei jedem Aufruf mit.
 |---|---|
 | `GET /admin/api/overview` | Anzahlen `{"tenants", "peers", "watchers"}` |
 | `GET /admin/api/tenants` | alle Mandanten |
-| `POST /admin/api/tenants` | einen anlegen: `id` (oder ein Slug von `name`), `name`, `domains`, `groups`, `idps`, `allowed_ips`, `dns` |
+| `POST /admin/api/tenants` | einen anlegen: `id` (oder ein Slug von `name`), `name`, `domains`, `groups`, `idps`, `members` (Logins; `pinned` ist schreibgeschützt, `400`, wenn ein Login nicht aufgelöst wird), `allowed_ips`, `dns` |
 | `GET /admin/api/tenants/{id}` | ein Mandant |
 | `PUT /admin/api/tenants/{id}` | ersetzt seinen Namen, seine Mitgliedschaftslisten und Routen; erhöht `serial` und pusht die Routen an seine Beobachter |
 | `DELETE /admin/api/tenants/{id}` | löscht ihn (nicht `default`); beendet seine Beobachtungen |

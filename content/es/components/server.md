@@ -41,7 +41,7 @@ Toda la configuración está en el entorno.
 | Variable | Obligatoria | Predeterminado | Notas |
 |----------|----------|---------|-------|
 | `AUTH_PROVIDER` | | `github` | proveedor de identidad: `github`, `oidc` o `go-authn` |
-| `GITHUB_ALLOWED_ORGS` | `github` | — | lista CSV de organizaciones permitidas: se admite a un miembro activo de cualquiera de ellas. **Obligatoria** desde v0.4.0: el servidor se niega a arrancar si está vacía, sin opción de excepción (cambio incompatible: defínala antes de actualizar) |
+| `GITHUB_ALLOWED_ORGS` | `github` | — | lista CSV de organizaciones permitidas: se admite a un miembro activo de cualquiera de ellas, y también a un miembro nombrado de un inquilino. Desde v0.5.0 es **opcional solo si al menos un inquilino tiene `members`**: sin ninguno de los dos el servidor se niega a arrancar, sin opción de excepción (antes: obligatoria desde v0.4.0) |
 | `GITHUB_API_URL` | | `https://api.github.com` | se define para GitHub Enterprise |
 | `OIDC_ISSUER` | `oidc`, `go-authn` | — | URL del emisor (descubrimiento) |
 | `OIDC_CLIENT_ID` | `oidc`, `go-authn` | — | la audiencia que deben llevar los tokens |
@@ -77,8 +77,9 @@ La autenticación es intercambiable detrás de la interfaz `Verifier`
 
 - **`github`** (predeterminado): el bearer es un token de acceso OAuth de GitHub obtenido con el
   flujo de dispositivo. El servidor lo resuelve mediante la API de GitHub (`/user`,
-  `/user/orgs`) y, con `GITHUB_ALLOWED_ORGS`, exige una pertenencia activa
-  a una de esas organizaciones. No interviene ningún client secret.
+  `/user/orgs`) y, con `GITHUB_ALLOWED_ORGS`, admite a un miembro activo
+  de una de esas organizaciones, o a un miembro nombrado de un inquilino (la lista
+  es opcional solo si un inquilino tiene `members`). No interviene ningún client secret.
 - **`oidc`**: el bearer es un ID token OIDC, verificado contra el emisor con
   la audiencia `OIDC_CLIENT_ID` y la lista opcional de dominios de correo permitidos.
 - **`go-authn`**: el bearer es un token de acceso (`at+jwt`) de un proveedor

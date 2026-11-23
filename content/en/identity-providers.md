@@ -27,8 +27,11 @@ The server resolves the person through the GitHub API with their token: their
 numeric ID is the subject (`github:<id>`), their organisations
 (`/user/orgs`) are their groups for [tenants]({{< relref "/tenants.md" >}}), and
 their public email, when they have one, counts as verified. With
-`GITHUB_ALLOWED_ORGS`, an active membership of one of those organisations is
-required. Set `GITHUB_API_URL` for GitHub Enterprise.
+`GITHUB_ALLOWED_ORGS`, an active membership of one of those organisations
+admits them, and so does being a named `members` entry of a tenant (pinned to
+the account ID, see [tenants]({{< relref "/tenants.md#members" >}})). The
+allowlist is optional only when a tenant has members: with neither, the server
+refuses to start. Set `GITHUB_API_URL` for GitHub Enterprise.
 
 ```sh
 AUTH_PROVIDER=github
