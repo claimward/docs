@@ -42,11 +42,11 @@ Die gesamte Konfiguration erfolgt über die Umgebung.
 | Variable | Erforderlich | Standard | Hinweise |
 |----------|----------|---------|-------|
 | `AUTH_PROVIDER` | | `github` | Identitätsanbieter: `github`, `oidc` oder `go-authn` |
-| `GITHUB_ALLOWED_ORGS` | | — | CSV-Allowlist der Organisationen (`github`): Ein aktives Mitglied einer davon wird zugelassen |
+| `GITHUB_ALLOWED_ORGS` | `github` | — | CSV-Allowlist der Organisationen: Ein aktives Mitglied einer davon wird zugelassen. **Pflicht** seit v0.4.0: Der Server startet nicht, wenn sie leer ist, und es gibt keine Ausnahme-Option (Breaking Change: vor dem Update setzen) |
 | `GITHUB_API_URL` | | `https://api.github.com` | für GitHub Enterprise zu setzen |
 | `OIDC_ISSUER` | `oidc`, `go-authn` | — | URL des Issuers (Discovery) |
 | `OIDC_CLIENT_ID` | `oidc`, `go-authn` | — | die Audience, die Tokens tragen müssen |
-| `OIDC_ALLOWED_DOMAINS` | | — | CSV-Allowlist der E-Mail-Domains (`oidc`) |
+| `OIDC_ALLOWED_DOMAINS` | | — | CSV-Allowlist der E-Mail-Domains (`oidc`); die E-Mail des Tokens muss verifiziert sein |
 | `GOAUTHN_GATEWAY_CLIENT_ID` | `go-authn` | — | der eigene Client des Gateways beim Anbieter (`wireguard_peers`) |
 | `GOAUTHN_GATEWAY_SECRET_FILE` | `go-authn` | — | sein Secret, **nur aus einer Datei** |
 | `GOAUTHN_PEER_LIST_INTERVAL` | | `30s` | wie oft die Liste der registrierten Schlüssel abgerufen wird |
@@ -63,7 +63,9 @@ Die gesamte Konfiguration erfolgt über die Umgebung.
 | `KEEPALIVE` | | `25` | den Clients mitgeteiltes Persistent Keepalive (Sekunden) |
 | `LEASE_TTL` | | `24h` | wie lange eine Registrierung ohne Heartbeat gilt |
 | `LISTEN_ADDR` | | `:8443` | HTTP-Listen-Adresse |
-| `GRPC_ADDR` | | `:8444` | Listen-Adresse des RouteService |
+| `GRPC_ADDR` | | `:8444` | Listen-Adresse des RouteService; `Watch`-Streams werden alle 15 s neu autorisiert und enden, wenn die Identität nicht mehr zugelassen ist |
+| `METRICS_ADDR` | | `127.0.0.1:9090` | eigener Listener für `/metrics` (standardmäßig Loopback; nicht mehr auf `LISTEN_ADDR`) |
+| `MAX_DEVICES_PER_SUBJECT` | | `5` | Geräte, die eine Identität registrieren darf |
 | `GRPC_ENDPOINT` | | — | den Clients mitgeteilter `host:port` des RouteService; ist er leer, beobachten sie nicht |
 | `ADMIN_TOKEN` | | — | Bearer-Token für die Admin-API und die WebUI; leer deaktiviert sie |
 | `TLS_CERT` / `TLS_KEY` | | — | HTTPS und TLS auf dem RouteService |

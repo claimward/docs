@@ -41,11 +41,11 @@ Toda la configuración está en el entorno.
 | Variable | Obligatoria | Predeterminado | Notas |
 |----------|----------|---------|-------|
 | `AUTH_PROVIDER` | | `github` | proveedor de identidad: `github`, `oidc` o `go-authn` |
-| `GITHUB_ALLOWED_ORGS` | | — | lista CSV de organizaciones permitidas (`github`): se admite a un miembro activo de cualquiera de ellas |
+| `GITHUB_ALLOWED_ORGS` | `github` | — | lista CSV de organizaciones permitidas: se admite a un miembro activo de cualquiera de ellas. **Obligatoria** desde v0.4.0: el servidor se niega a arrancar si está vacía, sin opción de excepción (cambio incompatible: defínala antes de actualizar) |
 | `GITHUB_API_URL` | | `https://api.github.com` | se define para GitHub Enterprise |
 | `OIDC_ISSUER` | `oidc`, `go-authn` | — | URL del emisor (descubrimiento) |
 | `OIDC_CLIENT_ID` | `oidc`, `go-authn` | — | la audiencia que deben llevar los tokens |
-| `OIDC_ALLOWED_DOMAINS` | | — | lista CSV de dominios de correo permitidos (`oidc`) |
+| `OIDC_ALLOWED_DOMAINS` | | — | lista CSV de dominios de correo permitidos (`oidc`); el correo del token debe estar verificado |
 | `GOAUTHN_GATEWAY_CLIENT_ID` | `go-authn` | — | el cliente propio de la pasarela en el proveedor (`wireguard_peers`) |
 | `GOAUTHN_GATEWAY_SECRET_FILE` | `go-authn` | — | su secreto, **solo desde un archivo** |
 | `GOAUTHN_PEER_LIST_INTERVAL` | | `30s` | con qué frecuencia se obtiene la lista de claves registradas |
@@ -62,7 +62,9 @@ Toda la configuración está en el entorno.
 | `KEEPALIVE` | | `25` | keepalive persistente anunciado a los clientes (segundos) |
 | `LEASE_TTL` | | `24h` | cuánto dura un registro sin heartbeat |
 | `LISTEN_ADDR` | | `:8443` | dirección de escucha HTTP |
-| `GRPC_ADDR` | | `:8444` | dirección de escucha del RouteService |
+| `GRPC_ADDR` | | `:8444` | dirección de escucha del RouteService; los flujos `Watch` se reautorizan cada 15 s y terminan cuando la identidad deja de estar permitida |
+| `METRICS_ADDR` | | `127.0.0.1:9090` | escucha separada para `/metrics` (loopback por defecto; ya no se sirve en `LISTEN_ADDR`) |
+| `MAX_DEVICES_PER_SUBJECT` | | `5` | dispositivos que una identidad puede inscribir |
 | `GRPC_ENDPOINT` | | — | `host:port` del RouteService anunciado a los clientes; si está vacío, no observan |
 | `ADMIN_TOKEN` | | — | bearer de la API de administración y de la WebUI; vacío, las desactiva |
 | `TLS_CERT` / `TLS_KEY` | | — | HTTPS, y TLS en el RouteService |
