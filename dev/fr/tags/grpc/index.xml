@@ -303,7 +303,7 @@ de routes en direct.&lt;/p&gt;
 &lt;td&gt;&lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;&lt;code&gt;github&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;—&lt;/td&gt;
-&lt;td&gt;liste CSV des organisations autorisées : un membre actif de l&amp;rsquo;une d&amp;rsquo;elles est admis. &lt;strong&gt;Obligatoire&lt;/strong&gt; depuis v0.4.0 : le serveur refuse de démarrer si elle est vide, sans option de contournement (rupture : la définir avant la mise à jour)&lt;/td&gt;
+&lt;td&gt;liste CSV des organisations autorisées : un membre actif de l&amp;rsquo;une d&amp;rsquo;elles est admis, de même qu&amp;rsquo;un membre nommé d&amp;rsquo;un locataire. Depuis v0.5.0 elle n&amp;rsquo;est &lt;strong&gt;facultative que si au moins un locataire a des &lt;code&gt;members&lt;/code&gt;&lt;/strong&gt; : sans l&amp;rsquo;un ni l&amp;rsquo;autre le serveur refuse de démarrer, sans option de contournement (avant : obligatoire depuis v0.4.0)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;GITHUB_API_URL&lt;/code&gt;&lt;/td&gt;
@@ -475,8 +475,9 @@ de routes en direct.&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;strong&gt;&lt;code&gt;github&lt;/code&gt;&lt;/strong&gt; (par défaut) : le jeton porteur est un jeton d&amp;rsquo;accès OAuth GitHub issu du
 flux d&amp;rsquo;appareil (device flow). Le serveur le résout via l&amp;rsquo;API GitHub (&lt;code&gt;/user&lt;/code&gt;,
-&lt;code&gt;/user/orgs&lt;/code&gt;) et, avec &lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;, exige l&amp;rsquo;appartenance active
-à l&amp;rsquo;une de ces organisations. Aucun secret client n&amp;rsquo;intervient.&lt;/li&gt;
+&lt;code&gt;/user/orgs&lt;/code&gt;) et, avec &lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;, admet un membre actif
+de l&amp;rsquo;une de ces organisations, ou un membre nommé d&amp;rsquo;un locataire (la liste
+n&amp;rsquo;est facultative que si un locataire a des &lt;code&gt;members&lt;/code&gt;). Aucun secret client n&amp;rsquo;intervient.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;&lt;code&gt;oidc&lt;/code&gt;&lt;/strong&gt; : le jeton porteur est un jeton d&amp;rsquo;identité OIDC, vérifié auprès de l&amp;rsquo;émetteur avec
 l&amp;rsquo;audience &lt;code&gt;OIDC_CLIENT_ID&lt;/code&gt; et la liste facultative des domaines de messagerie autorisés.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;&lt;code&gt;go-authn&lt;/code&gt;&lt;/strong&gt; : le jeton porteur est un jeton d&amp;rsquo;accès (&lt;code&gt;at+jwt&lt;/code&gt;) émis par un
@@ -919,14 +920,49 @@ locataires : elle en choisit un par session, et l&amp;rsquo;appareil se connecte
 &lt;td&gt;&lt;code&gt;idps&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;l&amp;rsquo;établissement qui s&amp;rsquo;est porté garant d&amp;rsquo;elle : l&amp;rsquo;&lt;code&gt;idp&lt;/code&gt; de go-authn, un entity ID SAML&lt;/td&gt;
 &lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;members&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;des &lt;strong&gt;logins&lt;/strong&gt; GitHub, nommés un à un, épinglés à l&amp;rsquo;identifiant numérique du compte (ci-dessous)&lt;/td&gt;
+&lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
-&lt;p&gt;Une personne qui ne correspond à aucun appartient au locataire &lt;code&gt;default&lt;/code&gt;, et seulement dans ce cas.&lt;/p&gt;
+&lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-amber-200 hx:bg-amber-100 hx:text-amber-900 hx:dark:border-amber-200/30 hx:dark:bg-amber-900/30 hx:dark:text-amber-200"&gt;
+&lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/&gt;&lt;/svg&gt;&lt;/div&gt;
+&lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Une personne qui ne correspond à aucun locataire est refusée&lt;/strong&gt; (v0.5.0,
+changement incompatible) : &lt;code&gt;403 not_a_member&lt;/code&gt; sur &lt;code&gt;/api/v1/tenants&lt;/code&gt; et
+&lt;code&gt;/api/v1/enroll&lt;/code&gt;, et le &lt;code&gt;Watch&lt;/code&gt; gRPC est refusé. Il n&amp;rsquo;y a plus de locataire de
+repli : le locataire &lt;code&gt;default&lt;/code&gt; ne reçoit que les personnes que ses propres
+&lt;code&gt;domains&lt;/code&gt;, &lt;code&gt;groups&lt;/code&gt;, &lt;code&gt;idps&lt;/code&gt; ou &lt;code&gt;members&lt;/code&gt; désignent. Un identifiant de locataire
+inconnu est une erreur, jamais les routes du locataire &lt;code&gt;default&lt;/code&gt;.&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;Migration depuis v0.4.x.&lt;/strong&gt; Les personnes qui tombaient dans &lt;code&gt;default&lt;/code&gt; doivent
+maintenant y être désignées : donnez à l&amp;rsquo;entrée &lt;code&gt;default&lt;/code&gt; de &lt;code&gt;TENANTS_FILE&lt;/code&gt; les
+&lt;code&gt;domains&lt;/code&gt;, &lt;code&gt;groups&lt;/code&gt;, &lt;code&gt;idps&lt;/code&gt; ou &lt;code&gt;members&lt;/code&gt; qui les désignent, puis redémarrez. Le
+locataire &lt;code&gt;default&lt;/code&gt; construit à partir de &lt;code&gt;PUSH_ROUTES&lt;/code&gt; et &lt;code&gt;DNS&lt;/code&gt; seuls ne
+désigne personne.&lt;/p&gt;
+&lt;h3 data-hextra-search-id="members"&gt;Membres nommés&lt;span class="hx:absolute hx:-mt-20" id="members"&gt;&lt;/span&gt;
+&lt;a href="#members" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;&lt;code&gt;members&lt;/code&gt; liste des logins GitHub, lisibles mais renommables : un login peut être
+libéré puis pris par quelqu&amp;rsquo;un d&amp;rsquo;autre. Le serveur &lt;strong&gt;épingle&lt;/strong&gt; donc chaque login à
+l&amp;rsquo;identifiant numérique du compte. Lorsqu&amp;rsquo;un locataire est chargé (&lt;code&gt;TENANTS_FILE&lt;/code&gt;)
+ou créé ou modifié via l&amp;rsquo;API d&amp;rsquo;administration, il appelle
+&lt;code&gt;GET {GITHUB_API_URL}/users/{login}&lt;/code&gt; (délai de 10 s, réponse limitée à 64 Kio,
+le compte doit être un &lt;code&gt;User&lt;/code&gt;) et enregistre la paire dans le champ &lt;code&gt;pinned&lt;/code&gt;, en
+lecture seule. Une personne est membre quand le sujet de son jeton est
+&lt;code&gt;github:&amp;lt;id&amp;gt;&lt;/code&gt; pour un identifiant épinglé : un compte renommé dont l&amp;rsquo;ancien login
+appartient désormais à quelqu&amp;rsquo;un d&amp;rsquo;autre est refusé. Un &lt;strong&gt;login introuvable est
+une erreur&lt;/strong&gt; : le serveur refuse de démarrer, et l&amp;rsquo;API d&amp;rsquo;administration répond
+&lt;code&gt;400&lt;/code&gt;. L&amp;rsquo;API et la WebUI montrent les logins ; pour suivre un renommage, modifiez
+à nouveau le locataire. La résolution est anonyme (60 requêtes par heure et par
+adresse sur github.com).&lt;/p&gt;
+&lt;p&gt;Un membre nommé est aussi admis par la porte d&amp;rsquo;entrée GitHub sans appartenir à
+une organisation autorisée (voir les &lt;a href="https://claimward.github.io/docs/dev/fr/identity-providers/"&gt;fournisseurs d&amp;rsquo;identité&lt;/a&gt;).&lt;/p&gt;
 &lt;h2 data-hextra-search-id="where-tenants-come-from"&gt;D&amp;rsquo;où viennent les locataires&lt;span class="hx:absolute hx:-mt-20" id="where-tenants-come-from"&gt;&lt;/span&gt;
 &lt;a href="#where-tenants-come-from" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Le serveur démarre avec un seul locataire, &lt;code&gt;default&lt;/code&gt;, dont les routes sont &lt;code&gt;PUSH_ROUTES&lt;/code&gt;
 (par défaut &lt;code&gt;VPN_CIDR&lt;/code&gt;) et dont les serveurs DNS sont &lt;code&gt;DNS&lt;/code&gt;. Les autres locataires sont
 créés, modifiés et supprimés via l&amp;rsquo;&lt;a href="https://claimward.github.io/docs/dev/fr/operations/#admin-api-and-webui"&gt;API d&amp;rsquo;administration et la WebUI&lt;/a&gt;,
-qui modifient les trois listes d&amp;rsquo;appartenance à côté des routes. Le locataire par défaut
+qui modifient les quatre listes d&amp;rsquo;appartenance à côté des routes. Le locataire par défaut
 ne peut pas être supprimé.&lt;/p&gt;
 &lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-amber-200 hx:bg-amber-100 hx:text-amber-900 hx:dark:border-amber-200/30 hx:dark:bg-amber-900/30 hx:dark:text-amber-200"&gt;
 &lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/&gt;&lt;/svg&gt;&lt;/div&gt;
@@ -1119,7 +1155,7 @@ elle demande le jeton et l&amp;rsquo;envoie avec chaque appel.&lt;/p&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;POST /admin/api/tenants&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;en crée un : &lt;code&gt;id&lt;/code&gt; (ou un slug de &lt;code&gt;name&lt;/code&gt;), &lt;code&gt;name&lt;/code&gt;, &lt;code&gt;domains&lt;/code&gt;, &lt;code&gt;groups&lt;/code&gt;, &lt;code&gt;idps&lt;/code&gt;, &lt;code&gt;allowed_ips&lt;/code&gt;, &lt;code&gt;dns&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;en crée un : &lt;code&gt;id&lt;/code&gt; (ou un slug de &lt;code&gt;name&lt;/code&gt;), &lt;code&gt;name&lt;/code&gt;, &lt;code&gt;domains&lt;/code&gt;, &lt;code&gt;groups&lt;/code&gt;, &lt;code&gt;idps&lt;/code&gt;, &lt;code&gt;members&lt;/code&gt; (logins ; &lt;code&gt;pinned&lt;/code&gt; est en lecture seule, &lt;code&gt;400&lt;/code&gt; si un login ne se résout pas), &lt;code&gt;allowed_ips&lt;/code&gt;, &lt;code&gt;dns&lt;/code&gt;&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;GET /admin/api/tenants/{id}&lt;/code&gt;&lt;/td&gt;

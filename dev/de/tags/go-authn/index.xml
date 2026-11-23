@@ -86,7 +86,7 @@ der Routen.&lt;/p&gt;
 &lt;td&gt;&lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;&lt;code&gt;github&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;—&lt;/td&gt;
-&lt;td&gt;CSV-Allowlist der Organisationen: Ein aktives Mitglied einer davon wird zugelassen. &lt;strong&gt;Pflicht&lt;/strong&gt; seit v0.4.0: Der Server startet nicht, wenn sie leer ist, und es gibt keine Ausnahme-Option (Breaking Change: vor dem Update setzen)&lt;/td&gt;
+&lt;td&gt;CSV-Allowlist der Organisationen: Ein aktives Mitglied einer davon wird zugelassen, ebenso ein benanntes Mandantenmitglied. Seit v0.5.0 ist sie &lt;strong&gt;nur optional, wenn mindestens ein Mandant &lt;code&gt;members&lt;/code&gt; hat&lt;/strong&gt;: Ohne beides startet der Server nicht, es gibt keine Ausnahme-Option (zuvor: Pflicht seit v0.4.0)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;GITHUB_API_URL&lt;/code&gt;&lt;/td&gt;
@@ -258,8 +258,9 @@ der Routen.&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;strong&gt;&lt;code&gt;github&lt;/code&gt;&lt;/strong&gt; (Standard): Das Bearer-Token ist ein GitHub-OAuth-Access-Token aus dem
 Device Flow. Der Server löst es über die GitHub-API auf (&lt;code&gt;/user&lt;/code&gt;,
-&lt;code&gt;/user/orgs&lt;/code&gt;) und verlangt mit &lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt; eine aktive Mitgliedschaft
-in einer dieser Organisationen. Es ist kein Client-Secret beteiligt.&lt;/li&gt;
+&lt;code&gt;/user/orgs&lt;/code&gt;) und lässt mit &lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt; ein aktives Mitglied
+einer dieser Organisationen oder ein benanntes Mandantenmitglied zu (die Liste
+ist nur optional, wenn ein Mandant &lt;code&gt;members&lt;/code&gt; hat). Es ist kein Client-Secret beteiligt.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;&lt;code&gt;oidc&lt;/code&gt;&lt;/strong&gt;: Das Bearer-Token ist ein OIDC-ID-Token, geprüft gegen den Issuer mit
 der Audience &lt;code&gt;OIDC_CLIENT_ID&lt;/code&gt; und der optionalen Allowlist der E-Mail-Domains.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;&lt;code&gt;go-authn&lt;/code&gt;&lt;/strong&gt;: Das Bearer-Token ist ein Access-Token (&lt;code&gt;at+jwt&lt;/code&gt;) eines
@@ -365,8 +366,11 @@ an. Die App fordert &lt;code&gt;read:user&lt;/code&gt;, &lt;code&gt;user:email&l
 numerische ID ist das Subject (&lt;code&gt;github:&amp;lt;id&amp;gt;&lt;/code&gt;), ihre Organisationen
 (&lt;code&gt;/user/orgs&lt;/code&gt;) sind ihre Gruppen für die &lt;a href="https://claimward.github.io/docs/dev/de/tenants/"&gt;Mandanten&lt;/a&gt;, und
 ihre öffentliche E-Mail-Adresse, sofern sie eine hat, gilt als verifiziert. Mit
-&lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt; ist eine aktive Mitgliedschaft in einer dieser Organisationen
-erforderlich. Setzen Sie &lt;code&gt;GITHUB_API_URL&lt;/code&gt; für GitHub Enterprise.&lt;/p&gt;
+&lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt; lässt eine aktive Mitgliedschaft in einer dieser Organisationen
+zu, ebenso ein benannter &lt;code&gt;members&lt;/code&gt;-Eintrag eines Mandanten (an die Konto-ID
+gebunden, siehe &lt;a href="https://claimward.github.io/docs/dev/de/tenants/#members"&gt;Mandanten&lt;/a&gt;). Die Liste ist nur
+optional, wenn ein Mandant Mitglieder hat: Ohne beides startet der Server nicht.
+Setzen Sie &lt;code&gt;GITHUB_API_URL&lt;/code&gt; für GitHub Enterprise.&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;AUTH_PROVIDER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;github
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;GITHUB_ALLOWED_ORGS&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;my-org,my-other-org&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;

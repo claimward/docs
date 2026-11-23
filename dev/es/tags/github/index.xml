@@ -85,7 +85,7 @@ de rutas en vivo.&lt;/p&gt;
 &lt;td&gt;&lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;&lt;code&gt;github&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;—&lt;/td&gt;
-&lt;td&gt;lista CSV de organizaciones permitidas: se admite a un miembro activo de cualquiera de ellas. &lt;strong&gt;Obligatoria&lt;/strong&gt; desde v0.4.0: el servidor se niega a arrancar si está vacía, sin opción de excepción (cambio incompatible: defínala antes de actualizar)&lt;/td&gt;
+&lt;td&gt;lista CSV de organizaciones permitidas: se admite a un miembro activo de cualquiera de ellas, y también a un miembro nombrado de un inquilino. Desde v0.5.0 es &lt;strong&gt;opcional solo si al menos un inquilino tiene &lt;code&gt;members&lt;/code&gt;&lt;/strong&gt;: sin ninguno de los dos el servidor se niega a arrancar, sin opción de excepción (antes: obligatoria desde v0.4.0)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;GITHUB_API_URL&lt;/code&gt;&lt;/td&gt;
@@ -257,8 +257,9 @@ de rutas en vivo.&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;strong&gt;&lt;code&gt;github&lt;/code&gt;&lt;/strong&gt; (predeterminado): el bearer es un token de acceso OAuth de GitHub obtenido con el
 flujo de dispositivo. El servidor lo resuelve mediante la API de GitHub (&lt;code&gt;/user&lt;/code&gt;,
-&lt;code&gt;/user/orgs&lt;/code&gt;) y, con &lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;, exige una pertenencia activa
-a una de esas organizaciones. No interviene ningún client secret.&lt;/li&gt;
+&lt;code&gt;/user/orgs&lt;/code&gt;) y, con &lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;, admite a un miembro activo
+de una de esas organizaciones, o a un miembro nombrado de un inquilino (la lista
+es opcional solo si un inquilino tiene &lt;code&gt;members&lt;/code&gt;). No interviene ningún client secret.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;&lt;code&gt;oidc&lt;/code&gt;&lt;/strong&gt;: el bearer es un ID token OIDC, verificado contra el emisor con
 la audiencia &lt;code&gt;OIDC_CLIENT_ID&lt;/code&gt; y la lista opcional de dominios de correo permitidos.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;&lt;code&gt;go-authn&lt;/code&gt;&lt;/strong&gt;: el bearer es un token de acceso (&lt;code&gt;at+jwt&lt;/code&gt;) de un proveedor
@@ -363,7 +364,7 @@ data-copied-label="¡Copiado!"
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;go install github.com/claimward/claimward-vpn-server/cmd/claimward-server@v0.2.0
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;AUTH_PROVIDER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;github &lt;span class="c1"&gt;# the default&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;GITHUB_ALLOWED_ORGS&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;claimward &lt;span class="c1"&gt;# required authorization (the server refuses to start without it)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;GITHUB_ALLOWED_ORGS&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;claimward &lt;span class="c1"&gt;# an org allowlist, or name tenant `members` instead (the server refuses to start with neither)&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;WG_ENDPOINT&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;vpn.example.com:51820
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;WG_PRIVATE_KEY_FILE&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;/etc/wireguard/server.key
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;VPN_CIDR&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;10.80.0.0/24
@@ -529,8 +530,11 @@ activado. La aplicación solicita &lt;code&gt;read:user&lt;/code&gt;, &lt;code&g
 ID numérico es el sujeto (&lt;code&gt;github:&amp;lt;id&amp;gt;&lt;/code&gt;), sus organizaciones
 (&lt;code&gt;/user/orgs&lt;/code&gt;) son sus grupos para los &lt;a href="https://claimward.github.io/docs/dev/es/tenants/"&gt;inquilinos&lt;/a&gt;, y
 su correo público, cuando lo tiene, se considera verificado. Con
-&lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;, se exige una pertenencia activa a una de esas organizaciones.
-Establezca &lt;code&gt;GITHUB_API_URL&lt;/code&gt; para GitHub Enterprise.&lt;/p&gt;
+&lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;, la pertenencia activa a una de esas organizaciones la
+admite, y también una entrada &lt;code&gt;members&lt;/code&gt; nombrada de un inquilino (fijada al
+identificador de la cuenta, véase los &lt;a href="https://claimward.github.io/docs/dev/es/tenants/#members"&gt;inquilinos&lt;/a&gt;). La
+lista es opcional solo si un inquilino tiene miembros: sin ninguno de los dos, el
+servidor se niega a arrancar. Establezca &lt;code&gt;GITHUB_API_URL&lt;/code&gt; para GitHub Enterprise.&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;AUTH_PROVIDER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;github
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;GITHUB_ALLOWED_ORGS&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;my-org,my-other-org&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;

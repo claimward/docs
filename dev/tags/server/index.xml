@@ -303,7 +303,7 @@ updates.&lt;/p&gt;
 &lt;td&gt;&lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;&lt;code&gt;github&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;—&lt;/td&gt;
-&lt;td&gt;CSV organisation allowlist: an active member of any is allowed. &lt;strong&gt;Required&lt;/strong&gt; since v0.4.0: the server refuses to start with it empty, and there is no opt-out (breaking: set it before upgrading)&lt;/td&gt;
+&lt;td&gt;CSV organisation allowlist: an active member of any is allowed, and so is a named tenant member. Since v0.5.0 it is &lt;strong&gt;optional only when at least one tenant has &lt;code&gt;members&lt;/code&gt;&lt;/strong&gt;: with neither the server refuses to start, with no opt-out (before: required since v0.4.0)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;GITHUB_API_URL&lt;/code&gt;&lt;/td&gt;
@@ -475,8 +475,9 @@ updates.&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;strong&gt;&lt;code&gt;github&lt;/code&gt;&lt;/strong&gt; (default): the bearer is a GitHub OAuth access token from the
 device flow. The server resolves it through the GitHub API (&lt;code&gt;/user&lt;/code&gt;,
-&lt;code&gt;/user/orgs&lt;/code&gt;) and, with &lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt; (required), requires an active
-membership of one of those organisations. No client secret is involved.&lt;/li&gt;
+&lt;code&gt;/user/orgs&lt;/code&gt;) and, with &lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;, admits an active
+member of one of those organisations, or a named tenant member (the list is
+optional only when a tenant has &lt;code&gt;members&lt;/code&gt;). No client secret is involved.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;&lt;code&gt;oidc&lt;/code&gt;&lt;/strong&gt;: the bearer is an OIDC ID token, verified against the issuer with
 the audience &lt;code&gt;OIDC_CLIENT_ID&lt;/code&gt; and the optional email-domain allowlist.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;&lt;code&gt;go-authn&lt;/code&gt;&lt;/strong&gt;: the bearer is an access token (&lt;code&gt;at+jwt&lt;/code&gt;) from a
@@ -581,7 +582,7 @@ data-copied-label="Copied!"
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;go install github.com/claimward/claimward-vpn-server/cmd/claimward-server@v0.2.0
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;AUTH_PROVIDER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;github &lt;span class="c1"&gt;# the default&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;GITHUB_ALLOWED_ORGS&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;claimward &lt;span class="c1"&gt;# required authorization (the server refuses to start without it)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;GITHUB_ALLOWED_ORGS&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;claimward &lt;span class="c1"&gt;# an org allowlist, or name tenant `members` instead (the server refuses to start with neither)&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;WG_ENDPOINT&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;vpn.example.com:51820
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;WG_PRIVATE_KEY_FILE&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;/etc/wireguard/server.key
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;VPN_CIDR&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;10.80.0.0/24
@@ -887,8 +888,11 @@ enabled. The app asks for &lt;code&gt;read:user&lt;/code&gt;, &lt;code&gt;user:e
 numeric ID is the subject (&lt;code&gt;github:&amp;lt;id&amp;gt;&lt;/code&gt;), their organisations
 (&lt;code&gt;/user/orgs&lt;/code&gt;) are their groups for &lt;a href="https://claimward.github.io/docs/dev/tenants/"&gt;tenants&lt;/a&gt;, and
 their public email, when they have one, counts as verified. With
-&lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;, an active membership of one of those organisations is
-required. Set &lt;code&gt;GITHUB_API_URL&lt;/code&gt; for GitHub Enterprise.&lt;/p&gt;
+&lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;, an active membership of one of those organisations
+admits them, and so does being a named &lt;code&gt;members&lt;/code&gt; entry of a tenant (pinned to
+the account ID, see &lt;a href="https://claimward.github.io/docs/dev/tenants/#members"&gt;tenants&lt;/a&gt;). The
+allowlist is optional only when a tenant has members: with neither, the server
+refuses to start. Set &lt;code&gt;GITHUB_API_URL&lt;/code&gt; for GitHub Enterprise.&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;AUTH_PROVIDER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;github
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;GITHUB_ALLOWED_ORGS&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;my-org,my-other-org&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
@@ -1054,14 +1058,44 @@ choose one per session, and the device connects to that one.&lt;/p&gt;
 &lt;td&gt;&lt;code&gt;idps&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;the institution that vouched for them: go-authn&amp;rsquo;s &lt;code&gt;idp&lt;/code&gt;, a SAML entity ID&lt;/td&gt;
 &lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;members&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;GitHub &lt;strong&gt;logins&lt;/strong&gt;, named one by one, pinned to the account&amp;rsquo;s numeric ID (below)&lt;/td&gt;
+&lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
-&lt;p&gt;A person who matches none belongs to the &lt;code&gt;default&lt;/code&gt; tenant, and only then.&lt;/p&gt;
+&lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-amber-200 hx:bg-amber-100 hx:text-amber-900 hx:dark:border-amber-200/30 hx:dark:bg-amber-900/30 hx:dark:text-amber-200"&gt;
+&lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/&gt;&lt;/svg&gt;&lt;/div&gt;
+&lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;A person who matches no tenant is refused&lt;/strong&gt; (v0.5.0, breaking): &lt;code&gt;403 not_a_member&lt;/code&gt; on &lt;code&gt;/api/v1/tenants&lt;/code&gt; and &lt;code&gt;/api/v1/enroll&lt;/code&gt;, and the gRPC &lt;code&gt;Watch&lt;/code&gt; is
+refused. There is no fallback tenant any more: the &lt;code&gt;default&lt;/code&gt; tenant receives
+only those its own &lt;code&gt;domains&lt;/code&gt;, &lt;code&gt;groups&lt;/code&gt;, &lt;code&gt;idps&lt;/code&gt; or &lt;code&gt;members&lt;/code&gt; name. An unknown
+tenant ID is an error, never the &lt;code&gt;default&lt;/code&gt; tenant&amp;rsquo;s routes.&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;Migrating from v0.4.x.&lt;/strong&gt; People who used to land in &lt;code&gt;default&lt;/code&gt; must now be
+named by it: give the &lt;code&gt;default&lt;/code&gt; entry of &lt;code&gt;TENANTS_FILE&lt;/code&gt; the &lt;code&gt;domains&lt;/code&gt;,
+&lt;code&gt;groups&lt;/code&gt;, &lt;code&gt;idps&lt;/code&gt; or &lt;code&gt;members&lt;/code&gt; that name them, then restart. The &lt;code&gt;default&lt;/code&gt;
+tenant created from &lt;code&gt;PUSH_ROUTES&lt;/code&gt; and &lt;code&gt;DNS&lt;/code&gt; alone names nobody.&lt;/p&gt;
+&lt;h3 data-hextra-search-id="members"&gt;Named members&lt;span class="hx:absolute hx:-mt-20" id="members"&gt;&lt;/span&gt;
+&lt;a href="#members" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;&lt;code&gt;members&lt;/code&gt; lists GitHub logins, readable but renameable: a login can be released
+and registered by somebody else. The server therefore &lt;strong&gt;pins&lt;/strong&gt; each login to the
+account&amp;rsquo;s numeric ID. When a tenant is loaded (&lt;code&gt;TENANTS_FILE&lt;/code&gt;) or created or
+updated through the admin API, it calls &lt;code&gt;GET {GITHUB_API_URL}/users/{login}&lt;/code&gt;
+(10 s timeout, 64 KiB answer cap, the account must be a &lt;code&gt;User&lt;/code&gt;) and stores the
+pair in the read-only &lt;code&gt;pinned&lt;/code&gt; field. A person is a member when their token&amp;rsquo;s
+subject is &lt;code&gt;github:&amp;lt;id&amp;gt;&lt;/code&gt; for a pinned ID: a renamed account whose old login now
+belongs to somebody else is refused. An &lt;strong&gt;unresolvable login is an error&lt;/strong&gt;: the
+server refuses to start, and the admin API answers &lt;code&gt;400&lt;/code&gt;. The admin API and
+WebUI show the logins; to follow a rename, edit the tenant again. Resolution is
+unauthenticated (60 requests an hour per address on github.com).&lt;/p&gt;
+&lt;p&gt;A named member is also admitted by the GitHub entry gate without belonging to
+an allowed organisation (see &lt;a href="https://claimward.github.io/docs/dev/identity-providers/"&gt;identity providers&lt;/a&gt;).&lt;/p&gt;
 &lt;h2 data-hextra-search-id="where-tenants-come-from"&gt;Where tenants come from&lt;span class="hx:absolute hx:-mt-20" id="where-tenants-come-from"&gt;&lt;/span&gt;
 &lt;a href="#where-tenants-come-from" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;The server starts with one tenant, &lt;code&gt;default&lt;/code&gt;, whose routes are &lt;code&gt;PUSH_ROUTES&lt;/code&gt;
 (by default &lt;code&gt;VPN_CIDR&lt;/code&gt;) and whose DNS servers are &lt;code&gt;DNS&lt;/code&gt;. Other tenants are
 created, edited and deleted through the &lt;a href="https://claimward.github.io/docs/dev/operations/#admin-api-and-webui"&gt;admin API and WebUI&lt;/a&gt;,
-which edit the three membership lists beside the routes. The default tenant
+which edit the four membership lists beside the routes. The default tenant
 cannot be deleted.&lt;/p&gt;
 &lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-amber-200 hx:bg-amber-100 hx:text-amber-900 hx:dark:border-amber-200/30 hx:dark:bg-amber-900/30 hx:dark:text-amber-200"&gt;
 &lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/&gt;&lt;/svg&gt;&lt;/div&gt;
@@ -1252,7 +1286,7 @@ it asks for the token and sends it with each call.&lt;/p&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;POST /admin/api/tenants&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;create one: &lt;code&gt;id&lt;/code&gt; (or a slug of &lt;code&gt;name&lt;/code&gt;), &lt;code&gt;name&lt;/code&gt;, &lt;code&gt;domains&lt;/code&gt;, &lt;code&gt;groups&lt;/code&gt;, &lt;code&gt;idps&lt;/code&gt;, &lt;code&gt;allowed_ips&lt;/code&gt;, &lt;code&gt;dns&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;create one: &lt;code&gt;id&lt;/code&gt; (or a slug of &lt;code&gt;name&lt;/code&gt;), &lt;code&gt;name&lt;/code&gt;, &lt;code&gt;domains&lt;/code&gt;, &lt;code&gt;groups&lt;/code&gt;, &lt;code&gt;idps&lt;/code&gt;, &lt;code&gt;members&lt;/code&gt; (logins; &lt;code&gt;pinned&lt;/code&gt; is read-only, &lt;code&gt;400&lt;/code&gt; if a login does not resolve), &lt;code&gt;allowed_ips&lt;/code&gt;, &lt;code&gt;dns&lt;/code&gt;&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;GET /admin/api/tenants/{id}&lt;/code&gt;&lt;/td&gt;

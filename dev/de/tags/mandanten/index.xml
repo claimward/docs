@@ -24,14 +24,49 @@ wählt einen pro Sitzung, und das Gerät verbindet sich mit diesem.&lt;/p&gt;
 &lt;td&gt;&lt;code&gt;idps&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;der Einrichtung, die für sie gebürgt hat: das &lt;code&gt;idp&lt;/code&gt; von go-authn, eine SAML-Entity-ID&lt;/td&gt;
 &lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;members&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;GitHub-&lt;strong&gt;Logins&lt;/strong&gt;, einzeln benannt und an die numerische ID des Kontos gebunden (unten)&lt;/td&gt;
+&lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
-&lt;p&gt;Eine Person, auf die nichts davon zutrifft, gehört dem Mandanten &lt;code&gt;default&lt;/code&gt; an, und nur dann.&lt;/p&gt;
+&lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-amber-200 hx:bg-amber-100 hx:text-amber-900 hx:dark:border-amber-200/30 hx:dark:bg-amber-900/30 hx:dark:text-amber-200"&gt;
+&lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/&gt;&lt;/svg&gt;&lt;/div&gt;
+&lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Eine Person, die zu keinem Mandanten passt, wird abgewiesen&lt;/strong&gt; (v0.5.0,
+Breaking Change): &lt;code&gt;403 not_a_member&lt;/code&gt; auf &lt;code&gt;/api/v1/tenants&lt;/code&gt; und
+&lt;code&gt;/api/v1/enroll&lt;/code&gt;, und das gRPC-&lt;code&gt;Watch&lt;/code&gt; wird abgelehnt. Es gibt keinen
+Ersatz-Mandanten mehr: Der Mandant &lt;code&gt;default&lt;/code&gt; nimmt nur diejenigen auf, die seine
+eigenen &lt;code&gt;domains&lt;/code&gt;, &lt;code&gt;groups&lt;/code&gt;, &lt;code&gt;idps&lt;/code&gt; oder &lt;code&gt;members&lt;/code&gt; benennen. Eine unbekannte
+Mandanten-ID ist ein Fehler, nie die Routen des Mandanten &lt;code&gt;default&lt;/code&gt;.&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;Migration von v0.4.x.&lt;/strong&gt; Wer bisher in &lt;code&gt;default&lt;/code&gt; landete, muss dort jetzt
+benannt werden: Geben Sie dem &lt;code&gt;default&lt;/code&gt;-Eintrag von &lt;code&gt;TENANTS_FILE&lt;/code&gt; die
+&lt;code&gt;domains&lt;/code&gt;, &lt;code&gt;groups&lt;/code&gt;, &lt;code&gt;idps&lt;/code&gt; oder &lt;code&gt;members&lt;/code&gt;, die diese Personen benennen, und
+starten Sie neu. Der allein aus &lt;code&gt;PUSH_ROUTES&lt;/code&gt; und &lt;code&gt;DNS&lt;/code&gt; erzeugte Mandant
+&lt;code&gt;default&lt;/code&gt; benennt niemanden.&lt;/p&gt;
+&lt;h3 data-hextra-search-id="members"&gt;Benannte Mitglieder&lt;span class="hx:absolute hx:-mt-20" id="members"&gt;&lt;/span&gt;
+&lt;a href="#members" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;&lt;code&gt;members&lt;/code&gt; listet GitHub-Logins auf, lesbar, aber umbenennbar: Ein Login kann
+freigegeben und von jemand anderem registriert werden. Der Server &lt;strong&gt;bindet&lt;/strong&gt;
+deshalb jeden Login an die numerische ID des Kontos. Beim Laden eines Mandanten
+(&lt;code&gt;TENANTS_FILE&lt;/code&gt;) oder beim Anlegen oder Ändern über die Admin-API ruft er
+&lt;code&gt;GET {GITHUB_API_URL}/users/{login}&lt;/code&gt; auf (10 s Zeitlimit, Antwort auf 64 KiB
+begrenzt, das Konto muss ein &lt;code&gt;User&lt;/code&gt; sein) und speichert das Paar im
+schreibgeschützten Feld &lt;code&gt;pinned&lt;/code&gt;. Eine Person ist Mitglied, wenn das Subject
+ihres Tokens &lt;code&gt;github:&amp;lt;id&amp;gt;&lt;/code&gt; einer gebundenen ID entspricht: Ein umbenanntes
+Konto, dessen alter Login jetzt jemand anderem gehört, wird abgewiesen. Ein
+&lt;strong&gt;nicht auflösbarer Login ist ein Fehler&lt;/strong&gt;: Der Server startet nicht, und die
+Admin-API antwortet mit &lt;code&gt;400&lt;/code&gt;. Admin-API und WebUI zeigen die Logins; um einer
+Umbenennung zu folgen, bearbeiten Sie den Mandanten erneut. Die Auflösung ist
+anonym (60 Anfragen pro Stunde und Adresse bei github.com).&lt;/p&gt;
+&lt;p&gt;Ein benanntes Mitglied wird vom GitHub-Eingangstor auch ohne Zugehörigkeit zu
+einer erlaubten Organisation zugelassen (siehe &lt;a href="https://claimward.github.io/docs/dev/de/identity-providers/"&gt;Identitätsanbieter&lt;/a&gt;).&lt;/p&gt;
 &lt;h2 data-hextra-search-id="where-tenants-come-from"&gt;Woher die Mandanten kommen&lt;span class="hx:absolute hx:-mt-20" id="where-tenants-come-from"&gt;&lt;/span&gt;
 &lt;a href="#where-tenants-come-from" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Der Server startet mit einem Mandanten, &lt;code&gt;default&lt;/code&gt;, dessen Routen &lt;code&gt;PUSH_ROUTES&lt;/code&gt;
 (standardmäßig &lt;code&gt;VPN_CIDR&lt;/code&gt;) und dessen DNS-Server &lt;code&gt;DNS&lt;/code&gt; sind. Weitere Mandanten werden
 über die &lt;a href="https://claimward.github.io/docs/dev/de/operations/#admin-api-and-webui"&gt;Admin-API und WebUI&lt;/a&gt; angelegt, bearbeitet und gelöscht,
-die neben den Routen die drei Mitgliedschaftslisten bearbeiten. Der Standardmandant
+die neben den Routen die vier Mitgliedschaftslisten bearbeiten. Der Standardmandant
 kann nicht gelöscht werden.&lt;/p&gt;
 &lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-amber-200 hx:bg-amber-100 hx:text-amber-900 hx:dark:border-amber-200/30 hx:dark:bg-amber-900/30 hx:dark:text-amber-200"&gt;
 &lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/&gt;&lt;/svg&gt;&lt;/div&gt;

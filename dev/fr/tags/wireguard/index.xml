@@ -85,7 +85,7 @@ de routes en direct.&lt;/p&gt;
 &lt;td&gt;&lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;&lt;code&gt;github&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;—&lt;/td&gt;
-&lt;td&gt;liste CSV des organisations autorisées : un membre actif de l&amp;rsquo;une d&amp;rsquo;elles est admis. &lt;strong&gt;Obligatoire&lt;/strong&gt; depuis v0.4.0 : le serveur refuse de démarrer si elle est vide, sans option de contournement (rupture : la définir avant la mise à jour)&lt;/td&gt;
+&lt;td&gt;liste CSV des organisations autorisées : un membre actif de l&amp;rsquo;une d&amp;rsquo;elles est admis, de même qu&amp;rsquo;un membre nommé d&amp;rsquo;un locataire. Depuis v0.5.0 elle n&amp;rsquo;est &lt;strong&gt;facultative que si au moins un locataire a des &lt;code&gt;members&lt;/code&gt;&lt;/strong&gt; : sans l&amp;rsquo;un ni l&amp;rsquo;autre le serveur refuse de démarrer, sans option de contournement (avant : obligatoire depuis v0.4.0)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;GITHUB_API_URL&lt;/code&gt;&lt;/td&gt;
@@ -257,8 +257,9 @@ de routes en direct.&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;strong&gt;&lt;code&gt;github&lt;/code&gt;&lt;/strong&gt; (par défaut) : le jeton porteur est un jeton d&amp;rsquo;accès OAuth GitHub issu du
 flux d&amp;rsquo;appareil (device flow). Le serveur le résout via l&amp;rsquo;API GitHub (&lt;code&gt;/user&lt;/code&gt;,
-&lt;code&gt;/user/orgs&lt;/code&gt;) et, avec &lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;, exige l&amp;rsquo;appartenance active
-à l&amp;rsquo;une de ces organisations. Aucun secret client n&amp;rsquo;intervient.&lt;/li&gt;
+&lt;code&gt;/user/orgs&lt;/code&gt;) et, avec &lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;, admet un membre actif
+de l&amp;rsquo;une de ces organisations, ou un membre nommé d&amp;rsquo;un locataire (la liste
+n&amp;rsquo;est facultative que si un locataire a des &lt;code&gt;members&lt;/code&gt;). Aucun secret client n&amp;rsquo;intervient.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;&lt;code&gt;oidc&lt;/code&gt;&lt;/strong&gt; : le jeton porteur est un jeton d&amp;rsquo;identité OIDC, vérifié auprès de l&amp;rsquo;émetteur avec
 l&amp;rsquo;audience &lt;code&gt;OIDC_CLIENT_ID&lt;/code&gt; et la liste facultative des domaines de messagerie autorisés.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;&lt;code&gt;go-authn&lt;/code&gt;&lt;/strong&gt; : le jeton porteur est un jeton d&amp;rsquo;accès (&lt;code&gt;at+jwt&lt;/code&gt;) émis par un
@@ -578,7 +579,7 @@ data-copied-label="Copié !"
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;go install github.com/claimward/claimward-vpn-server/cmd/claimward-server@v0.2.0
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;AUTH_PROVIDER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;github &lt;span class="c1"&gt;# the default&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;GITHUB_ALLOWED_ORGS&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;claimward &lt;span class="c1"&gt;# required authorization (the server refuses to start without it)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;GITHUB_ALLOWED_ORGS&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;claimward &lt;span class="c1"&gt;# an org allowlist, or name tenant `members` instead (the server refuses to start with neither)&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;WG_ENDPOINT&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;vpn.example.com:51820
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;WG_PRIVATE_KEY_FILE&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;/etc/wireguard/server.key
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;VPN_CIDR&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;10.80.0.0/24
@@ -932,7 +933,7 @@ elle demande le jeton et l&amp;rsquo;envoie avec chaque appel.&lt;/p&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;POST /admin/api/tenants&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;en crée un : &lt;code&gt;id&lt;/code&gt; (ou un slug de &lt;code&gt;name&lt;/code&gt;), &lt;code&gt;name&lt;/code&gt;, &lt;code&gt;domains&lt;/code&gt;, &lt;code&gt;groups&lt;/code&gt;, &lt;code&gt;idps&lt;/code&gt;, &lt;code&gt;allowed_ips&lt;/code&gt;, &lt;code&gt;dns&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;en crée un : &lt;code&gt;id&lt;/code&gt; (ou un slug de &lt;code&gt;name&lt;/code&gt;), &lt;code&gt;name&lt;/code&gt;, &lt;code&gt;domains&lt;/code&gt;, &lt;code&gt;groups&lt;/code&gt;, &lt;code&gt;idps&lt;/code&gt;, &lt;code&gt;members&lt;/code&gt; (logins ; &lt;code&gt;pinned&lt;/code&gt; est en lecture seule, &lt;code&gt;400&lt;/code&gt; si un login ne se résout pas), &lt;code&gt;allowed_ips&lt;/code&gt;, &lt;code&gt;dns&lt;/code&gt;&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;GET /admin/api/tenants/{id}&lt;/code&gt;&lt;/td&gt;

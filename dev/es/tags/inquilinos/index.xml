@@ -24,14 +24,48 @@ uno por sesión, y el dispositivo se conecta a ese.&lt;/p&gt;
 &lt;td&gt;&lt;code&gt;idps&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;la institución que respondió por ella: el &lt;code&gt;idp&lt;/code&gt; de go-authn, un entity ID SAML&lt;/td&gt;
 &lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;members&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;strong&gt;logins&lt;/strong&gt; de GitHub, nombrados uno a uno y fijados al identificador numérico de la cuenta (más abajo)&lt;/td&gt;
+&lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
-&lt;p&gt;Una persona que no coincide con ninguno pertenece al inquilino &lt;code&gt;default&lt;/code&gt;, y solo en ese caso.&lt;/p&gt;
+&lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-amber-200 hx:bg-amber-100 hx:text-amber-900 hx:dark:border-amber-200/30 hx:dark:bg-amber-900/30 hx:dark:text-amber-200"&gt;
+&lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/&gt;&lt;/svg&gt;&lt;/div&gt;
+&lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Una persona que no coincide con ningún inquilino es rechazada&lt;/strong&gt; (v0.5.0,
+cambio incompatible): &lt;code&gt;403 not_a_member&lt;/code&gt; en &lt;code&gt;/api/v1/tenants&lt;/code&gt; y
+&lt;code&gt;/api/v1/enroll&lt;/code&gt;, y el &lt;code&gt;Watch&lt;/code&gt; gRPC es rechazado. Ya no hay inquilino de
+reserva: el inquilino &lt;code&gt;default&lt;/code&gt; solo recibe a quienes nombran sus propios
+&lt;code&gt;domains&lt;/code&gt;, &lt;code&gt;groups&lt;/code&gt;, &lt;code&gt;idps&lt;/code&gt; o &lt;code&gt;members&lt;/code&gt;. Un ID de inquilino desconocido es un
+error, nunca las rutas del inquilino &lt;code&gt;default&lt;/code&gt;.&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;Migración desde v0.4.x.&lt;/strong&gt; Quienes antes caían en &lt;code&gt;default&lt;/code&gt; ahora deben ser
+nombrados por él: dé a la entrada &lt;code&gt;default&lt;/code&gt; de &lt;code&gt;TENANTS_FILE&lt;/code&gt; los &lt;code&gt;domains&lt;/code&gt;,
+&lt;code&gt;groups&lt;/code&gt;, &lt;code&gt;idps&lt;/code&gt; o &lt;code&gt;members&lt;/code&gt; que los nombran y reinicie. El inquilino &lt;code&gt;default&lt;/code&gt;
+creado solo con &lt;code&gt;PUSH_ROUTES&lt;/code&gt; y &lt;code&gt;DNS&lt;/code&gt; no nombra a nadie.&lt;/p&gt;
+&lt;h3 data-hextra-search-id="members"&gt;Miembros nombrados&lt;span class="hx:absolute hx:-mt-20" id="members"&gt;&lt;/span&gt;
+&lt;a href="#members" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;&lt;code&gt;members&lt;/code&gt; lista logins de GitHub, legibles pero renombrables: un login puede
+liberarse y ser registrado por otra persona. El servidor &lt;strong&gt;fija&lt;/strong&gt; por tanto cada
+login al identificador numérico de la cuenta. Al cargar un inquilino
+(&lt;code&gt;TENANTS_FILE&lt;/code&gt;) o al crearlo o actualizarlo mediante la API de administración,
+llama a &lt;code&gt;GET {GITHUB_API_URL}/users/{login}&lt;/code&gt; (10 s de tiempo límite, respuesta
+limitada a 64 KiB, la cuenta debe ser un &lt;code&gt;User&lt;/code&gt;) y guarda el par en el campo
+&lt;code&gt;pinned&lt;/code&gt;, de solo lectura. Una persona es miembro cuando el sujeto de su token es
+&lt;code&gt;github:&amp;lt;id&amp;gt;&lt;/code&gt; para un ID fijado: una cuenta renombrada cuyo antiguo login
+pertenece ahora a otra persona es rechazada. Un &lt;strong&gt;login no resoluble es un
+error&lt;/strong&gt;: el servidor se niega a arrancar y la API de administración responde
+&lt;code&gt;400&lt;/code&gt;. La API y la WebUI muestran los logins; para seguir un cambio de nombre,
+edite de nuevo el inquilino. La resolución es anónima (60 solicitudes por hora y
+dirección en github.com).&lt;/p&gt;
+&lt;p&gt;Un miembro nombrado también es admitido por la puerta de entrada de GitHub sin
+pertenecer a una organización permitida (véase los &lt;a href="https://claimward.github.io/docs/dev/es/identity-providers/"&gt;proveedores de identidad&lt;/a&gt;).&lt;/p&gt;
 &lt;h2 data-hextra-search-id="where-tenants-come-from"&gt;De dónde vienen los inquilinos&lt;span class="hx:absolute hx:-mt-20" id="where-tenants-come-from"&gt;&lt;/span&gt;
 &lt;a href="#where-tenants-come-from" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;El servidor arranca con un solo inquilino, &lt;code&gt;default&lt;/code&gt;, cuyas rutas son &lt;code&gt;PUSH_ROUTES&lt;/code&gt;
 (por defecto &lt;code&gt;VPN_CIDR&lt;/code&gt;) y cuyos servidores DNS son &lt;code&gt;DNS&lt;/code&gt;. Los demás inquilinos se
 crean, modifican y eliminan mediante la &lt;a href="https://claimward.github.io/docs/dev/es/operations/#admin-api-and-webui"&gt;API de administración y la WebUI&lt;/a&gt;,
-que modifican las tres listas de pertenencia junto a las rutas. El inquilino por defecto
+que modifican las cuatro listas de pertenencia junto a las rutas. El inquilino por defecto
 no se puede eliminar.&lt;/p&gt;
 &lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-amber-200 hx:bg-amber-100 hx:text-amber-900 hx:dark:border-amber-200/30 hx:dark:bg-amber-900/30 hx:dark:text-amber-200"&gt;
 &lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/&gt;&lt;/svg&gt;&lt;/div&gt;

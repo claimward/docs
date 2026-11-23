@@ -85,7 +85,7 @@ updates.&lt;/p&gt;
 &lt;td&gt;&lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;&lt;code&gt;github&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;—&lt;/td&gt;
-&lt;td&gt;CSV organisation allowlist: an active member of any is allowed. &lt;strong&gt;Required&lt;/strong&gt; since v0.4.0: the server refuses to start with it empty, and there is no opt-out (breaking: set it before upgrading)&lt;/td&gt;
+&lt;td&gt;CSV organisation allowlist: an active member of any is allowed, and so is a named tenant member. Since v0.5.0 it is &lt;strong&gt;optional only when at least one tenant has &lt;code&gt;members&lt;/code&gt;&lt;/strong&gt;: with neither the server refuses to start, with no opt-out (before: required since v0.4.0)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;GITHUB_API_URL&lt;/code&gt;&lt;/td&gt;
@@ -257,8 +257,9 @@ updates.&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;strong&gt;&lt;code&gt;github&lt;/code&gt;&lt;/strong&gt; (default): the bearer is a GitHub OAuth access token from the
 device flow. The server resolves it through the GitHub API (&lt;code&gt;/user&lt;/code&gt;,
-&lt;code&gt;/user/orgs&lt;/code&gt;) and, with &lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt; (required), requires an active
-membership of one of those organisations. No client secret is involved.&lt;/li&gt;
+&lt;code&gt;/user/orgs&lt;/code&gt;) and, with &lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;, admits an active
+member of one of those organisations, or a named tenant member (the list is
+optional only when a tenant has &lt;code&gt;members&lt;/code&gt;). No client secret is involved.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;&lt;code&gt;oidc&lt;/code&gt;&lt;/strong&gt;: the bearer is an OIDC ID token, verified against the issuer with
 the audience &lt;code&gt;OIDC_CLIENT_ID&lt;/code&gt; and the optional email-domain allowlist.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;&lt;code&gt;go-authn&lt;/code&gt;&lt;/strong&gt;: the bearer is an access token (&lt;code&gt;at+jwt&lt;/code&gt;) from a
@@ -363,7 +364,7 @@ data-copied-label="Copied!"
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;go install github.com/claimward/claimward-vpn-server/cmd/claimward-server@v0.2.0
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;AUTH_PROVIDER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;github &lt;span class="c1"&gt;# the default&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;GITHUB_ALLOWED_ORGS&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;claimward &lt;span class="c1"&gt;# required authorization (the server refuses to start without it)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;GITHUB_ALLOWED_ORGS&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;claimward &lt;span class="c1"&gt;# an org allowlist, or name tenant `members` instead (the server refuses to start with neither)&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;WG_ENDPOINT&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;vpn.example.com:51820
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;WG_PRIVATE_KEY_FILE&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;/etc/wireguard/server.key
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;VPN_CIDR&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;10.80.0.0/24
@@ -529,8 +530,11 @@ enabled. The app asks for &lt;code&gt;read:user&lt;/code&gt;, &lt;code&gt;user:e
 numeric ID is the subject (&lt;code&gt;github:&amp;lt;id&amp;gt;&lt;/code&gt;), their organisations
 (&lt;code&gt;/user/orgs&lt;/code&gt;) are their groups for &lt;a href="https://claimward.github.io/docs/dev/tenants/"&gt;tenants&lt;/a&gt;, and
 their public email, when they have one, counts as verified. With
-&lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;, an active membership of one of those organisations is
-required. Set &lt;code&gt;GITHUB_API_URL&lt;/code&gt; for GitHub Enterprise.&lt;/p&gt;
+&lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;, an active membership of one of those organisations
+admits them, and so does being a named &lt;code&gt;members&lt;/code&gt; entry of a tenant (pinned to
+the account ID, see &lt;a href="https://claimward.github.io/docs/dev/tenants/#members"&gt;tenants&lt;/a&gt;). The
+allowlist is optional only when a tenant has members: with neither, the server
+refuses to start. Set &lt;code&gt;GITHUB_API_URL&lt;/code&gt; for GitHub Enterprise.&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;AUTH_PROVIDER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;github
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;GITHUB_ALLOWED_ORGS&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;my-org,my-other-org&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;

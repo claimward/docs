@@ -304,7 +304,7 @@ der Routen.&lt;/p&gt;
 &lt;td&gt;&lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;&lt;code&gt;github&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;—&lt;/td&gt;
-&lt;td&gt;CSV-Allowlist der Organisationen: Ein aktives Mitglied einer davon wird zugelassen. &lt;strong&gt;Pflicht&lt;/strong&gt; seit v0.4.0: Der Server startet nicht, wenn sie leer ist, und es gibt keine Ausnahme-Option (Breaking Change: vor dem Update setzen)&lt;/td&gt;
+&lt;td&gt;CSV-Allowlist der Organisationen: Ein aktives Mitglied einer davon wird zugelassen, ebenso ein benanntes Mandantenmitglied. Seit v0.5.0 ist sie &lt;strong&gt;nur optional, wenn mindestens ein Mandant &lt;code&gt;members&lt;/code&gt; hat&lt;/strong&gt;: Ohne beides startet der Server nicht, es gibt keine Ausnahme-Option (zuvor: Pflicht seit v0.4.0)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;GITHUB_API_URL&lt;/code&gt;&lt;/td&gt;
@@ -476,8 +476,9 @@ der Routen.&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;strong&gt;&lt;code&gt;github&lt;/code&gt;&lt;/strong&gt; (Standard): Das Bearer-Token ist ein GitHub-OAuth-Access-Token aus dem
 Device Flow. Der Server löst es über die GitHub-API auf (&lt;code&gt;/user&lt;/code&gt;,
-&lt;code&gt;/user/orgs&lt;/code&gt;) und verlangt mit &lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt; eine aktive Mitgliedschaft
-in einer dieser Organisationen. Es ist kein Client-Secret beteiligt.&lt;/li&gt;
+&lt;code&gt;/user/orgs&lt;/code&gt;) und lässt mit &lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt; ein aktives Mitglied
+einer dieser Organisationen oder ein benanntes Mandantenmitglied zu (die Liste
+ist nur optional, wenn ein Mandant &lt;code&gt;members&lt;/code&gt; hat). Es ist kein Client-Secret beteiligt.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;&lt;code&gt;oidc&lt;/code&gt;&lt;/strong&gt;: Das Bearer-Token ist ein OIDC-ID-Token, geprüft gegen den Issuer mit
 der Audience &lt;code&gt;OIDC_CLIENT_ID&lt;/code&gt; und der optionalen Allowlist der E-Mail-Domains.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;&lt;code&gt;go-authn&lt;/code&gt;&lt;/strong&gt;: Das Bearer-Token ist ein Access-Token (&lt;code&gt;at+jwt&lt;/code&gt;) eines
@@ -582,7 +583,7 @@ data-copied-label="Kopiert!"
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;go install github.com/claimward/claimward-vpn-server/cmd/claimward-server@v0.2.0
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;AUTH_PROVIDER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;github &lt;span class="c1"&gt;# the default&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;GITHUB_ALLOWED_ORGS&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;claimward &lt;span class="c1"&gt;# required authorization (the server refuses to start without it)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;GITHUB_ALLOWED_ORGS&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;claimward &lt;span class="c1"&gt;# an org allowlist, or name tenant `members` instead (the server refuses to start with neither)&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;WG_ENDPOINT&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;vpn.example.com:51820
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;WG_PRIVATE_KEY_FILE&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;/etc/wireguard/server.key
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;VPN_CIDR&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;10.80.0.0/24
@@ -888,8 +889,11 @@ an. Die App fordert &lt;code&gt;read:user&lt;/code&gt;, &lt;code&gt;user:email&l
 numerische ID ist das Subject (&lt;code&gt;github:&amp;lt;id&amp;gt;&lt;/code&gt;), ihre Organisationen
 (&lt;code&gt;/user/orgs&lt;/code&gt;) sind ihre Gruppen für die &lt;a href="https://claimward.github.io/docs/dev/de/tenants/"&gt;Mandanten&lt;/a&gt;, und
 ihre öffentliche E-Mail-Adresse, sofern sie eine hat, gilt als verifiziert. Mit
-&lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt; ist eine aktive Mitgliedschaft in einer dieser Organisationen
-erforderlich. Setzen Sie &lt;code&gt;GITHUB_API_URL&lt;/code&gt; für GitHub Enterprise.&lt;/p&gt;
+&lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt; lässt eine aktive Mitgliedschaft in einer dieser Organisationen
+zu, ebenso ein benannter &lt;code&gt;members&lt;/code&gt;-Eintrag eines Mandanten (an die Konto-ID
+gebunden, siehe &lt;a href="https://claimward.github.io/docs/dev/de/tenants/#members"&gt;Mandanten&lt;/a&gt;). Die Liste ist nur
+optional, wenn ein Mandant Mitglieder hat: Ohne beides startet der Server nicht.
+Setzen Sie &lt;code&gt;GITHUB_API_URL&lt;/code&gt; für GitHub Enterprise.&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;AUTH_PROVIDER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;github
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;GITHUB_ALLOWED_ORGS&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;my-org,my-other-org&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
@@ -1055,14 +1059,49 @@ wählt einen pro Sitzung, und das Gerät verbindet sich mit diesem.&lt;/p&gt;
 &lt;td&gt;&lt;code&gt;idps&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;der Einrichtung, die für sie gebürgt hat: das &lt;code&gt;idp&lt;/code&gt; von go-authn, eine SAML-Entity-ID&lt;/td&gt;
 &lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;members&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;GitHub-&lt;strong&gt;Logins&lt;/strong&gt;, einzeln benannt und an die numerische ID des Kontos gebunden (unten)&lt;/td&gt;
+&lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
-&lt;p&gt;Eine Person, auf die nichts davon zutrifft, gehört dem Mandanten &lt;code&gt;default&lt;/code&gt; an, und nur dann.&lt;/p&gt;
+&lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-amber-200 hx:bg-amber-100 hx:text-amber-900 hx:dark:border-amber-200/30 hx:dark:bg-amber-900/30 hx:dark:text-amber-200"&gt;
+&lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/&gt;&lt;/svg&gt;&lt;/div&gt;
+&lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Eine Person, die zu keinem Mandanten passt, wird abgewiesen&lt;/strong&gt; (v0.5.0,
+Breaking Change): &lt;code&gt;403 not_a_member&lt;/code&gt; auf &lt;code&gt;/api/v1/tenants&lt;/code&gt; und
+&lt;code&gt;/api/v1/enroll&lt;/code&gt;, und das gRPC-&lt;code&gt;Watch&lt;/code&gt; wird abgelehnt. Es gibt keinen
+Ersatz-Mandanten mehr: Der Mandant &lt;code&gt;default&lt;/code&gt; nimmt nur diejenigen auf, die seine
+eigenen &lt;code&gt;domains&lt;/code&gt;, &lt;code&gt;groups&lt;/code&gt;, &lt;code&gt;idps&lt;/code&gt; oder &lt;code&gt;members&lt;/code&gt; benennen. Eine unbekannte
+Mandanten-ID ist ein Fehler, nie die Routen des Mandanten &lt;code&gt;default&lt;/code&gt;.&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;Migration von v0.4.x.&lt;/strong&gt; Wer bisher in &lt;code&gt;default&lt;/code&gt; landete, muss dort jetzt
+benannt werden: Geben Sie dem &lt;code&gt;default&lt;/code&gt;-Eintrag von &lt;code&gt;TENANTS_FILE&lt;/code&gt; die
+&lt;code&gt;domains&lt;/code&gt;, &lt;code&gt;groups&lt;/code&gt;, &lt;code&gt;idps&lt;/code&gt; oder &lt;code&gt;members&lt;/code&gt;, die diese Personen benennen, und
+starten Sie neu. Der allein aus &lt;code&gt;PUSH_ROUTES&lt;/code&gt; und &lt;code&gt;DNS&lt;/code&gt; erzeugte Mandant
+&lt;code&gt;default&lt;/code&gt; benennt niemanden.&lt;/p&gt;
+&lt;h3 data-hextra-search-id="members"&gt;Benannte Mitglieder&lt;span class="hx:absolute hx:-mt-20" id="members"&gt;&lt;/span&gt;
+&lt;a href="#members" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;&lt;code&gt;members&lt;/code&gt; listet GitHub-Logins auf, lesbar, aber umbenennbar: Ein Login kann
+freigegeben und von jemand anderem registriert werden. Der Server &lt;strong&gt;bindet&lt;/strong&gt;
+deshalb jeden Login an die numerische ID des Kontos. Beim Laden eines Mandanten
+(&lt;code&gt;TENANTS_FILE&lt;/code&gt;) oder beim Anlegen oder Ändern über die Admin-API ruft er
+&lt;code&gt;GET {GITHUB_API_URL}/users/{login}&lt;/code&gt; auf (10 s Zeitlimit, Antwort auf 64 KiB
+begrenzt, das Konto muss ein &lt;code&gt;User&lt;/code&gt; sein) und speichert das Paar im
+schreibgeschützten Feld &lt;code&gt;pinned&lt;/code&gt;. Eine Person ist Mitglied, wenn das Subject
+ihres Tokens &lt;code&gt;github:&amp;lt;id&amp;gt;&lt;/code&gt; einer gebundenen ID entspricht: Ein umbenanntes
+Konto, dessen alter Login jetzt jemand anderem gehört, wird abgewiesen. Ein
+&lt;strong&gt;nicht auflösbarer Login ist ein Fehler&lt;/strong&gt;: Der Server startet nicht, und die
+Admin-API antwortet mit &lt;code&gt;400&lt;/code&gt;. Admin-API und WebUI zeigen die Logins; um einer
+Umbenennung zu folgen, bearbeiten Sie den Mandanten erneut. Die Auflösung ist
+anonym (60 Anfragen pro Stunde und Adresse bei github.com).&lt;/p&gt;
+&lt;p&gt;Ein benanntes Mitglied wird vom GitHub-Eingangstor auch ohne Zugehörigkeit zu
+einer erlaubten Organisation zugelassen (siehe &lt;a href="https://claimward.github.io/docs/dev/de/identity-providers/"&gt;Identitätsanbieter&lt;/a&gt;).&lt;/p&gt;
 &lt;h2 data-hextra-search-id="where-tenants-come-from"&gt;Woher die Mandanten kommen&lt;span class="hx:absolute hx:-mt-20" id="where-tenants-come-from"&gt;&lt;/span&gt;
 &lt;a href="#where-tenants-come-from" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Der Server startet mit einem Mandanten, &lt;code&gt;default&lt;/code&gt;, dessen Routen &lt;code&gt;PUSH_ROUTES&lt;/code&gt;
 (standardmäßig &lt;code&gt;VPN_CIDR&lt;/code&gt;) und dessen DNS-Server &lt;code&gt;DNS&lt;/code&gt; sind. Weitere Mandanten werden
 über die &lt;a href="https://claimward.github.io/docs/dev/de/operations/#admin-api-and-webui"&gt;Admin-API und WebUI&lt;/a&gt; angelegt, bearbeitet und gelöscht,
-die neben den Routen die drei Mitgliedschaftslisten bearbeiten. Der Standardmandant
+die neben den Routen die vier Mitgliedschaftslisten bearbeiten. Der Standardmandant
 kann nicht gelöscht werden.&lt;/p&gt;
 &lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-amber-200 hx:bg-amber-100 hx:text-amber-900 hx:dark:border-amber-200/30 hx:dark:bg-amber-900/30 hx:dark:text-amber-200"&gt;
 &lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/&gt;&lt;/svg&gt;&lt;/div&gt;
@@ -1256,7 +1295,7 @@ sie fragt nach dem Token und sendet es bei jedem Aufruf mit.&lt;/p&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;POST /admin/api/tenants&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;einen anlegen: &lt;code&gt;id&lt;/code&gt; (oder ein Slug von &lt;code&gt;name&lt;/code&gt;), &lt;code&gt;name&lt;/code&gt;, &lt;code&gt;domains&lt;/code&gt;, &lt;code&gt;groups&lt;/code&gt;, &lt;code&gt;idps&lt;/code&gt;, &lt;code&gt;allowed_ips&lt;/code&gt;, &lt;code&gt;dns&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;einen anlegen: &lt;code&gt;id&lt;/code&gt; (oder ein Slug von &lt;code&gt;name&lt;/code&gt;), &lt;code&gt;name&lt;/code&gt;, &lt;code&gt;domains&lt;/code&gt;, &lt;code&gt;groups&lt;/code&gt;, &lt;code&gt;idps&lt;/code&gt;, &lt;code&gt;members&lt;/code&gt; (Logins; &lt;code&gt;pinned&lt;/code&gt; ist schreibgeschützt, &lt;code&gt;400&lt;/code&gt;, wenn ein Login nicht aufgelöst wird), &lt;code&gt;allowed_ips&lt;/code&gt;, &lt;code&gt;dns&lt;/code&gt;&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;GET /admin/api/tenants/{id}&lt;/code&gt;&lt;/td&gt;
