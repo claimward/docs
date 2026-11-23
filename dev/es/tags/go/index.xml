@@ -49,6 +49,10 @@ el módulo que solo contiene la biblioteca es la base sobre la que se construyen
 &lt;td&gt;generación y análisis de claves WireGuard&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pkg/pathmtu&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;ajusta la MTU del túnel al camino: el &lt;code&gt;mtu&lt;/code&gt; del servidor (1420 por defecto), reducido a la MTU de la interfaz hacia el endpoint menos 60 (IPv4) u 80 (IPv6), nunca por debajo de 1280, nunca por encima del valor del servidor; solo biblioteca estándar&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
 &lt;td&gt;&lt;code&gt;pkg/wgtun&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;túnel WireGuard en espacio de usuario con &lt;code&gt;wireguard-go&lt;/code&gt;, más dirección y rutas: &lt;code&gt;ifconfig&lt;/code&gt;/&lt;code&gt;route&lt;/code&gt; en macOS, &lt;code&gt;ip&lt;/code&gt; en Linux, un adaptador Wintun mediante &lt;code&gt;winipcfg&lt;/code&gt; en Windows (con DNS y MTU); requiere privilegios&lt;/td&gt;
 &lt;/tr&gt;

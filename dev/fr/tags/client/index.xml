@@ -49,6 +49,10 @@ c&amp;rsquo;est sur le module réduit à la bibliothèque que s&amp;rsquo;appuie
 &lt;td&gt;génération et analyse des clés WireGuard&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pkg/pathmtu&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;ajuste le MTU du tunnel au chemin : le &lt;code&gt;mtu&lt;/code&gt; du serveur (1420 par défaut), abaissé au MTU de l&amp;rsquo;interface vers le point d&amp;rsquo;accès moins 60 (IPv4) ou 80 (IPv6), jamais sous 1280, jamais au-dessus de la valeur du serveur ; bibliothèque standard seule&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
 &lt;td&gt;&lt;code&gt;pkg/wgtun&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;tunnel WireGuard en espace utilisateur avec &lt;code&gt;wireguard-go&lt;/code&gt;, plus l&amp;rsquo;adresse et les routes : &lt;code&gt;ifconfig&lt;/code&gt;/&lt;code&gt;route&lt;/code&gt; sur macOS, &lt;code&gt;ip&lt;/code&gt; sur Linux, un adaptateur Wintun via &lt;code&gt;winipcfg&lt;/code&gt; sur Windows (avec DNS et MTU) ; nécessite des privilèges&lt;/td&gt;
 &lt;/tr&gt;

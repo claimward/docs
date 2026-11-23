@@ -54,8 +54,11 @@ data-copied-label="Copied!"
 &lt;/div&gt;
 &lt;p&gt;&lt;code&gt;allowed_ips&lt;/code&gt; and &lt;code&gt;dns&lt;/code&gt; are the tenant&amp;rsquo;s. &lt;code&gt;dns&lt;/code&gt; is left out when the tenant has
 none, &lt;code&gt;grpc_endpoint&lt;/code&gt; when the server advertises no RouteService
-(&lt;code&gt;GRPC_ENDPOINT&lt;/code&gt;). The protocol also has an optional &lt;code&gt;mtu&lt;/code&gt;, which the server
-(v0.2.0) never sets.&lt;/p&gt;
+(&lt;code&gt;GRPC_ENDPOINT&lt;/code&gt;). &lt;code&gt;mtu&lt;/code&gt; is the tunnel MTU in bytes (an integer,
+1280 to 9000), left out when the server has none to advertise. Since server v0.7.0 it is always
+set: &lt;code&gt;TUNNEL_MTU&lt;/code&gt;, or the uplink MTU minus 80 (at most 1420). The client applies it, then lowers
+it to fit its own path (the interface MTU towards the endpoint minus 60 for IPv4, 80 for IPv6,
+never below 1280); it never raises it. Absent means 1420.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="get-apiv1tenants"&gt;&lt;code&gt;GET /api/v1/tenants&lt;/code&gt;&lt;span class="hx:absolute hx:-mt-20" id="get-apiv1tenants"&gt;&lt;/span&gt;
 &lt;a href="#get-apiv1tenants" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Response &lt;code&gt;200&lt;/code&gt;: the tenants the caller may connect to.&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
@@ -413,6 +416,12 @@ files in a credentials directory, see &lt;a href="#credentials"&gt;Credentials&l
 &lt;td&gt;&lt;/td&gt;
 &lt;td&gt;&lt;code&gt;24h&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;how long an enrollment lasts without a heartbeat&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;TUNNEL_MTU&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;derived&lt;/td&gt;
+&lt;td&gt;MTU of the WireGuard interface, 1280 to 9000, advertised as &lt;code&gt;mtu&lt;/code&gt;; anything else refuses to start. Unset: the uplink MTU minus 80, at most 1420, at least 1280&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;LISTEN_ADDR&lt;/code&gt;&lt;/td&gt;

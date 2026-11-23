@@ -54,8 +54,11 @@ data-copied-label="¡Copiado!"
 &lt;/div&gt;
 &lt;p&gt;&lt;code&gt;allowed_ips&lt;/code&gt; y &lt;code&gt;dns&lt;/code&gt; son los del inquilino. &lt;code&gt;dns&lt;/code&gt; se omite cuando el inquilino no
 tiene ninguno, y &lt;code&gt;grpc_endpoint&lt;/code&gt; cuando el servidor no anuncia ningún RouteService
-(&lt;code&gt;GRPC_ENDPOINT&lt;/code&gt;). El protocolo también tiene un &lt;code&gt;mtu&lt;/code&gt; opcional, que el servidor
-(v0.2.0) nunca establece.&lt;/p&gt;
+(&lt;code&gt;GRPC_ENDPOINT&lt;/code&gt;). &lt;code&gt;mtu&lt;/code&gt; es la MTU del túnel en bytes (un entero,
+de 1280 a 9000), y se omite cuando el servidor no tiene ninguna que anunciar. Desde el servidor v0.7.0 siempre
+se establece: &lt;code&gt;TUNNEL_MTU&lt;/code&gt;, o la MTU del enlace de salida menos 80 (como máximo 1420). El cliente la aplica
+y luego la reduce para ajustarla a su propio camino (la MTU de la interfaz hacia el endpoint menos 60 en
+IPv4, 80 en IPv6, nunca por debajo de 1280); nunca la aumenta. Si falta, vale 1420.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="get-apiv1tenants"&gt;&lt;code&gt;GET /api/v1/tenants&lt;/code&gt;&lt;span class="hx:absolute hx:-mt-20" id="get-apiv1tenants"&gt;&lt;/span&gt;
 &lt;a href="#get-apiv1tenants" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Respuesta &lt;code&gt;200&lt;/code&gt;: los inquilinos a los que puede conectarse quien hace la llamada.&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
@@ -413,6 +416,12 @@ archivos de un directorio de credenciales, véase &lt;a href="#credentials"&gt;C
 &lt;td&gt;&lt;/td&gt;
 &lt;td&gt;&lt;code&gt;24h&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;cuánto dura un registro sin heartbeat&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;TUNNEL_MTU&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;derivado&lt;/td&gt;
+&lt;td&gt;MTU de la interfaz WireGuard, de 1280 a 9000, anunciada como &lt;code&gt;mtu&lt;/code&gt;; cualquier otro valor impide el arranque. Sin definir: MTU del enlace de salida menos 80, como máximo 1420, como mínimo 1280&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;LISTEN_ADDR&lt;/code&gt;&lt;/td&gt;

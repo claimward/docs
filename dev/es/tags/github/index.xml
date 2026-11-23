@@ -197,6 +197,12 @@ archivos de un directorio de credenciales, véase &lt;a href="#credentials"&gt;C
 &lt;td&gt;cuánto dura un registro sin heartbeat&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
+&lt;td&gt;&lt;code&gt;TUNNEL_MTU&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;derivado&lt;/td&gt;
+&lt;td&gt;MTU de la interfaz WireGuard, de 1280 a 9000, anunciada como &lt;code&gt;mtu&lt;/code&gt;; cualquier otro valor impide el arranque. Sin definir: MTU del enlace de salida menos 80, como máximo 1420, como mínimo 1280&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
 &lt;td&gt;&lt;code&gt;LISTEN_ADDR&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;&lt;/td&gt;
 &lt;td&gt;&lt;code&gt;:8443&lt;/code&gt;&lt;/td&gt;
