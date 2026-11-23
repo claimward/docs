@@ -27,8 +27,11 @@ Le serveur identifie la personne via l'API GitHub avec son jeton : son
 identifiant numérique est le sujet (`github:<id>`), ses organisations
 (`/user/orgs`) sont ses groupes pour les [locataires]({{< relref "/tenants.md" >}}), et
 son adresse électronique publique, lorsqu'elle en a une, est considérée comme vérifiée. Avec
-`GITHUB_ALLOWED_ORGS`, l'appartenance active à l'une de ces organisations est
-exigée. Définissez `GITHUB_API_URL` pour GitHub Enterprise.
+`GITHUB_ALLOWED_ORGS`, l'appartenance active à l'une de ces organisations
+l'admet, de même qu'une entrée `members` nommée d'un locataire (épinglée à
+l'identifiant du compte, voir les [locataires]({{< relref "/tenants.md#members" >}})). La
+liste n'est facultative que si un locataire a des membres : sans l'un ni l'autre,
+le serveur refuse de démarrer. Définissez `GITHUB_API_URL` pour GitHub Enterprise.
 
 ```sh
 AUTH_PROVIDER=github

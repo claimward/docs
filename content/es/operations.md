@@ -95,7 +95,7 @@ esta pide el token y lo envía con cada llamada.
 |---|---|
 | `GET /admin/api/overview` | recuentos `{"tenants", "peers", "watchers"}` |
 | `GET /admin/api/tenants` | todos los inquilinos |
-| `POST /admin/api/tenants` | crea uno: `id` (o un slug de `name`), `name`, `domains`, `groups`, `idps`, `allowed_ips`, `dns` |
+| `POST /admin/api/tenants` | crea uno: `id` (o un slug de `name`), `name`, `domains`, `groups`, `idps`, `members` (logins; `pinned` es de solo lectura, `400` si un login no se resuelve), `allowed_ips`, `dns` |
 | `GET /admin/api/tenants/{id}` | un inquilino |
 | `PUT /admin/api/tenants/{id}` | reemplaza su nombre, sus listas de pertenencia y sus rutas; incrementa `serial` y envía las rutas a sus observadores |
 | `DELETE /admin/api/tenants/{id}` | lo elimina (excepto `default`); termina sus observaciones |

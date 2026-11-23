@@ -42,7 +42,7 @@ Die gesamte Konfiguration erfolgt über die Umgebung.
 | Variable | Erforderlich | Standard | Hinweise |
 |----------|----------|---------|-------|
 | `AUTH_PROVIDER` | | `github` | Identitätsanbieter: `github`, `oidc` oder `go-authn` |
-| `GITHUB_ALLOWED_ORGS` | `github` | — | CSV-Allowlist der Organisationen: Ein aktives Mitglied einer davon wird zugelassen. **Pflicht** seit v0.4.0: Der Server startet nicht, wenn sie leer ist, und es gibt keine Ausnahme-Option (Breaking Change: vor dem Update setzen) |
+| `GITHUB_ALLOWED_ORGS` | `github` | — | CSV-Allowlist der Organisationen: Ein aktives Mitglied einer davon wird zugelassen, ebenso ein benanntes Mandantenmitglied. Seit v0.5.0 ist sie **nur optional, wenn mindestens ein Mandant `members` hat**: Ohne beides startet der Server nicht, es gibt keine Ausnahme-Option (zuvor: Pflicht seit v0.4.0) |
 | `GITHUB_API_URL` | | `https://api.github.com` | für GitHub Enterprise zu setzen |
 | `OIDC_ISSUER` | `oidc`, `go-authn` | — | URL des Issuers (Discovery) |
 | `OIDC_CLIENT_ID` | `oidc`, `go-authn` | — | die Audience, die Tokens tragen müssen |
@@ -78,8 +78,9 @@ Die Authentifizierung ist hinter der Schnittstelle `Verifier` austauschbar
 
 - **`github`** (Standard): Das Bearer-Token ist ein GitHub-OAuth-Access-Token aus dem
   Device Flow. Der Server löst es über die GitHub-API auf (`/user`,
-  `/user/orgs`) und verlangt mit `GITHUB_ALLOWED_ORGS` eine aktive Mitgliedschaft
-  in einer dieser Organisationen. Es ist kein Client-Secret beteiligt.
+  `/user/orgs`) und lässt mit `GITHUB_ALLOWED_ORGS` ein aktives Mitglied
+  einer dieser Organisationen oder ein benanntes Mandantenmitglied zu (die Liste
+  ist nur optional, wenn ein Mandant `members` hat). Es ist kein Client-Secret beteiligt.
 - **`oidc`**: Das Bearer-Token ist ein OIDC-ID-Token, geprüft gegen den Issuer mit
   der Audience `OIDC_CLIENT_ID` und der optionalen Allowlist der E-Mail-Domains.
 - **`go-authn`**: Das Bearer-Token ist ein Access-Token (`at+jwt`) eines

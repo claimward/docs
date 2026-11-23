@@ -41,7 +41,7 @@ All configuration is in the environment.
 | Variable | Required | Default | Notes |
 |----------|----------|---------|-------|
 | `AUTH_PROVIDER` | | `github` | identity provider: `github`, `oidc` or `go-authn` |
-| `GITHUB_ALLOWED_ORGS` | `github` | — | CSV organisation allowlist: an active member of any is allowed. **Required** since v0.4.0: the server refuses to start with it empty, and there is no opt-out (breaking: set it before upgrading) |
+| `GITHUB_ALLOWED_ORGS` | `github` | — | CSV organisation allowlist: an active member of any is allowed, and so is a named tenant member. Since v0.5.0 it is **optional only when at least one tenant has `members`**: with neither the server refuses to start, with no opt-out (before: required since v0.4.0) |
 | `GITHUB_API_URL` | | `https://api.github.com` | set for GitHub Enterprise |
 | `OIDC_ISSUER` | `oidc`, `go-authn` | — | issuer URL (discovery) |
 | `OIDC_CLIENT_ID` | `oidc`, `go-authn` | — | the audience tokens must carry |
@@ -77,8 +77,9 @@ Authentication is pluggable behind the `Verifier` interface
 
 - **`github`** (default): the bearer is a GitHub OAuth access token from the
   device flow. The server resolves it through the GitHub API (`/user`,
-  `/user/orgs`) and, with `GITHUB_ALLOWED_ORGS` (required), requires an active
-  membership of one of those organisations. No client secret is involved.
+  `/user/orgs`) and, with `GITHUB_ALLOWED_ORGS`, admits an active
+  member of one of those organisations, or a named tenant member (the list is
+  optional only when a tenant has `members`). No client secret is involved.
 - **`oidc`**: the bearer is an OIDC ID token, verified against the issuer with
   the audience `OIDC_CLIENT_ID` and the optional email-domain allowlist.
 - **`go-authn`**: the bearer is an access token (`at+jwt`) from a

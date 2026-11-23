@@ -41,7 +41,7 @@ Toute la configuration se fait par l'environnement.
 | Variable | Requise | Défaut | Remarques |
 |----------|----------|---------|-------|
 | `AUTH_PROVIDER` | | `github` | fournisseur d'identité : `github`, `oidc` ou `go-authn` |
-| `GITHUB_ALLOWED_ORGS` | `github` | — | liste CSV des organisations autorisées : un membre actif de l'une d'elles est admis. **Obligatoire** depuis v0.4.0 : le serveur refuse de démarrer si elle est vide, sans option de contournement (rupture : la définir avant la mise à jour) |
+| `GITHUB_ALLOWED_ORGS` | `github` | — | liste CSV des organisations autorisées : un membre actif de l'une d'elles est admis, de même qu'un membre nommé d'un locataire. Depuis v0.5.0 elle n'est **facultative que si au moins un locataire a des `members`** : sans l'un ni l'autre le serveur refuse de démarrer, sans option de contournement (avant : obligatoire depuis v0.4.0) |
 | `GITHUB_API_URL` | | `https://api.github.com` | à définir pour GitHub Enterprise |
 | `OIDC_ISSUER` | `oidc`, `go-authn` | — | URL de l'émetteur (découverte) |
 | `OIDC_CLIENT_ID` | `oidc`, `go-authn` | — | l'audience que les jetons doivent porter |
@@ -77,8 +77,9 @@ L'authentification est modulaire, derrière l'interface `Verifier`
 
 - **`github`** (par défaut) : le jeton porteur est un jeton d'accès OAuth GitHub issu du
   flux d'appareil (device flow). Le serveur le résout via l'API GitHub (`/user`,
-  `/user/orgs`) et, avec `GITHUB_ALLOWED_ORGS`, exige l'appartenance active
-  à l'une de ces organisations. Aucun secret client n'intervient.
+  `/user/orgs`) et, avec `GITHUB_ALLOWED_ORGS`, admet un membre actif
+  de l'une de ces organisations, ou un membre nommé d'un locataire (la liste
+  n'est facultative que si un locataire a des `members`). Aucun secret client n'intervient.
 - **`oidc`** : le jeton porteur est un jeton d'identité OIDC, vérifié auprès de l'émetteur avec
   l'audience `OIDC_CLIENT_ID` et la liste facultative des domaines de messagerie autorisés.
 - **`go-authn`** : le jeton porteur est un jeton d'accès (`at+jwt`) émis par un

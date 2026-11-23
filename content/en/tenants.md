@@ -18,15 +18,44 @@ A person belongs to every tenant that names any of:
 | `domains` | the domain of a **verified** email address (an unverified one is a string the person typed) |
 | `groups` | the token's `groups` claim (OIDC; go-authn: eduPerson entitlements), or the person's GitHub organisations |
 | `idps` | the institution that vouched for them: go-authn's `idp`, a SAML entity ID |
+| `members` | GitHub **logins**, named one by one, pinned to the account's numeric ID (below) |
 
-A person who matches none belongs to the `default` tenant, and only then.
+{{< callout type="warning" >}}
+**A person who matches no tenant is refused** (v0.5.0, breaking): `403
+not_a_member` on `/api/v1/tenants` and `/api/v1/enroll`, and the gRPC `Watch` is
+refused. There is no fallback tenant any more: the `default` tenant receives
+only those its own `domains`, `groups`, `idps` or `members` name. An unknown
+tenant ID is an error, never the `default` tenant's routes.
+{{< /callout >}}
+
+**Migrating from v0.4.x.** People who used to land in `default` must now be
+named by it: give the `default` entry of `TENANTS_FILE` the `domains`,
+`groups`, `idps` or `members` that name them, then restart. The `default`
+tenant created from `PUSH_ROUTES` and `DNS` alone names nobody.
+
+### Named members {#members}
+
+`members` lists GitHub logins, readable but renameable: a login can be released
+and registered by somebody else. The server therefore **pins** each login to the
+account's numeric ID. When a tenant is loaded (`TENANTS_FILE`) or created or
+updated through the admin API, it calls `GET {GITHUB_API_URL}/users/{login}`
+(10 s timeout, 64 KiB answer cap, the account must be a `User`) and stores the
+pair in the read-only `pinned` field. A person is a member when their token's
+subject is `github:<id>` for a pinned ID: a renamed account whose old login now
+belongs to somebody else is refused. An **unresolvable login is an error**: the
+server refuses to start, and the admin API answers `400`. The admin API and
+WebUI show the logins; to follow a rename, edit the tenant again. Resolution is
+unauthenticated (60 requests an hour per address on github.com).
+
+A named member is also admitted by the GitHub entry gate without belonging to
+an allowed organisation (see [identity providers]({{< relref "/identity-providers.md" >}})).
 
 ## Where tenants come from
 
 The server starts with one tenant, `default`, whose routes are `PUSH_ROUTES`
 (by default `VPN_CIDR`) and whose DNS servers are `DNS`. Other tenants are
 created, edited and deleted through the [admin API and WebUI]({{< relref "/operations.md#admin-api-and-webui" >}}),
-which edit the three membership lists beside the routes. The default tenant
+which edit the four membership lists beside the routes. The default tenant
 cannot be deleted.
 
 {{< callout type="warning" >}}

@@ -27,8 +27,11 @@ El servidor identifica a la persona a través de la API de GitHub con su token: 
 ID numérico es el sujeto (`github:<id>`), sus organizaciones
 (`/user/orgs`) son sus grupos para los [inquilinos]({{< relref "/tenants.md" >}}), y
 su correo público, cuando lo tiene, se considera verificado. Con
-`GITHUB_ALLOWED_ORGS`, se exige una pertenencia activa a una de esas organizaciones.
-Establezca `GITHUB_API_URL` para GitHub Enterprise.
+`GITHUB_ALLOWED_ORGS`, la pertenencia activa a una de esas organizaciones la
+admite, y también una entrada `members` nombrada de un inquilino (fijada al
+identificador de la cuenta, véase los [inquilinos]({{< relref "/tenants.md#members" >}})). La
+lista es opcional solo si un inquilino tiene miembros: sin ninguno de los dos, el
+servidor se niega a arrancar. Establezca `GITHUB_API_URL` para GitHub Enterprise.
 
 ```sh
 AUTH_PROVIDER=github
