@@ -34,6 +34,42 @@ Los inquilinos se guardan **en memoria** (v0.2.0): un reinicio del servidor solo
 el inquilino `default`, reconstruido a partir del entorno.
 {{< /callout >}}
 
+## Política de acceso {#access-policy}
+
+Las rutas de un inquilino no solo se anuncian: la pasarela las **aplica**. Un
+inquilino puede llevar una `policy`, una lista de reglas que dicen qué destino
+puede alcanzar un par, con qué protocolo y qué puertos:
+
+```json
+[{"id": "default", "policy": [
+  {"cidr": "10.20.0.5/32", "proto": "tcp", "ports": [445, 88]},
+  {"cidr": "10.20.0.5/32", "proto": "udp", "ports": [88]}
+]}]
+```
+
+- `proto` es `tcp` o `udp`; `ports` son números o rangos (`"9000-9010"`) y son
+  obligatorios. Solo IPv4.
+- Los `allowed_ips` enviados a los clientes se **derivan de la política** (los
+  CIDR distintos): lo que un dispositivo enruta y lo que la pasarela deja pasar
+  no pueden divergir. El formato de las rutas no cambia.
+- La pasarela posee una tabla nftables, `inet claimward`, instalada por netlink
+  (Linux, `CAP_NET_ADMIN`) y reemplazada atómicamente al arrancar y en cada
+  cambio de par o de inquilino. El tráfico que llega de la interfaz WireGuard se
+  **deniega por defecto**, tanto en la cadena de reenvío como en la de entrada
+  (el servidor de archivos puede ser el propio host de la pasarela); la
+  dirección de cada par se confronta con las reglas de su inquilino. El DNS debe
+  nombrarse en la política como todo lo demás.
+- **Cierre ante el fallo**: si el conjunto de reglas no puede instalarse, el
+  servidor no arranca, y se rechaza un registro cuyo conjunto de reglas no puede
+  instalarse (`500 gateway_error`).
+- Un inquilino con `allowed_ips` y sin `policy` se aplica como cualquier
+  protocolo, cualquier puerto, hacia esos CIDR.
+
+Los inquilinos con política se cargan al arrancar desde el archivo JSON que
+nombra `TENANTS_FILE` (un arreglo de inquilinos con los campos de la API de
+administración); la API de administración también acepta `policy`. La interfaz
+web de administración aún no la edita.
+
 ## Elegir uno por sesión {#choosing-one-per-session}
 
 | Petición | Lo que hace el servidor |

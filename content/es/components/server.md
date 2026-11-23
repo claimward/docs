@@ -57,6 +57,7 @@ Toda la configuración está en el entorno.
 | `WG_DRYRUN` | | `false` | registrar en el log las operaciones sobre pares en lugar de aplicarlas (desarrollo local) |
 | `VPN_CIDR` | | `10.80.0.0/24` | conjunto de direcciones IPv4; su primer host es el de la pasarela |
 | `PUSH_ROUTES` | | `VPN_CIDR` | rutas CSV del inquilino `default` |
+| `TENANTS_FILE` | | — | archivo JSON de inquilinos cargado al arrancar, con su [política de acceso]({{< relref "/tenants.md#access-policy" >}}) |
 | `DNS` | | — | servidores DNS CSV del inquilino `default` |
 | `KEEPALIVE` | | `25` | keepalive persistente anunciado a los clientes (segundos) |
 | `LEASE_TTL` | | `24h` | cuánto dura un registro sin heartbeat |

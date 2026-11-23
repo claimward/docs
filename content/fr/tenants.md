@@ -34,6 +34,43 @@ Les locataires sont conservés **en mémoire** (v0.2.0) : un redémarrage du ser
 le locataire `default`, reconstruit à partir de l'environnement.
 {{< /callout >}}
 
+## Politique d'accès {#access-policy}
+
+Les routes d'un locataire ne sont pas seulement annoncées : la passerelle les
+**applique**. Un locataire peut porter une `policy`, une liste de règles qui
+disent quelle destination un pair peut joindre, sur quel protocole et quels
+ports :
+
+```json
+[{"id": "default", "policy": [
+  {"cidr": "10.20.0.5/32", "proto": "tcp", "ports": [445, 88]},
+  {"cidr": "10.20.0.5/32", "proto": "udp", "ports": [88]}
+]}]
+```
+
+- `proto` vaut `tcp` ou `udp` ; `ports` sont des nombres ou des plages
+  (`"9000-9010"`), et sont obligatoires. IPv4 uniquement.
+- Les `allowed_ips` envoyés aux clients sont **dérivés de la politique** (les
+  CIDR distincts) : ce qu'un appareil route et ce que la passerelle laisse
+  passer ne peuvent pas diverger. Le format des routes ne change pas.
+- La passerelle possède une table nftables, `inet claimward`, installée par
+  netlink (Linux, `CAP_NET_ADMIN`) et remplacée atomiquement au démarrage et à
+  chaque changement de pair ou de locataire. Le trafic qui arrive de l'interface
+  WireGuard est **refusé par défaut**, dans la chaîne de transfert comme dans la
+  chaîne d'entrée (le serveur de fichiers peut être l'hôte de la passerelle
+  lui-même) ; l'adresse de chaque pair est confrontée aux règles de son
+  locataire. Le DNS doit être nommé dans la politique comme le reste.
+- **Fermé en cas d'échec** : si le jeu de règles ne peut pas être installé, le
+  serveur ne démarre pas, et un enrôlement dont le jeu de règles ne peut pas
+  être installé est refusé (`500 gateway_error`).
+- Un locataire avec `allowed_ips` et sans `policy` est appliqué comme tout
+  protocole, tout port, vers ces CIDR.
+
+Les locataires avec politique sont chargés au démarrage depuis le fichier JSON
+nommé par `TENANTS_FILE` (un tableau de locataires, avec les champs de l'API
+d'administration) ; l'API d'administration accepte aussi `policy`. L'interface
+web d'administration ne l'édite pas encore.
+
 ## En choisir un par session {#choosing-one-per-session}
 
 | Requête | Ce que fait le serveur |

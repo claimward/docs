@@ -58,6 +58,7 @@ Die gesamte Konfiguration erfolgt über die Umgebung.
 | `WG_DRYRUN` | | `false` | Peer-Operationen protokollieren statt sie anzuwenden (lokale Entwicklung) |
 | `VPN_CIDR` | | `10.80.0.0/24` | IPv4-Adresspool; sein erster Host ist der des Gateways |
 | `PUSH_ROUTES` | | `VPN_CIDR` | CSV-Routen des Mandanten `default` |
+| `TENANTS_FILE` | | — | JSON-Datei mit Mandanten, beim Start geladen, samt [Zugriffsrichtlinie]({{< relref "/tenants.md#access-policy" >}}) |
 | `DNS` | | — | CSV-DNS-Server des Mandanten `default` |
 | `KEEPALIVE` | | `25` | den Clients mitgeteiltes Persistent Keepalive (Sekunden) |
 | `LEASE_TTL` | | `24h` | wie lange eine Registrierung ohne Heartbeat gilt |

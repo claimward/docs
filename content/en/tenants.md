@@ -34,6 +34,41 @@ Tenants are kept **in memory** (v0.2.0): a restart of the server leaves only
 the `default` tenant, rebuilt from the environment.
 {{< /callout >}}
 
+## Access policy {#access-policy}
+
+A tenant's routes are not only advertised: the gateway **enforces** them. A
+tenant may carry a `policy`, a list of rules that say which destination a peer
+may reach, on which protocol and ports:
+
+```json
+[{"id": "default", "policy": [
+  {"cidr": "10.20.0.5/32", "proto": "tcp", "ports": [445, 88]},
+  {"cidr": "10.20.0.5/32", "proto": "udp", "ports": [88]}
+]}]
+```
+
+- `proto` is `tcp` or `udp`; `ports` are numbers or ranges (`"9000-9010"`), and
+  are required. IPv4 only.
+- The `allowed_ips` pushed to the clients are **derived from the policy**
+  (the distinct CIDRs), so what a device routes and what the gateway lets
+  through cannot drift apart. The route format is unchanged.
+- The gateway owns one nftables table, `inet claimward`, installed through
+  netlink (Linux, `CAP_NET_ADMIN`) and replaced atomically at start and at
+  every peer or tenant change. Traffic arriving from the WireGuard interface is
+  **denied by default**, in both the forward chain and the input chain (the
+  file server may be the gateway host itself); each peer's address is matched
+  against its tenant's rules. DNS must be named in the policy like anything
+  else.
+- **Fail closed**: if the ruleset cannot be installed, the server does not
+  start, and an enrollment whose ruleset cannot be installed is refused
+  (`500 gateway_error`).
+- A tenant with `allowed_ips` and no `policy` is enforced as any protocol, any
+  port, to those CIDRs.
+
+Tenants with a policy are loaded at start from the JSON file named by
+`TENANTS_FILE` (an array of tenants with the admin API's fields); the admin API
+accepts `policy` too. The admin WebUI does not edit it yet.
+
 ## Choosing one per session
 
 | Request | What the server does |
