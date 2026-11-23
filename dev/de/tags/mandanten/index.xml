@@ -59,7 +59,10 @@ Konto, dessen alter Login jetzt jemand anderem gehört, wird abgewiesen. Ein
 &lt;strong&gt;nicht auflösbarer Login ist ein Fehler&lt;/strong&gt;: Der Server startet nicht, und die
 Admin-API antwortet mit &lt;code&gt;400&lt;/code&gt;. Admin-API und WebUI zeigen die Logins; um einer
 Umbenennung zu folgen, bearbeiten Sie den Mandanten erneut. Die Auflösung ist
-anonym (60 Anfragen pro Stunde und Adresse bei github.com).&lt;/p&gt;
+mit der Credential &lt;code&gt;github-token&lt;/code&gt; authentifiziert (eine Datei in
+&lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt;, als Bearer gesendet: 5000 Anfragen pro Stunde bei
+github.com). Ein Mandant mit &lt;code&gt;members&lt;/code&gt; ohne &lt;code&gt;github-token&lt;/code&gt; verhindert den Start;
+das Token wird nie über unverschlüsseltes HTTP gesendet, außer an eine Loopback-Adresse.&lt;/p&gt;
 &lt;p&gt;Ein benanntes Mitglied wird vom GitHub-Eingangstor auch ohne Zugehörigkeit zu
 einer erlaubten Organisation zugelassen (siehe &lt;a href="https://claimward.github.io/docs/dev/de/identity-providers/"&gt;Identitätsanbieter&lt;/a&gt;).&lt;/p&gt;
 &lt;h2 data-hextra-search-id="where-tenants-come-from"&gt;Woher die Mandanten kommen&lt;span class="hx:absolute hx:-mt-20" id="where-tenants-come-from"&gt;&lt;/span&gt;

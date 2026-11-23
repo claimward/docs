@@ -57,8 +57,10 @@ limitada a 64 KiB, la cuenta debe ser un &lt;code&gt;User&lt;/code&gt;) y guarda
 pertenece ahora a otra persona es rechazada. Un &lt;strong&gt;login no resoluble es un
 error&lt;/strong&gt;: el servidor se niega a arrancar y la API de administración responde
 &lt;code&gt;400&lt;/code&gt;. La API y la WebUI muestran los logins; para seguir un cambio de nombre,
-edite de nuevo el inquilino. La resolución es anónima (60 solicitudes por hora y
-dirección en github.com).&lt;/p&gt;
+edite de nuevo el inquilino. La resolución se autentica con la credencial &lt;code&gt;github-token&lt;/code&gt; (un archivo en
+&lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt;, enviado como bearer: 5000 solicitudes por hora en
+github.com). Un inquilino con &lt;code&gt;members&lt;/code&gt; y sin &lt;code&gt;github-token&lt;/code&gt; impide el arranque;
+el token nunca se envía por HTTP sin cifrar, salvo a una dirección loopback.&lt;/p&gt;
 &lt;p&gt;Un miembro nombrado también es admitido por la puerta de entrada de GitHub sin
 pertenecer a una organización permitida (véase los &lt;a href="https://claimward.github.io/docs/dev/es/identity-providers/"&gt;proveedores de identidad&lt;/a&gt;).&lt;/p&gt;
 &lt;h2 data-hextra-search-id="where-tenants-come-from"&gt;De dónde vienen los inquilinos&lt;span class="hx:absolute hx:-mt-20" id="where-tenants-come-from"&gt;&lt;/span&gt;

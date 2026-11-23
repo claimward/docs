@@ -67,9 +67,11 @@ proveedor decide entonces qué claves pueden conectarse, y una pasarela que no p
 su lista no admite a nadie nuevo. Consulte
 &lt;a href="https://claimward.github.io/docs/dev/es/identity-providers/"&gt;Proveedores de identidad&lt;/a&gt;.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="admin-api-and-webui"&gt;API de administración y WebUI&lt;span class="hx:absolute hx:-mt-20" id="admin-api-and-webui"&gt;&lt;/span&gt;
-&lt;a href="#admin-api-and-webui" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Con &lt;code&gt;ADMIN_TOKEN&lt;/code&gt; establecido, el servidor sirve una WebUI Svelte integrada en
+&lt;a href="#admin-api-and-webui" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Con la credencial &lt;code&gt;admin-token&lt;/code&gt; presente (un archivo en &lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt;,
+véase &lt;a href="https://claimward.github.io/docs/dev/es/components/server/#credentials"&gt;Credenciales&lt;/a&gt;), el
+servidor sirve una WebUI Svelte integrada en
 &lt;code&gt;/admin/&lt;/code&gt; y una API bajo &lt;code&gt;/admin/api/&lt;/code&gt;, protegidas por
-&lt;code&gt;Authorization: Bearer &amp;lt;ADMIN_TOKEN&amp;gt;&lt;/code&gt; (comparado en tiempo constante). Sin él,
+&lt;code&gt;Authorization: Bearer &amp;lt;contenido de admin-token&amp;gt;&lt;/code&gt; (comparado en tiempo constante). Sin el archivo,
 &lt;code&gt;/admin/&lt;/code&gt; responde &lt;code&gt;503&lt;/code&gt;. Los archivos de la WebUI se sirven sin autenticación;
 esta pide el token y lo envía con cada llamada.&lt;/p&gt;
 &lt;table&gt;

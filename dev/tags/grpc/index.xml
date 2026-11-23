@@ -264,7 +264,7 @@ enrolled device. It runs on the Linux gateway host, beside an existing &lt;code&
 &lt;tr&gt;
 &lt;td&gt;&lt;/td&gt;
 &lt;td&gt;&lt;code&gt;/admin/&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;admin API and WebUI, when &lt;code&gt;ADMIN_TOKEN&lt;/code&gt; is set&lt;/td&gt;
+&lt;td&gt;admin API and WebUI, when the &lt;code&gt;admin-token&lt;/code&gt; credential exists&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;GRPC_ADDR&lt;/code&gt; (&lt;code&gt;:8444&lt;/code&gt;)&lt;/td&gt;
@@ -282,7 +282,8 @@ is plain (terminate TLS at a proxy), and so is the RouteService, which the
 clients then refuse except on loopback: devices connect, but get no live route
 updates.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="configuration"&gt;Configuration&lt;span class="hx:absolute hx:-mt-20" id="configuration"&gt;&lt;/span&gt;
-&lt;a href="#configuration" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;All configuration is in the environment.&lt;/p&gt;
+&lt;a href="#configuration" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Settings are in the environment. &lt;strong&gt;Secrets are not&lt;/strong&gt;: since v0.6.0 they are
+files in a credentials directory, see &lt;a href="#credentials"&gt;Credentials&lt;/a&gt; below.&lt;/p&gt;
 &lt;table&gt;
 &lt;thead&gt;
 &lt;tr&gt;
@@ -336,12 +337,6 @@ updates.&lt;/p&gt;
 &lt;td&gt;the gateway&amp;rsquo;s own client at the provider (&lt;code&gt;wireguard_peers&lt;/code&gt;)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
-&lt;td&gt;&lt;code&gt;GOAUTHN_GATEWAY_SECRET_FILE&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;—&lt;/td&gt;
-&lt;td&gt;its secret, &lt;strong&gt;from a file only&lt;/strong&gt;&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
 &lt;td&gt;&lt;code&gt;GOAUTHN_PEER_LIST_INTERVAL&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;&lt;/td&gt;
 &lt;td&gt;&lt;code&gt;30s&lt;/code&gt;&lt;/td&gt;
@@ -366,10 +361,10 @@ updates.&lt;/p&gt;
 &lt;td&gt;public &lt;code&gt;host:port&lt;/code&gt; of the gateway, advertised to clients&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
-&lt;td&gt;&lt;code&gt;WG_PRIVATE_KEY&lt;/code&gt; / &lt;code&gt;WG_PRIVATE_KEY_FILE&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;✅&lt;/td&gt;
 &lt;td&gt;—&lt;/td&gt;
-&lt;td&gt;the gateway&amp;rsquo;s base64 private key (the variable wins over the file)&lt;/td&gt;
+&lt;td&gt;the directory that holds the secret files, see &lt;a href="#credentials"&gt;Credentials&lt;/a&gt;&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;WG_INTERFACE&lt;/code&gt;&lt;/td&gt;
@@ -450,12 +445,6 @@ updates.&lt;/p&gt;
 &lt;td&gt;&lt;code&gt;host:port&lt;/code&gt; of the RouteService advertised to clients; empty, they do not watch&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
-&lt;td&gt;&lt;code&gt;ADMIN_TOKEN&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;/td&gt;
-&lt;td&gt;—&lt;/td&gt;
-&lt;td&gt;bearer for the admin API and WebUI; empty disables them&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
 &lt;td&gt;&lt;code&gt;TLS_CERT&lt;/code&gt; / &lt;code&gt;TLS_KEY&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;&lt;/td&gt;
 &lt;td&gt;—&lt;/td&gt;
@@ -469,6 +458,108 @@ updates.&lt;/p&gt;
 &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
+&lt;h2 data-hextra-search-id="credentials"&gt;Credentials&lt;span class="hx:absolute hx:-mt-20" id="credentials"&gt;&lt;/span&gt;
+&lt;a href="#credentials" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Every secret is a &lt;strong&gt;file&lt;/strong&gt; in the directory named by &lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt;,
+never an environment variable: an environment is copied into every child
+process and every crash dump. systemd sets the variable for &lt;code&gt;LoadCredential=&lt;/code&gt;
+and &lt;code&gt;LoadCredentialEncrypted=&lt;/code&gt;; on the other platforms you set it yourself. The
+file names are fixed, and one trailing newline is trimmed.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;File&lt;/th&gt;
+&lt;th&gt;Required&lt;/th&gt;
+&lt;th&gt;Content&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;wg-private-key&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;always&lt;/td&gt;
+&lt;td&gt;the gateway&amp;rsquo;s base64 private key&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;admin-token&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;no&lt;/td&gt;
+&lt;td&gt;bearer of the admin API and WebUI; &lt;strong&gt;without the file they are disabled&lt;/strong&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;goauthn-gateway-secret&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;AUTH_PROVIDER=go-authn&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;the gateway client&amp;rsquo;s secret&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;github-token&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;when any tenant has &lt;code&gt;members&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;bearer for &lt;code&gt;GET /users/{login}&lt;/code&gt; (see &lt;a href="https://claimward.github.io/docs/dev/tenants/"&gt;Tenants&lt;/a&gt;)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;A missing required file stops the start and names the file. Before reading, the
+server checks each file through its open descriptor (&lt;code&gt;O_NOFOLLOW&lt;/code&gt;, then
+&lt;code&gt;fstat&lt;/code&gt;) and &lt;strong&gt;refuses&lt;/strong&gt; a symbolic link, anything but a regular file, a file
+readable by group or other, a file not owned by the server&amp;rsquo;s uid, an empty file
+and one over 64 KiB. The error gives the fix.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Platform&lt;/th&gt;
+&lt;th&gt;&lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt;&lt;/th&gt;
+&lt;th&gt;Owner and mode&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;systemd&lt;/td&gt;
+&lt;td&gt;set by &lt;code&gt;LoadCredentialEncrypted=&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;the service user, &lt;code&gt;0400&lt;/code&gt;, on a private tmpfs&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Docker Swarm&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;/run/secrets&lt;/code&gt;, set by hand&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;mode: 0400&lt;/code&gt; on the secret&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Docker Compose&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;/run/secrets&lt;/code&gt;, set by hand&lt;/td&gt;
+&lt;td&gt;the host file&amp;rsquo;s: &lt;code&gt;chown&lt;/code&gt; and &lt;code&gt;chmod 0400&lt;/code&gt; it, and set &lt;code&gt;user:&lt;/code&gt; to match&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Podman&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;/run/secrets&lt;/code&gt;, set by hand&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;--secret ...,mode=0400&lt;/code&gt; (Quadlet: &lt;code&gt;Secret=...,mode=0400&lt;/code&gt;)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Kubernetes&lt;/td&gt;
+&lt;td&gt;the Secret volume&amp;rsquo;s mount path, set by hand&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;defaultMode: 0400&lt;/code&gt;; the files belong to root, so the pod runs as uid 0 with every capability dropped but &lt;code&gt;NET_ADMIN&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;otherwise&lt;/td&gt;
+&lt;td&gt;any directory&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;chmod 0400&lt;/code&gt;, owned by the service user&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Ready-made units for systemd, Compose, Podman and Kubernetes are in the
+repository&amp;rsquo;s &lt;code&gt;deploy/&lt;/code&gt; directory, with the &lt;code&gt;systemd-creds encrypt&lt;/code&gt; steps. Hosts
+without systemd will be able to get the same directory from &lt;code&gt;go-authn/sdcreds&lt;/code&gt;
+(&lt;code&gt;sdcreds s6-run&lt;/code&gt;) once its first release is tagged; nothing depends on it yet.&lt;/p&gt;
+&lt;p&gt;The organisation check of the &lt;code&gt;github&lt;/code&gt; provider does not use &lt;code&gt;github-token&lt;/code&gt;: it
+runs with the &lt;em&gt;person&amp;rsquo;s&lt;/em&gt; token, so a private membership is visible only if that
+token carries &lt;code&gt;read:org&lt;/code&gt;. The credential is optional while only organisations
+are used.&lt;/p&gt;
+&lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-amber-200 hx:bg-amber-100 hx:text-amber-900 hx:dark:border-amber-200/30 hx:dark:bg-amber-900/30 hx:dark:text-amber-200"&gt;
+&lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/&gt;&lt;/svg&gt;&lt;/div&gt;
+&lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Migrating from v0.5.0&lt;/strong&gt; (breaking). &lt;code&gt;ADMIN_TOKEN&lt;/code&gt;, &lt;code&gt;WG_PRIVATE_KEY&lt;/code&gt;,
+&lt;code&gt;WG_PRIVATE_KEY_FILE&lt;/code&gt; and &lt;code&gt;GOAUTHN_GATEWAY_SECRET_FILE&lt;/code&gt; are no longer read, and
+the server refuses to start while one of them is set, naming the file to
+create. Put each value in its file (&lt;code&gt;admin-token&lt;/code&gt;, &lt;code&gt;wg-private-key&lt;/code&gt;,
+&lt;code&gt;goauthn-gateway-secret&lt;/code&gt;), unset the variable and set &lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt;.
+A tenant with &lt;code&gt;members&lt;/code&gt; now also needs &lt;code&gt;github-token&lt;/code&gt;.&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
 &lt;h2 data-hextra-search-id="authentication-providers"&gt;Authentication providers&lt;span class="hx:absolute hx:-mt-20" id="authentication-providers"&gt;&lt;/span&gt;
 &lt;a href="#authentication-providers" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Authentication is pluggable behind the &lt;code&gt;Verifier&lt;/code&gt; interface
 (&lt;code&gt;internal/auth&lt;/code&gt;):&lt;/p&gt;
@@ -514,7 +605,9 @@ interface setup out of the long-running service.&lt;/p&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;OIDC_ISSUER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;https://accounts.google.com
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;OIDC_CLIENT_ID&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;xxxx.apps.googleusercontent.com
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;WG_ENDPOINT&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;vpn.example.com:51820
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;WG_PRIVATE_KEY&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;$(&lt;/span&gt;wg genkey&lt;span class="k"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;CREDENTIALS_DIRECTORY&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$HOME&lt;/span&gt;/.local/state/claimward-dev-creds
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;umask&lt;/span&gt; 077&lt;span class="p"&gt;;&lt;/span&gt; mkdir -p &lt;span class="s2"&gt;&amp;#34;&lt;/span&gt;&lt;span class="nv"&gt;$CREDENTIALS_DIRECTORY&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; wg genkey &amp;gt; &lt;span class="s2"&gt;&amp;#34;&lt;/span&gt;&lt;span class="nv"&gt;$CREDENTIALS_DIRECTORY&lt;/span&gt;&lt;span class="s2"&gt;/wg-private-key&amp;#34;&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;chmod &lt;span class="m"&gt;0400&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;&lt;/span&gt;&lt;span class="nv"&gt;$CREDENTIALS_DIRECTORY&lt;/span&gt;&lt;span class="s2"&gt;/wg-private-key&amp;#34;&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;WG_DRYRUN&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nb"&gt;true&lt;/span&gt; &lt;span class="nv"&gt;LISTEN_ADDR&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;:8080
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;go run ./cmd/claimward-server&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
@@ -959,7 +1052,10 @@ subject is &lt;code&gt;github:&amp;lt;id&amp;gt;&lt;/code&gt; for a pinned ID: a
 belongs to somebody else is refused. An &lt;strong&gt;unresolvable login is an error&lt;/strong&gt;: the
 server refuses to start, and the admin API answers &lt;code&gt;400&lt;/code&gt;. The admin API and
 WebUI show the logins; to follow a rename, edit the tenant again. Resolution is
-unauthenticated (60 requests an hour per address on github.com).&lt;/p&gt;
+authenticated with the &lt;code&gt;github-token&lt;/code&gt; credential (a file in
+&lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt;, sent as a bearer: 5000 requests an hour on
+github.com). A tenant with &lt;code&gt;members&lt;/code&gt; and no &lt;code&gt;github-token&lt;/code&gt; stops the start; the
+token is never sent over plain HTTP except to a loopback address.&lt;/p&gt;
 &lt;p&gt;A named member is also admitted by the GitHub entry gate without belonging to
 an allowed organisation (see &lt;a href="https://claimward.github.io/docs/dev/identity-providers/"&gt;identity providers&lt;/a&gt;).&lt;/p&gt;
 &lt;h2 data-hextra-search-id="where-tenants-come-from"&gt;Where tenants come from&lt;span class="hx:absolute hx:-mt-20" id="where-tenants-come-from"&gt;&lt;/span&gt;
@@ -1134,9 +1230,11 @@ provider then decides which keys may connect, and a gateway that cannot fetch
 its list admits nobody new. See
 &lt;a href="https://claimward.github.io/docs/dev/identity-providers/"&gt;Identity providers&lt;/a&gt;.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="admin-api-and-webui"&gt;Admin API and WebUI&lt;span class="hx:absolute hx:-mt-20" id="admin-api-and-webui"&gt;&lt;/span&gt;
-&lt;a href="#admin-api-and-webui" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;With &lt;code&gt;ADMIN_TOKEN&lt;/code&gt; set, the server serves an embedded Svelte WebUI at
-&lt;code&gt;/admin/&lt;/code&gt; and an API under &lt;code&gt;/admin/api/&lt;/code&gt;, guarded by
-&lt;code&gt;Authorization: Bearer &amp;lt;ADMIN_TOKEN&amp;gt;&lt;/code&gt; (compared in constant time). Without it,
+&lt;a href="#admin-api-and-webui" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;With the &lt;code&gt;admin-token&lt;/code&gt; credential present (a file in &lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt;,
+see &lt;a href="https://claimward.github.io/docs/dev/components/server/#credentials"&gt;Credentials&lt;/a&gt;), the
+server serves an embedded Svelte WebUI at &lt;code&gt;/admin/&lt;/code&gt; and an API under
+&lt;code&gt;/admin/api/&lt;/code&gt;, guarded by &lt;code&gt;Authorization: Bearer &amp;lt;contents of admin-token&amp;gt;&lt;/code&gt;
+(compared in constant time). Without the file,
 &lt;code&gt;/admin/&lt;/code&gt; answers &lt;code&gt;503&lt;/code&gt;. The WebUI&amp;rsquo;s files are served without authentication;
 it asks for the token and sends it with each call.&lt;/p&gt;
 &lt;table&gt;

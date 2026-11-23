@@ -54,7 +54,10 @@ subject is &lt;code&gt;github:&amp;lt;id&amp;gt;&lt;/code&gt; for a pinned ID: a
 belongs to somebody else is refused. An &lt;strong&gt;unresolvable login is an error&lt;/strong&gt;: the
 server refuses to start, and the admin API answers &lt;code&gt;400&lt;/code&gt;. The admin API and
 WebUI show the logins; to follow a rename, edit the tenant again. Resolution is
-unauthenticated (60 requests an hour per address on github.com).&lt;/p&gt;
+authenticated with the &lt;code&gt;github-token&lt;/code&gt; credential (a file in
+&lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt;, sent as a bearer: 5000 requests an hour on
+github.com). A tenant with &lt;code&gt;members&lt;/code&gt; and no &lt;code&gt;github-token&lt;/code&gt; stops the start; the
+token is never sent over plain HTTP except to a loopback address.&lt;/p&gt;
 &lt;p&gt;A named member is also admitted by the GitHub entry gate without belonging to
 an allowed organisation (see &lt;a href="https://claimward.github.io/docs/dev/identity-providers/"&gt;identity providers&lt;/a&gt;).&lt;/p&gt;
 &lt;h2 data-hextra-search-id="where-tenants-come-from"&gt;Where tenants come from&lt;span class="hx:absolute hx:-mt-20" id="where-tenants-come-from"&gt;&lt;/span&gt;

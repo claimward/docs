@@ -58,8 +58,10 @@ lecture seule. Une personne est membre quand le sujet de son jeton est
 appartient désormais à quelqu&amp;rsquo;un d&amp;rsquo;autre est refusé. Un &lt;strong&gt;login introuvable est
 une erreur&lt;/strong&gt; : le serveur refuse de démarrer, et l&amp;rsquo;API d&amp;rsquo;administration répond
 &lt;code&gt;400&lt;/code&gt;. L&amp;rsquo;API et la WebUI montrent les logins ; pour suivre un renommage, modifiez
-à nouveau le locataire. La résolution est anonyme (60 requêtes par heure et par
-adresse sur github.com).&lt;/p&gt;
+à nouveau le locataire. La résolution est authentifiée par l&amp;rsquo;identifiant &lt;code&gt;github-token&lt;/code&gt; (un fichier de
+&lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt;, envoyé comme jeton porteur : 5000 requêtes par heure sur
+github.com). Un locataire avec &lt;code&gt;members&lt;/code&gt; et sans &lt;code&gt;github-token&lt;/code&gt; empêche le démarrage ;
+le jeton n&amp;rsquo;est jamais envoyé en HTTP clair, sauf vers une adresse de bouclage.&lt;/p&gt;
 &lt;p&gt;Un membre nommé est aussi admis par la porte d&amp;rsquo;entrée GitHub sans appartenir à
 une organisation autorisée (voir les &lt;a href="https://claimward.github.io/docs/dev/fr/identity-providers/"&gt;fournisseurs d&amp;rsquo;identité&lt;/a&gt;).&lt;/p&gt;
 &lt;h2 data-hextra-search-id="where-tenants-come-from"&gt;D&amp;rsquo;où viennent les locataires&lt;span class="hx:absolute hx:-mt-20" id="where-tenants-come-from"&gt;&lt;/span&gt;

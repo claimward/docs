@@ -46,7 +46,7 @@ appareil enrôlé. Il s&amp;rsquo;exécute sur l&amp;rsquo;hôte de passerelle L
 &lt;tr&gt;
 &lt;td&gt;&lt;/td&gt;
 &lt;td&gt;&lt;code&gt;/admin/&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;API d&amp;rsquo;administration et WebUI, lorsque &lt;code&gt;ADMIN_TOKEN&lt;/code&gt; est défini&lt;/td&gt;
+&lt;td&gt;API d&amp;rsquo;administration et WebUI, lorsque l&amp;rsquo;identifiant &lt;code&gt;admin-token&lt;/code&gt; existe&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;GRPC_ADDR&lt;/code&gt; (&lt;code&gt;:8444&lt;/code&gt;)&lt;/td&gt;
@@ -64,7 +64,8 @@ est en clair (terminez TLS sur un proxy), tout comme le RouteService, que les
 clients refusent alors sauf en boucle locale : les appareils se connectent, mais ne reçoivent pas de mises à jour
 de routes en direct.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="configuration"&gt;Configuration&lt;span class="hx:absolute hx:-mt-20" id="configuration"&gt;&lt;/span&gt;
-&lt;a href="#configuration" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Toute la configuration se fait par l&amp;rsquo;environnement.&lt;/p&gt;
+&lt;a href="#configuration" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Les réglages sont dans l&amp;rsquo;environnement. &lt;strong&gt;Les secrets non&lt;/strong&gt; : depuis v0.6.0 ce
+sont des fichiers d&amp;rsquo;un répertoire d&amp;rsquo;identifiants, voir &lt;a href="#credentials"&gt;Identifiants&lt;/a&gt; plus bas.&lt;/p&gt;
 &lt;table&gt;
 &lt;thead&gt;
 &lt;tr&gt;
@@ -118,12 +119,6 @@ de routes en direct.&lt;/p&gt;
 &lt;td&gt;le client propre de la passerelle chez le fournisseur (&lt;code&gt;wireguard_peers&lt;/code&gt;)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
-&lt;td&gt;&lt;code&gt;GOAUTHN_GATEWAY_SECRET_FILE&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;—&lt;/td&gt;
-&lt;td&gt;son secret, &lt;strong&gt;uniquement depuis un fichier&lt;/strong&gt;&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
 &lt;td&gt;&lt;code&gt;GOAUTHN_PEER_LIST_INTERVAL&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;&lt;/td&gt;
 &lt;td&gt;&lt;code&gt;30s&lt;/code&gt;&lt;/td&gt;
@@ -148,10 +143,10 @@ de routes en direct.&lt;/p&gt;
 &lt;td&gt;&lt;code&gt;host:port&lt;/code&gt; public de la passerelle, annoncé aux clients&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
-&lt;td&gt;&lt;code&gt;WG_PRIVATE_KEY&lt;/code&gt; / &lt;code&gt;WG_PRIVATE_KEY_FILE&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;✅&lt;/td&gt;
 &lt;td&gt;—&lt;/td&gt;
-&lt;td&gt;la clé privée base64 de la passerelle (la variable l&amp;rsquo;emporte sur le fichier)&lt;/td&gt;
+&lt;td&gt;le répertoire qui contient les fichiers secrets, voir &lt;a href="#credentials"&gt;Identifiants&lt;/a&gt;&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;WG_INTERFACE&lt;/code&gt;&lt;/td&gt;
@@ -232,12 +227,6 @@ de routes en direct.&lt;/p&gt;
 &lt;td&gt;&lt;code&gt;host:port&lt;/code&gt; du RouteService annoncé aux clients ; vide, ils ne surveillent rien&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
-&lt;td&gt;&lt;code&gt;ADMIN_TOKEN&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;/td&gt;
-&lt;td&gt;—&lt;/td&gt;
-&lt;td&gt;jeton porteur pour l&amp;rsquo;API d&amp;rsquo;administration et la WebUI ; vide, elles sont désactivées&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
 &lt;td&gt;&lt;code&gt;TLS_CERT&lt;/code&gt; / &lt;code&gt;TLS_KEY&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;&lt;/td&gt;
 &lt;td&gt;—&lt;/td&gt;
@@ -251,6 +240,112 @@ de routes en direct.&lt;/p&gt;
 &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
+&lt;h2 data-hextra-search-id="credentials"&gt;Identifiants&lt;span class="hx:absolute hx:-mt-20" id="credentials"&gt;&lt;/span&gt;
+&lt;a href="#credentials" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Chaque secret est un &lt;strong&gt;fichier&lt;/strong&gt; du répertoire désigné par
+&lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt;, jamais une variable d&amp;rsquo;environnement : l&amp;rsquo;environnement
+est copié dans chaque processus fils et chaque image mémoire. systemd définit la
+variable pour &lt;code&gt;LoadCredential=&lt;/code&gt; et &lt;code&gt;LoadCredentialEncrypted=&lt;/code&gt; ; sur les autres
+plateformes, vous la définissez vous-même. Les noms de fichiers sont fixes, et
+un saut de ligne final est retiré.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Fichier&lt;/th&gt;
+&lt;th&gt;Requis&lt;/th&gt;
+&lt;th&gt;Contenu&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;wg-private-key&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;toujours&lt;/td&gt;
+&lt;td&gt;la clé privée base64 de la passerelle&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;admin-token&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;non&lt;/td&gt;
+&lt;td&gt;jeton porteur de l&amp;rsquo;API d&amp;rsquo;administration et de la WebUI ; &lt;strong&gt;sans le fichier, elles sont désactivées&lt;/strong&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;goauthn-gateway-secret&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;AUTH_PROVIDER=go-authn&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;le secret du client de la passerelle&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;github-token&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;quand un locataire a des &lt;code&gt;members&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;jeton porteur pour &lt;code&gt;GET /users/{login}&lt;/code&gt; (voir &lt;a href="https://claimward.github.io/docs/dev/fr/tenants/"&gt;Locataires&lt;/a&gt;)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Un fichier requis absent empêche le démarrage et est nommé. Avant de lire, le
+serveur contrôle chaque fichier par son descripteur ouvert (&lt;code&gt;O_NOFOLLOW&lt;/code&gt;, puis
+&lt;code&gt;fstat&lt;/code&gt;) et &lt;strong&gt;refuse&lt;/strong&gt; un lien symbolique, tout ce qui n&amp;rsquo;est pas un fichier
+ordinaire, un fichier lisible par le groupe ou les autres, un fichier qui
+n&amp;rsquo;appartient pas à l&amp;rsquo;uid du serveur, un fichier vide et un fichier de plus de
+64 Kio. L&amp;rsquo;erreur donne la correction.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Plateforme&lt;/th&gt;
+&lt;th&gt;&lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt;&lt;/th&gt;
+&lt;th&gt;Propriétaire et mode&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;systemd&lt;/td&gt;
+&lt;td&gt;défini par &lt;code&gt;LoadCredentialEncrypted=&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;l&amp;rsquo;utilisateur du service, &lt;code&gt;0400&lt;/code&gt;, sur un tmpfs privé&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Docker Swarm&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;/run/secrets&lt;/code&gt;, défini à la main&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;mode: 0400&lt;/code&gt; sur le secret&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Docker Compose&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;/run/secrets&lt;/code&gt;, défini à la main&lt;/td&gt;
+&lt;td&gt;ceux du fichier de l&amp;rsquo;hôte : &lt;code&gt;chown&lt;/code&gt; et &lt;code&gt;chmod 0400&lt;/code&gt;, et ajustez &lt;code&gt;user:&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Podman&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;/run/secrets&lt;/code&gt;, défini à la main&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;--secret ...,mode=0400&lt;/code&gt; (Quadlet : &lt;code&gt;Secret=...,mode=0400&lt;/code&gt;)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Kubernetes&lt;/td&gt;
+&lt;td&gt;le chemin de montage du volume Secret, défini à la main&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;defaultMode: 0400&lt;/code&gt; ; les fichiers appartiennent à root, donc le pod tourne en uid 0, toutes capacités retirées sauf &lt;code&gt;NET_ADMIN&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;autres&lt;/td&gt;
+&lt;td&gt;n&amp;rsquo;importe quel répertoire&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;chmod 0400&lt;/code&gt;, propriété de l&amp;rsquo;utilisateur du service&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Des unités prêtes à l&amp;rsquo;emploi pour systemd, Compose, Podman et Kubernetes se
+trouvent dans le répertoire &lt;code&gt;deploy/&lt;/code&gt; du dépôt, avec les étapes de
+&lt;code&gt;systemd-creds encrypt&lt;/code&gt;. Les hôtes sans systemd pourront obtenir le même
+répertoire avec &lt;code&gt;go-authn/sdcreds&lt;/code&gt; (&lt;code&gt;sdcreds s6-run&lt;/code&gt;) dès que sa première
+version sera étiquetée ; rien n&amp;rsquo;en dépend pour l&amp;rsquo;instant.&lt;/p&gt;
+&lt;p&gt;Le contrôle d&amp;rsquo;organisation du fournisseur &lt;code&gt;github&lt;/code&gt; n&amp;rsquo;utilise pas &lt;code&gt;github-token&lt;/code&gt; :
+il se fait avec le jeton de la &lt;em&gt;personne&lt;/em&gt;, donc une appartenance privée n&amp;rsquo;est
+visible que si ce jeton porte &lt;code&gt;read:org&lt;/code&gt;. L&amp;rsquo;identifiant est facultatif tant que
+seules des organisations sont utilisées.&lt;/p&gt;
+&lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-amber-200 hx:bg-amber-100 hx:text-amber-900 hx:dark:border-amber-200/30 hx:dark:bg-amber-900/30 hx:dark:text-amber-200"&gt;
+&lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/&gt;&lt;/svg&gt;&lt;/div&gt;
+&lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Migration depuis v0.5.0&lt;/strong&gt; (rupture). &lt;code&gt;ADMIN_TOKEN&lt;/code&gt;, &lt;code&gt;WG_PRIVATE_KEY&lt;/code&gt;,
+&lt;code&gt;WG_PRIVATE_KEY_FILE&lt;/code&gt; et &lt;code&gt;GOAUTHN_GATEWAY_SECRET_FILE&lt;/code&gt; ne sont plus lues, et le
+serveur refuse de démarrer tant que l&amp;rsquo;une d&amp;rsquo;elles est définie, en nommant le
+fichier à créer. Mettez chaque valeur dans son fichier (&lt;code&gt;admin-token&lt;/code&gt;,
+&lt;code&gt;wg-private-key&lt;/code&gt;, &lt;code&gt;goauthn-gateway-secret&lt;/code&gt;), supprimez la variable et définissez
+&lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt;. Un locataire avec &lt;code&gt;members&lt;/code&gt; exige désormais aussi
+&lt;code&gt;github-token&lt;/code&gt;.&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
 &lt;h2 data-hextra-search-id="authentication-providers"&gt;Fournisseurs d&amp;rsquo;authentification&lt;span class="hx:absolute hx:-mt-20" id="authentication-providers"&gt;&lt;/span&gt;
 &lt;a href="#authentication-providers" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;L&amp;rsquo;authentification est modulaire, derrière l&amp;rsquo;interface &lt;code&gt;Verifier&lt;/code&gt;
 (&lt;code&gt;internal/auth&lt;/code&gt;) :&lt;/p&gt;
@@ -296,7 +391,9 @@ de l&amp;rsquo;interface hors du service de longue durée.&lt;/p&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;OIDC_ISSUER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;https://accounts.google.com
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;OIDC_CLIENT_ID&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;xxxx.apps.googleusercontent.com
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;WG_ENDPOINT&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;vpn.example.com:51820
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;WG_PRIVATE_KEY&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;$(&lt;/span&gt;wg genkey&lt;span class="k"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;CREDENTIALS_DIRECTORY&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$HOME&lt;/span&gt;/.local/state/claimward-dev-creds
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;umask&lt;/span&gt; 077&lt;span class="p"&gt;;&lt;/span&gt; mkdir -p &lt;span class="s2"&gt;&amp;#34;&lt;/span&gt;&lt;span class="nv"&gt;$CREDENTIALS_DIRECTORY&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; wg genkey &amp;gt; &lt;span class="s2"&gt;&amp;#34;&lt;/span&gt;&lt;span class="nv"&gt;$CREDENTIALS_DIRECTORY&lt;/span&gt;&lt;span class="s2"&gt;/wg-private-key&amp;#34;&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;chmod &lt;span class="m"&gt;0400&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;&lt;/span&gt;&lt;span class="nv"&gt;$CREDENTIALS_DIRECTORY&lt;/span&gt;&lt;span class="s2"&gt;/wg-private-key&amp;#34;&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;WG_DRYRUN&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nb"&gt;true&lt;/span&gt; &lt;span class="nv"&gt;LISTEN_ADDR&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;:8080
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;go run ./cmd/claimward-server&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
@@ -589,7 +686,7 @@ data-copied-label="Copié !"
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;AUTH_PROVIDER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;github &lt;span class="c1"&gt;# the default&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;GITHUB_ALLOWED_ORGS&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;claimward &lt;span class="c1"&gt;# an org allowlist, or name tenant `members` instead (the server refuses to start with neither)&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;WG_ENDPOINT&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;vpn.example.com:51820
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;WG_PRIVATE_KEY_FILE&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;/etc/wireguard/server.key
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;CREDENTIALS_DIRECTORY&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;/etc/claimward/credentials &lt;span class="c1"&gt;# contient le fichier wg-private-key (0400, propriété de l&amp;#39;utilisateur du service)&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;VPN_CIDR&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;10.80.0.0/24
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;TLS_CERT&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;/etc/claimward/fullchain.pem &lt;span class="c1"&gt;# HTTPS, and TLS on the gRPC RouteService&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;TLS_KEY&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;/etc/claimward/privkey.pem
@@ -919,9 +1016,11 @@ fournisseur décide alors quelles clés peuvent se connecter, et une passerelle 
 sa liste n&amp;rsquo;admet aucun nouvel appareil. Voir
 &lt;a href="https://claimward.github.io/docs/dev/fr/identity-providers/"&gt;Fournisseurs d&amp;rsquo;identité&lt;/a&gt;.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="admin-api-and-webui"&gt;API d&amp;rsquo;administration et WebUI&lt;span class="hx:absolute hx:-mt-20" id="admin-api-and-webui"&gt;&lt;/span&gt;
-&lt;a href="#admin-api-and-webui" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Lorsque &lt;code&gt;ADMIN_TOKEN&lt;/code&gt; est défini, le serveur sert une WebUI Svelte embarquée sur
+&lt;a href="#admin-api-and-webui" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Lorsque l&amp;rsquo;identifiant &lt;code&gt;admin-token&lt;/code&gt; est présent (un fichier de
+&lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt;, voir &lt;a href="https://claimward.github.io/docs/dev/fr/components/server/#credentials"&gt;Identifiants&lt;/a&gt;),
+le serveur sert une WebUI Svelte embarquée sur
 &lt;code&gt;/admin/&lt;/code&gt; et une API sous &lt;code&gt;/admin/api/&lt;/code&gt;, protégées par
-&lt;code&gt;Authorization: Bearer &amp;lt;ADMIN_TOKEN&amp;gt;&lt;/code&gt; (comparé en temps constant). Sans lui,
+&lt;code&gt;Authorization: Bearer &amp;lt;contenu de admin-token&amp;gt;&lt;/code&gt; (comparé en temps constant). Sans le fichier,
 &lt;code&gt;/admin/&lt;/code&gt; répond &lt;code&gt;503&lt;/code&gt;. Les fichiers de la WebUI sont servis sans authentification ;
 elle demande le jeton et l&amp;rsquo;envoie avec chaque appel.&lt;/p&gt;
 &lt;table&gt;

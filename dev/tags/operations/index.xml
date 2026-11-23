@@ -67,9 +67,11 @@ provider then decides which keys may connect, and a gateway that cannot fetch
 its list admits nobody new. See
 &lt;a href="https://claimward.github.io/docs/dev/identity-providers/"&gt;Identity providers&lt;/a&gt;.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="admin-api-and-webui"&gt;Admin API and WebUI&lt;span class="hx:absolute hx:-mt-20" id="admin-api-and-webui"&gt;&lt;/span&gt;
-&lt;a href="#admin-api-and-webui" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;With &lt;code&gt;ADMIN_TOKEN&lt;/code&gt; set, the server serves an embedded Svelte WebUI at
-&lt;code&gt;/admin/&lt;/code&gt; and an API under &lt;code&gt;/admin/api/&lt;/code&gt;, guarded by
-&lt;code&gt;Authorization: Bearer &amp;lt;ADMIN_TOKEN&amp;gt;&lt;/code&gt; (compared in constant time). Without it,
+&lt;a href="#admin-api-and-webui" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;With the &lt;code&gt;admin-token&lt;/code&gt; credential present (a file in &lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt;,
+see &lt;a href="https://claimward.github.io/docs/dev/components/server/#credentials"&gt;Credentials&lt;/a&gt;), the
+server serves an embedded Svelte WebUI at &lt;code&gt;/admin/&lt;/code&gt; and an API under
+&lt;code&gt;/admin/api/&lt;/code&gt;, guarded by &lt;code&gt;Authorization: Bearer &amp;lt;contents of admin-token&amp;gt;&lt;/code&gt;
+(compared in constant time). Without the file,
 &lt;code&gt;/admin/&lt;/code&gt; answers &lt;code&gt;503&lt;/code&gt;. The WebUI&amp;rsquo;s files are served without authentication;
 it asks for the token and sends it with each call.&lt;/p&gt;
 &lt;table&gt;

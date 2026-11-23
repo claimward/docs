@@ -67,9 +67,11 @@ Anbieter entscheidet dann, welche Schlüssel sich verbinden dürfen, und ein Gat
 seine Liste nicht abrufen kann, lässt niemanden Neues zu. Siehe
 &lt;a href="https://claimward.github.io/docs/dev/de/identity-providers/"&gt;Identitätsanbieter&lt;/a&gt;.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="admin-api-and-webui"&gt;Admin-API und WebUI&lt;span class="hx:absolute hx:-mt-20" id="admin-api-and-webui"&gt;&lt;/span&gt;
-&lt;a href="#admin-api-and-webui" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Wenn &lt;code&gt;ADMIN_TOKEN&lt;/code&gt; gesetzt ist, stellt der Server eine eingebettete Svelte-WebUI unter
+&lt;a href="#admin-api-and-webui" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Wenn die Credential &lt;code&gt;admin-token&lt;/code&gt; vorhanden ist (eine Datei in
+&lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt;, siehe &lt;a href="https://claimward.github.io/docs/dev/de/components/server/#credentials"&gt;Credentials&lt;/a&gt;),
+stellt der Server eine eingebettete Svelte-WebUI unter
 &lt;code&gt;/admin/&lt;/code&gt; und eine API unter &lt;code&gt;/admin/api/&lt;/code&gt; bereit, geschützt durch
-&lt;code&gt;Authorization: Bearer &amp;lt;ADMIN_TOKEN&amp;gt;&lt;/code&gt; (in konstanter Zeit verglichen). Ohne es
+&lt;code&gt;Authorization: Bearer &amp;lt;Inhalt von admin-token&amp;gt;&lt;/code&gt; (in konstanter Zeit verglichen). Ohne die Datei
 antwortet &lt;code&gt;/admin/&lt;/code&gt; mit &lt;code&gt;503&lt;/code&gt;. Die Dateien der WebUI werden ohne Authentifizierung ausgeliefert;
 sie fragt nach dem Token und sendet es bei jedem Aufruf mit.&lt;/p&gt;
 &lt;table&gt;

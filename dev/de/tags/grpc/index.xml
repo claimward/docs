@@ -264,7 +264,7 @@ registriertem Gerät. Er läuft auf dem Linux-Gateway-Host, neben einem vorhande
 &lt;tr&gt;
 &lt;td&gt;&lt;/td&gt;
 &lt;td&gt;&lt;code&gt;/admin/&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;Admin-API und WebUI, wenn &lt;code&gt;ADMIN_TOKEN&lt;/code&gt; gesetzt ist&lt;/td&gt;
+&lt;td&gt;Admin-API und WebUI, wenn die Credential &lt;code&gt;admin-token&lt;/code&gt; existiert&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;GRPC_ADDR&lt;/code&gt; (&lt;code&gt;:8444&lt;/code&gt;)&lt;/td&gt;
@@ -283,7 +283,8 @@ unverschlüsselt (terminieren Sie TLS an einem Proxy), ebenso der RouteService, 
 Clients dann ablehnen, außer über Loopback: Geräte verbinden sich, erhalten aber keine Live-Aktualisierungen
 der Routen.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="configuration"&gt;Konfiguration&lt;span class="hx:absolute hx:-mt-20" id="configuration"&gt;&lt;/span&gt;
-&lt;a href="#configuration" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Die gesamte Konfiguration erfolgt über die Umgebung.&lt;/p&gt;
+&lt;a href="#configuration" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Die Einstellungen stehen in der Umgebung. &lt;strong&gt;Secrets nicht&lt;/strong&gt;: Seit v0.6.0 sind
+sie Dateien in einem Credentials-Verzeichnis, siehe &lt;a href="#credentials"&gt;Credentials&lt;/a&gt; unten.&lt;/p&gt;
 &lt;table&gt;
 &lt;thead&gt;
 &lt;tr&gt;
@@ -337,12 +338,6 @@ der Routen.&lt;/p&gt;
 &lt;td&gt;der eigene Client des Gateways beim Anbieter (&lt;code&gt;wireguard_peers&lt;/code&gt;)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
-&lt;td&gt;&lt;code&gt;GOAUTHN_GATEWAY_SECRET_FILE&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;—&lt;/td&gt;
-&lt;td&gt;sein Secret, &lt;strong&gt;nur aus einer Datei&lt;/strong&gt;&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
 &lt;td&gt;&lt;code&gt;GOAUTHN_PEER_LIST_INTERVAL&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;&lt;/td&gt;
 &lt;td&gt;&lt;code&gt;30s&lt;/code&gt;&lt;/td&gt;
@@ -367,10 +362,10 @@ der Routen.&lt;/p&gt;
 &lt;td&gt;öffentlicher &lt;code&gt;host:port&lt;/code&gt; des Gateways, den Clients mitgeteilt&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
-&lt;td&gt;&lt;code&gt;WG_PRIVATE_KEY&lt;/code&gt; / &lt;code&gt;WG_PRIVATE_KEY_FILE&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;✅&lt;/td&gt;
 &lt;td&gt;—&lt;/td&gt;
-&lt;td&gt;der private Schlüssel des Gateways in Base64 (die Variable hat Vorrang vor der Datei)&lt;/td&gt;
+&lt;td&gt;das Verzeichnis mit den Secret-Dateien, siehe &lt;a href="#credentials"&gt;Credentials&lt;/a&gt;&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;WG_INTERFACE&lt;/code&gt;&lt;/td&gt;
@@ -451,12 +446,6 @@ der Routen.&lt;/p&gt;
 &lt;td&gt;den Clients mitgeteilter &lt;code&gt;host:port&lt;/code&gt; des RouteService; ist er leer, beobachten sie nicht&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
-&lt;td&gt;&lt;code&gt;ADMIN_TOKEN&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;/td&gt;
-&lt;td&gt;—&lt;/td&gt;
-&lt;td&gt;Bearer-Token für die Admin-API und die WebUI; leer deaktiviert sie&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
 &lt;td&gt;&lt;code&gt;TLS_CERT&lt;/code&gt; / &lt;code&gt;TLS_KEY&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;&lt;/td&gt;
 &lt;td&gt;—&lt;/td&gt;
@@ -470,6 +459,111 @@ der Routen.&lt;/p&gt;
 &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
+&lt;h2 data-hextra-search-id="credentials"&gt;Credentials&lt;span class="hx:absolute hx:-mt-20" id="credentials"&gt;&lt;/span&gt;
+&lt;a href="#credentials" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Jedes Secret ist eine &lt;strong&gt;Datei&lt;/strong&gt; im Verzeichnis, das &lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt;
+nennt, nie eine Umgebungsvariable: Eine Umgebung wird in jeden Kindprozess und
+jeden Crash-Dump kopiert. systemd setzt die Variable für &lt;code&gt;LoadCredential=&lt;/code&gt; und
+&lt;code&gt;LoadCredentialEncrypted=&lt;/code&gt;; auf den anderen Plattformen setzen Sie sie selbst.
+Die Dateinamen sind fest, ein abschließender Zeilenumbruch wird entfernt.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Datei&lt;/th&gt;
+&lt;th&gt;Erforderlich&lt;/th&gt;
+&lt;th&gt;Inhalt&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;wg-private-key&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;immer&lt;/td&gt;
+&lt;td&gt;der private Schlüssel des Gateways in Base64&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;admin-token&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;nein&lt;/td&gt;
+&lt;td&gt;Bearer-Token der Admin-API und der WebUI; &lt;strong&gt;ohne die Datei sind sie deaktiviert&lt;/strong&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;goauthn-gateway-secret&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;AUTH_PROVIDER=go-authn&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;das Secret des Gateway-Clients&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;github-token&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;wenn ein Mandant &lt;code&gt;members&lt;/code&gt; hat&lt;/td&gt;
+&lt;td&gt;Bearer für &lt;code&gt;GET /users/{login}&lt;/code&gt; (siehe &lt;a href="https://claimward.github.io/docs/dev/de/tenants/"&gt;Mandanten&lt;/a&gt;)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Eine fehlende erforderliche Datei verhindert den Start und wird benannt. Vor dem
+Lesen prüft der Server jede Datei über den offenen Deskriptor (&lt;code&gt;O_NOFOLLOW&lt;/code&gt;,
+dann &lt;code&gt;fstat&lt;/code&gt;) und &lt;strong&gt;verweigert&lt;/strong&gt; einen symbolischen Link, alles außer einer
+regulären Datei, eine für Gruppe oder andere lesbare Datei, eine Datei, die
+nicht der UID des Servers gehört, eine leere Datei und eine über 64 KiB. Die
+Fehlermeldung nennt die Abhilfe.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Plattform&lt;/th&gt;
+&lt;th&gt;&lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt;&lt;/th&gt;
+&lt;th&gt;Eigentümer und Modus&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;systemd&lt;/td&gt;
+&lt;td&gt;von &lt;code&gt;LoadCredentialEncrypted=&lt;/code&gt; gesetzt&lt;/td&gt;
+&lt;td&gt;der Dienstbenutzer, &lt;code&gt;0400&lt;/code&gt;, auf einem privaten tmpfs&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Docker Swarm&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;/run/secrets&lt;/code&gt;, von Hand gesetzt&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;mode: 0400&lt;/code&gt; am Secret&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Docker Compose&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;/run/secrets&lt;/code&gt;, von Hand gesetzt&lt;/td&gt;
+&lt;td&gt;die der Host-Datei: &lt;code&gt;chown&lt;/code&gt; und &lt;code&gt;chmod 0400&lt;/code&gt;, und &lt;code&gt;user:&lt;/code&gt; passend setzen&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Podman&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;/run/secrets&lt;/code&gt;, von Hand gesetzt&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;--secret ...,mode=0400&lt;/code&gt; (Quadlet: &lt;code&gt;Secret=...,mode=0400&lt;/code&gt;)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Kubernetes&lt;/td&gt;
+&lt;td&gt;der Mount-Pfad des Secret-Volumes, von Hand gesetzt&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;defaultMode: 0400&lt;/code&gt;; die Dateien gehören root, daher läuft der Pod als UID 0 mit allen Capabilities außer &lt;code&gt;NET_ADMIN&lt;/code&gt; entfernt&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;sonst&lt;/td&gt;
+&lt;td&gt;ein beliebiges Verzeichnis&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;chmod 0400&lt;/code&gt;, Eigentümer: der Dienstbenutzer&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Fertige Units für systemd, Compose, Podman und Kubernetes liegen im Verzeichnis
+&lt;code&gt;deploy/&lt;/code&gt; des Repositorys, mit den Schritten für &lt;code&gt;systemd-creds encrypt&lt;/code&gt;. Hosts
+ohne systemd können dasselbe Verzeichnis künftig von &lt;code&gt;go-authn/sdcreds&lt;/code&gt;
+(&lt;code&gt;sdcreds s6-run&lt;/code&gt;) erhalten, sobald dessen erste Version getaggt ist; nichts
+hängt bisher davon ab.&lt;/p&gt;
+&lt;p&gt;Die Organisationsprüfung des Anbieters &lt;code&gt;github&lt;/code&gt; verwendet &lt;code&gt;github-token&lt;/code&gt; nicht:
+Sie läuft mit dem Token der &lt;em&gt;Person&lt;/em&gt;, ein privates Mitglied ist also nur
+sichtbar, wenn dieses Token &lt;code&gt;read:org&lt;/code&gt; trägt. Die Credential ist optional,
+solange nur Organisationen verwendet werden.&lt;/p&gt;
+&lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-amber-200 hx:bg-amber-100 hx:text-amber-900 hx:dark:border-amber-200/30 hx:dark:bg-amber-900/30 hx:dark:text-amber-200"&gt;
+&lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/&gt;&lt;/svg&gt;&lt;/div&gt;
+&lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Migration von v0.5.0&lt;/strong&gt; (inkompatibel). &lt;code&gt;ADMIN_TOKEN&lt;/code&gt;, &lt;code&gt;WG_PRIVATE_KEY&lt;/code&gt;,
+&lt;code&gt;WG_PRIVATE_KEY_FILE&lt;/code&gt; und &lt;code&gt;GOAUTHN_GATEWAY_SECRET_FILE&lt;/code&gt; werden nicht mehr
+gelesen, und der Server verweigert den Start, solange eine davon gesetzt ist;
+er nennt die anzulegende Datei. Legen Sie jeden Wert in seine Datei
+(&lt;code&gt;admin-token&lt;/code&gt;, &lt;code&gt;wg-private-key&lt;/code&gt;, &lt;code&gt;goauthn-gateway-secret&lt;/code&gt;), entfernen Sie die
+Variable und setzen Sie &lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt;. Ein Mandant mit &lt;code&gt;members&lt;/code&gt;
+braucht jetzt auch &lt;code&gt;github-token&lt;/code&gt;.&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
 &lt;h2 data-hextra-search-id="authentication-providers"&gt;Authentifizierungsanbieter&lt;span class="hx:absolute hx:-mt-20" id="authentication-providers"&gt;&lt;/span&gt;
 &lt;a href="#authentication-providers" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Die Authentifizierung ist hinter der Schnittstelle &lt;code&gt;Verifier&lt;/code&gt; austauschbar
 (&lt;code&gt;internal/auth&lt;/code&gt;):&lt;/p&gt;
@@ -515,7 +609,9 @@ Einrichtung der Schnittstelle aus dem dauerhaft laufenden Dienst heraushält.&lt
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;OIDC_ISSUER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;https://accounts.google.com
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;OIDC_CLIENT_ID&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;xxxx.apps.googleusercontent.com
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;WG_ENDPOINT&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;vpn.example.com:51820
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;WG_PRIVATE_KEY&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="k"&gt;$(&lt;/span&gt;wg genkey&lt;span class="k"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;CREDENTIALS_DIRECTORY&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$HOME&lt;/span&gt;/.local/state/claimward-dev-creds
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;umask&lt;/span&gt; 077&lt;span class="p"&gt;;&lt;/span&gt; mkdir -p &lt;span class="s2"&gt;&amp;#34;&lt;/span&gt;&lt;span class="nv"&gt;$CREDENTIALS_DIRECTORY&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; wg genkey &amp;gt; &lt;span class="s2"&gt;&amp;#34;&lt;/span&gt;&lt;span class="nv"&gt;$CREDENTIALS_DIRECTORY&lt;/span&gt;&lt;span class="s2"&gt;/wg-private-key&amp;#34;&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;chmod &lt;span class="m"&gt;0400&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;&lt;/span&gt;&lt;span class="nv"&gt;$CREDENTIALS_DIRECTORY&lt;/span&gt;&lt;span class="s2"&gt;/wg-private-key&amp;#34;&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;WG_DRYRUN&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nb"&gt;true&lt;/span&gt; &lt;span class="nv"&gt;LISTEN_ADDR&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;:8080
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;go run ./cmd/claimward-server&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
@@ -965,7 +1061,10 @@ Konto, dessen alter Login jetzt jemand anderem gehört, wird abgewiesen. Ein
 &lt;strong&gt;nicht auflösbarer Login ist ein Fehler&lt;/strong&gt;: Der Server startet nicht, und die
 Admin-API antwortet mit &lt;code&gt;400&lt;/code&gt;. Admin-API und WebUI zeigen die Logins; um einer
 Umbenennung zu folgen, bearbeiten Sie den Mandanten erneut. Die Auflösung ist
-anonym (60 Anfragen pro Stunde und Adresse bei github.com).&lt;/p&gt;
+mit der Credential &lt;code&gt;github-token&lt;/code&gt; authentifiziert (eine Datei in
+&lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt;, als Bearer gesendet: 5000 Anfragen pro Stunde bei
+github.com). Ein Mandant mit &lt;code&gt;members&lt;/code&gt; ohne &lt;code&gt;github-token&lt;/code&gt; verhindert den Start;
+das Token wird nie über unverschlüsseltes HTTP gesendet, außer an eine Loopback-Adresse.&lt;/p&gt;
 &lt;p&gt;Ein benanntes Mitglied wird vom GitHub-Eingangstor auch ohne Zugehörigkeit zu
 einer erlaubten Organisation zugelassen (siehe &lt;a href="https://claimward.github.io/docs/dev/de/identity-providers/"&gt;Identitätsanbieter&lt;/a&gt;).&lt;/p&gt;
 &lt;h2 data-hextra-search-id="where-tenants-come-from"&gt;Woher die Mandanten kommen&lt;span class="hx:absolute hx:-mt-20" id="where-tenants-come-from"&gt;&lt;/span&gt;
@@ -1143,9 +1242,11 @@ Anbieter entscheidet dann, welche Schlüssel sich verbinden dürfen, und ein Gat
 seine Liste nicht abrufen kann, lässt niemanden Neues zu. Siehe
 &lt;a href="https://claimward.github.io/docs/dev/de/identity-providers/"&gt;Identitätsanbieter&lt;/a&gt;.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="admin-api-and-webui"&gt;Admin-API und WebUI&lt;span class="hx:absolute hx:-mt-20" id="admin-api-and-webui"&gt;&lt;/span&gt;
-&lt;a href="#admin-api-and-webui" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Wenn &lt;code&gt;ADMIN_TOKEN&lt;/code&gt; gesetzt ist, stellt der Server eine eingebettete Svelte-WebUI unter
+&lt;a href="#admin-api-and-webui" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Wenn die Credential &lt;code&gt;admin-token&lt;/code&gt; vorhanden ist (eine Datei in
+&lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt;, siehe &lt;a href="https://claimward.github.io/docs/dev/de/components/server/#credentials"&gt;Credentials&lt;/a&gt;),
+stellt der Server eine eingebettete Svelte-WebUI unter
 &lt;code&gt;/admin/&lt;/code&gt; und eine API unter &lt;code&gt;/admin/api/&lt;/code&gt; bereit, geschützt durch
-&lt;code&gt;Authorization: Bearer &amp;lt;ADMIN_TOKEN&amp;gt;&lt;/code&gt; (in konstanter Zeit verglichen). Ohne es
+&lt;code&gt;Authorization: Bearer &amp;lt;Inhalt von admin-token&amp;gt;&lt;/code&gt; (in konstanter Zeit verglichen). Ohne die Datei
 antwortet &lt;code&gt;/admin/&lt;/code&gt; mit &lt;code&gt;503&lt;/code&gt;. Die Dateien der WebUI werden ohne Authentifizierung ausgeliefert;
 sie fragt nach dem Token und sendet es bei jedem Aufruf mit.&lt;/p&gt;
 &lt;table&gt;
