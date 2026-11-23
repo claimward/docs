@@ -61,6 +61,7 @@ files in a credentials directory, see [Credentials](#credentials) below.
 | `TENANTS_FILE` | | — | JSON file of tenants loaded at start, with their [access policy]({{< relref "/tenants.md#access-policy" >}}) |
 | `KEEPALIVE` | | `25` | persistent keepalive advertised to clients (seconds) |
 | `LEASE_TTL` | | `24h` | how long an enrollment lasts without a heartbeat |
+| `TUNNEL_MTU` | | derived | MTU of the WireGuard interface, 1280 to 9000, advertised as `mtu`; anything else refuses to start. Unset: the uplink MTU minus 80, at most 1420, at least 1280 |
 | `LISTEN_ADDR` | | `:8443` | HTTP listen address |
 | `GRPC_ADDR` | | `:8444` | RouteService listen address; `Watch` streams are re-authorised every 15 s and end when the identity is no longer allowed |
 | `METRICS_ADDR` | | `127.0.0.1:9090` | separate listener for `/metrics` (loopback by default; it is no longer served on `LISTEN_ADDR`) |

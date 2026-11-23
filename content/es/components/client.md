@@ -28,6 +28,7 @@ el módulo que solo contiene la biblioteca es la base sobre la que se construyen
 | `pkg/browser` | abre una URL en el navegador predeterminado con rutas absolutas al programa que la abre, para que funcione desde aplicaciones gráficas |
 | `pkg/client` | `Enroll`, `Tenants`, `Heartbeat`, `Deregister` contra el servidor, y `TunnelConfig` para convertir un `EnrollResponse` en un `wgtun.Config` |
 | `pkg/wgkey` | generación y análisis de claves WireGuard |
+| `pkg/pathmtu` | ajusta la MTU del túnel al camino: el `mtu` del servidor (1420 por defecto), reducido a la MTU de la interfaz hacia el endpoint menos 60 (IPv4) u 80 (IPv6), nunca por debajo de 1280, nunca por encima del valor del servidor; solo biblioteca estándar |
 | `pkg/wgtun` | túnel WireGuard en espacio de usuario con `wireguard-go`, más dirección y rutas: `ifconfig`/`route` en macOS, `ip` en Linux, un adaptador Wintun mediante `winipcfg` en Windows (con DNS y MTU); requiere privilegios |
 | `pkg/routeclient` | observa el RouteService del servidor y notifica las actualizaciones de rutas; TLS salvo hacia loopback |
 | `pkg/appcore` | la lógica de las aplicaciones, compartida por las tres: inicio de sesión, el inquilino elegido para la sesión, conexión y desconexión a través del helper, estado para la interfaz |

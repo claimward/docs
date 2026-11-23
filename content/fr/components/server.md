@@ -61,6 +61,7 @@ sont des fichiers d'un répertoire d'identifiants, voir [Identifiants](#credenti
 | `DNS` | | — | serveurs DNS CSV du locataire `default` |
 | `KEEPALIVE` | | `25` | keepalive persistant annoncé aux clients (secondes) |
 | `LEASE_TTL` | | `24h` | durée d'un enrôlement sans heartbeat |
+| `TUNNEL_MTU` | | déduit | MTU de l'interface WireGuard, de 1280 à 9000, annoncé comme `mtu` ; toute autre valeur refuse le démarrage. Non défini : MTU de la liaison montante moins 80, au plus 1420, au moins 1280 |
 | `LISTEN_ADDR` | | `:8443` | adresse d'écoute HTTP |
 | `GRPC_ADDR` | | `:8444` | adresse d'écoute du RouteService ; les flux `Watch` sont ré-autorisés toutes les 15 s et se terminent quand l'identité n'est plus admise |
 | `METRICS_ADDR` | | `127.0.0.1:9090` | écouteur séparé pour `/metrics` (boucle locale par défaut ; plus servi sur `LISTEN_ADDR`) |

@@ -28,6 +28,7 @@ das reine Bibliotheksmodul ist die Grundlage der Apps.
 | `pkg/browser` | öffnet eine URL im Standardbrowser mit absoluten Pfaden zu den Öffnerprogrammen, damit es aus GUI-Apps heraus funktioniert |
 | `pkg/client` | `Enroll`, `Tenants`, `Heartbeat`, `Deregister` gegen den Server sowie `TunnelConfig`, um eine `EnrollResponse` in eine `wgtun.Config` umzuwandeln |
 | `pkg/wgkey` | Erzeugung und Parsen von WireGuard-Schlüsseln |
+| `pkg/pathmtu` | passt die Tunnel-MTU an den Pfad an: das `mtu` des Servers (Standard 1420), gesenkt auf die Schnittstellen-MTU zum Endpunkt minus 60 (IPv4) oder 80 (IPv6), nie unter 1280, nie über dem Wert des Servers; nur Standardbibliothek |
 | `pkg/wgtun` | WireGuard-Tunnel im Userspace mit `wireguard-go`, dazu Adresse und Routen: `ifconfig`/`route` unter macOS, `ip` unter Linux, ein Wintun-Adapter über `winipcfg` unter Windows (mit DNS und MTU); benötigt Privilegien |
 | `pkg/routeclient` | beobachtet den RouteService des Servers und meldet Aktualisierungen der Routen; TLS, außer zu Loopback |
 | `pkg/appcore` | die Logik der Apps, gemeinsam für alle drei: Anmeldung, der für die Sitzung gewählte Mandant, Verbinden und Trennen über den Helper, Status für die Oberfläche |
