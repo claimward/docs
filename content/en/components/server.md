@@ -58,6 +58,7 @@ All configuration is in the environment.
 | `VPN_CIDR` | | `10.80.0.0/24` | IPv4 address pool; its first host is the gateway's |
 | `PUSH_ROUTES` | | `VPN_CIDR` | CSV routes of the `default` tenant |
 | `DNS` | | — | CSV DNS servers of the `default` tenant |
+| `TENANTS_FILE` | | — | JSON file of tenants loaded at start, with their [access policy]({{< relref "/tenants.md#access-policy" >}}) |
 | `KEEPALIVE` | | `25` | persistent keepalive advertised to clients (seconds) |
 | `LEASE_TTL` | | `24h` | how long an enrollment lasts without a heartbeat |
 | `LISTEN_ADDR` | | `:8443` | HTTP listen address |

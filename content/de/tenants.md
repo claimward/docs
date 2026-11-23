@@ -34,6 +34,44 @@ Mandanten werden **im Arbeitsspeicher** gehalten (v0.2.0): Ein Neustart des Serv
 den Mandanten `default` übrig, neu aufgebaut aus der Umgebung.
 {{< /callout >}}
 
+## Zugriffsrichtlinie {#access-policy}
+
+Die Routen eines Mandanten werden nicht nur angekündigt: das Gateway
+**erzwingt** sie. Ein Mandant kann eine `policy` tragen, eine Liste von Regeln,
+die sagen, welches Ziel ein Peer auf welchem Protokoll und welchen Ports
+erreichen darf:
+
+```json
+[{"id": "default", "policy": [
+  {"cidr": "10.20.0.5/32", "proto": "tcp", "ports": [445, 88]},
+  {"cidr": "10.20.0.5/32", "proto": "udp", "ports": [88]}
+]}]
+```
+
+- `proto` ist `tcp` oder `udp`; `ports` sind Zahlen oder Bereiche
+  (`"9000-9010"`) und sind Pflicht. Nur IPv4.
+- Die an die Clients geschickten `allowed_ips` werden **aus der Richtlinie
+  abgeleitet** (die verschiedenen CIDRs): was ein Gerät routet und was das
+  Gateway durchlässt, können nicht auseinanderlaufen. Das Routenformat ändert
+  sich nicht.
+- Das Gateway besitzt eine nftables-Tabelle, `inet claimward`, per Netlink
+  installiert (Linux, `CAP_NET_ADMIN`) und beim Start sowie bei jeder Änderung
+  eines Peers oder Mandanten atomar ersetzt. Verkehr von der WireGuard-Schnittstelle
+  wird **standardmäßig verworfen**, in der Forward- wie in der Input-Kette (der
+  Dateiserver kann der Gateway-Host selbst sein); die Adresse jedes Peers wird
+  gegen die Regeln seines Mandanten geprüft. DNS muss in der Richtlinie wie alles
+  andere genannt werden.
+- **Fail closed**: Lässt sich das Regelwerk nicht installieren, startet der
+  Server nicht, und eine Anmeldung, deren Regelwerk sich nicht installieren
+  lässt, wird abgelehnt (`500 gateway_error`).
+- Ein Mandant mit `allowed_ips` und ohne `policy` wird als jedes Protokoll,
+  jeder Port zu diesen CIDRs durchgesetzt.
+
+Mandanten mit Richtlinie werden beim Start aus der JSON-Datei geladen, die
+`TENANTS_FILE` nennt (ein Array von Mandanten mit den Feldern der Admin-API);
+die Admin-API akzeptiert `policy` ebenfalls. Die Admin-Weboberfläche bearbeitet
+sie noch nicht.
+
 ## Einen pro Sitzung wählen {#choosing-one-per-session}
 
 | Anfrage | Was der Server tut |

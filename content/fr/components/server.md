@@ -57,6 +57,7 @@ Toute la configuration se fait par l'environnement.
 | `WG_DRYRUN` | | `false` | journaliser les opérations sur les pairs au lieu de les appliquer (développement local) |
 | `VPN_CIDR` | | `10.80.0.0/24` | plage d'adresses IPv4 ; son premier hôte est celui de la passerelle |
 | `PUSH_ROUTES` | | `VPN_CIDR` | routes CSV du locataire `default` |
+| `TENANTS_FILE` | | — | fichier JSON de locataires chargé au démarrage, avec leur [politique d'accès]({{< relref "/tenants.md#access-policy" >}}) |
 | `DNS` | | — | serveurs DNS CSV du locataire `default` |
 | `KEEPALIVE` | | `25` | keepalive persistant annoncé aux clients (secondes) |
 | `LEASE_TTL` | | `24h` | durée d'un enrôlement sans heartbeat |
