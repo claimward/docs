@@ -35,7 +35,7 @@ go install github.com/claimward/claimward-vpn-server/cmd/claimward-server@v0.2.0
 export AUTH_PROVIDER=github                     # the default
 export GITHUB_ALLOWED_ORGS=claimward            # an org allowlist, or name tenant `members` instead (the server refuses to start with neither)
 export WG_ENDPOINT=vpn.example.com:51820
-export WG_PRIVATE_KEY_FILE=/etc/wireguard/server.key
+export CREDENTIALS_DIRECTORY=/etc/claimward/credentials   # enthält die Datei wg-private-key (0400, Eigentümer: der Dienstbenutzer)
 export VPN_CIDR=10.80.0.0/24
 export TLS_CERT=/etc/claimward/fullchain.pem    # HTTPS, and TLS on the gRPC RouteService
 export TLS_KEY=/etc/claimward/privkey.pem

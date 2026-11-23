@@ -48,8 +48,10 @@ lecture seule. Une personne est membre quand le sujet de son jeton est
 appartient désormais à quelqu'un d'autre est refusé. Un **login introuvable est
 une erreur** : le serveur refuse de démarrer, et l'API d'administration répond
 `400`. L'API et la WebUI montrent les logins ; pour suivre un renommage, modifiez
-à nouveau le locataire. La résolution est anonyme (60 requêtes par heure et par
-adresse sur github.com).
+à nouveau le locataire. La résolution est authentifiée par l'identifiant `github-token` (un fichier de
+`CREDENTIALS_DIRECTORY`, envoyé comme jeton porteur : 5000 requêtes par heure sur
+github.com). Un locataire avec `members` et sans `github-token` empêche le démarrage ;
+le jeton n'est jamais envoyé en HTTP clair, sauf vers une adresse de bouclage.
 
 Un membre nommé est aussi admis par la porte d'entrée GitHub sans appartenir à
 une organisation autorisée (voir les [fournisseurs d'identité]({{< relref "/identity-providers.md" >}})).

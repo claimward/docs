@@ -85,9 +85,11 @@ su lista no admite a nadie nuevo. Consulte
 
 ## API de administración y WebUI {#admin-api-and-webui}
 
-Con `ADMIN_TOKEN` establecido, el servidor sirve una WebUI Svelte integrada en
+Con la credencial `admin-token` presente (un archivo en `CREDENTIALS_DIRECTORY`,
+véase [Credenciales]({{< relref "/components/server.md#credentials" >}})), el
+servidor sirve una WebUI Svelte integrada en
 `/admin/` y una API bajo `/admin/api/`, protegidas por
-`Authorization: Bearer <ADMIN_TOKEN>` (comparado en tiempo constante). Sin él,
+`Authorization: Bearer <contenido de admin-token>` (comparado en tiempo constante). Sin el archivo,
 `/admin/` responde `503`. Los archivos de la WebUI se sirven sin autenticación;
 esta pide el token y lo envía con cada llamada.
 
