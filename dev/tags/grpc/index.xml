@@ -301,9 +301,9 @@ updates.&lt;/p&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;github&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;—&lt;/td&gt;
-&lt;td&gt;CSV organisation allowlist (&lt;code&gt;github&lt;/code&gt;): an active member of any is allowed&lt;/td&gt;
+&lt;td&gt;CSV organisation allowlist: an active member of any is allowed. &lt;strong&gt;Required&lt;/strong&gt; since v0.4.0: the server refuses to start with it empty, and there is no opt-out (breaking: set it before upgrading)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;GITHUB_API_URL&lt;/code&gt;&lt;/td&gt;
@@ -327,7 +327,7 @@ updates.&lt;/p&gt;
 &lt;td&gt;&lt;code&gt;OIDC_ALLOWED_DOMAINS&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;&lt;/td&gt;
 &lt;td&gt;—&lt;/td&gt;
-&lt;td&gt;CSV email-domain allowlist (&lt;code&gt;oidc&lt;/code&gt;)&lt;/td&gt;
+&lt;td&gt;CSV email-domain allowlist (&lt;code&gt;oidc&lt;/code&gt;); the token&amp;rsquo;s email must be verified&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;GOAUTHN_GATEWAY_CLIENT_ID&lt;/code&gt;&lt;/td&gt;
@@ -429,7 +429,19 @@ updates.&lt;/p&gt;
 &lt;td&gt;&lt;code&gt;GRPC_ADDR&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;&lt;/td&gt;
 &lt;td&gt;&lt;code&gt;:8444&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;RouteService listen address&lt;/td&gt;
+&lt;td&gt;RouteService listen address; &lt;code&gt;Watch&lt;/code&gt; streams are re-authorised every 15 s and end when the identity is no longer allowed&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;METRICS_ADDR&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;127.0.0.1:9090&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;separate listener for &lt;code&gt;/metrics&lt;/code&gt; (loopback by default; it is no longer served on &lt;code&gt;LISTEN_ADDR&lt;/code&gt;)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;MAX_DEVICES_PER_SUBJECT&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;5&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;devices one identity may enroll&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;GRPC_ENDPOINT&lt;/code&gt;&lt;/td&gt;
@@ -463,8 +475,8 @@ updates.&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;strong&gt;&lt;code&gt;github&lt;/code&gt;&lt;/strong&gt; (default): the bearer is a GitHub OAuth access token from the
 device flow. The server resolves it through the GitHub API (&lt;code&gt;/user&lt;/code&gt;,
-&lt;code&gt;/user/orgs&lt;/code&gt;) and, with &lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;, requires an active membership
-of one of those organisations. No client secret is involved.&lt;/li&gt;
+&lt;code&gt;/user/orgs&lt;/code&gt;) and, with &lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt; (required), requires an active
+membership of one of those organisations. No client secret is involved.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;&lt;code&gt;oidc&lt;/code&gt;&lt;/strong&gt;: the bearer is an OIDC ID token, verified against the issuer with
 the audience &lt;code&gt;OIDC_CLIENT_ID&lt;/code&gt; and the optional email-domain allowlist.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;&lt;code&gt;go-authn&lt;/code&gt;&lt;/strong&gt;: the bearer is an access token (&lt;code&gt;at+jwt&lt;/code&gt;) from a
