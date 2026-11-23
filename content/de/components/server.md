@@ -90,7 +90,10 @@ Eine fehlende erforderliche Datei verhindert den Start und wird benannt. Vor dem
 Lesen prüft der Server jede Datei über den offenen Deskriptor (`O_NOFOLLOW`,
 dann `fstat`) und **verweigert** einen symbolischen Link, alles außer einer
 regulären Datei, eine für Gruppe oder andere lesbare Datei, eine Datei, die
-nicht der UID des Servers gehört, eine leere Datei und eine über 64 KiB. Die
+nicht der UID des Servers gehört, eine leere Datei und eine über 64 KiB. Eine
+Ausnahme seit v0.6.1: Eine Datei der UID 0 mit genau dem Modus `0440` wird
+akzeptiert, wenn ihre Gruppe die GID des Servers oder eine seiner
+Zusatzgruppen ist (so ein Kubernetes-Secret-Volume mit `fsGroup`). Die
 Fehlermeldung nennt die Abhilfe.
 
 | Plattform | `CREDENTIALS_DIRECTORY` | Eigentümer und Modus |
@@ -99,7 +102,7 @@ Fehlermeldung nennt die Abhilfe.
 | Docker Swarm | `/run/secrets`, von Hand gesetzt | `mode: 0400` am Secret |
 | Docker Compose | `/run/secrets`, von Hand gesetzt | die der Host-Datei: `chown` und `chmod 0400`, und `user:` passend setzen |
 | Podman | `/run/secrets`, von Hand gesetzt | `--secret ...,mode=0400` (Quadlet: `Secret=...,mode=0400`) |
-| Kubernetes | der Mount-Pfad des Secret-Volumes, von Hand gesetzt | `defaultMode: 0400`; die Dateien gehören root, daher läuft der Pod als UID 0 mit allen Capabilities außer `NET_ADMIN` entfernt |
+| Kubernetes | der Mount-Pfad des Secret-Volumes, von Hand gesetzt | `defaultMode: 0440` und `fsGroup`: die Dateien sind `root:<fsGroup>`, von der Gruppenregel oben akzeptiert, daher läuft der Pod als Nicht-root-UID mit allen Capabilities außer `NET_ADMIN` entfernt. `add: [NET_ADMIN]` allein gibt einer Nicht-root-UID die Capability nicht (keine Ambient-Menge): Die Binärdatei im Image braucht `setcap cap_net_admin=+ep` (nach capabilities(7), nicht auf einem Cluster gemessen) |
 | sonst | ein beliebiges Verzeichnis | `chmod 0400`, Eigentümer: der Dienstbenutzer |
 
 Fertige Units für systemd, Compose, Podman und Kubernetes liegen im Verzeichnis

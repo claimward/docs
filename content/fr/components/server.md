@@ -91,7 +91,10 @@ serveur contrôle chaque fichier par son descripteur ouvert (`O_NOFOLLOW`, puis
 `fstat`) et **refuse** un lien symbolique, tout ce qui n'est pas un fichier
 ordinaire, un fichier lisible par le groupe ou les autres, un fichier qui
 n'appartient pas à l'uid du serveur, un fichier vide et un fichier de plus de
-64 Kio. L'erreur donne la correction.
+64 Kio. Une exception depuis la v0.6.1 : un fichier appartenant à l'uid 0, de
+mode exactement `0440`, est accepté si son groupe est le gid du serveur ou l'un
+de ses groupes supplémentaires (ce que produit un volume Secret Kubernetes avec
+`fsGroup`). L'erreur donne la correction.
 
 | Plateforme | `CREDENTIALS_DIRECTORY` | Propriétaire et mode |
 |----------|-------------------------|----------------|
@@ -99,7 +102,7 @@ n'appartient pas à l'uid du serveur, un fichier vide et un fichier de plus de
 | Docker Swarm | `/run/secrets`, défini à la main | `mode: 0400` sur le secret |
 | Docker Compose | `/run/secrets`, défini à la main | ceux du fichier de l'hôte : `chown` et `chmod 0400`, et ajustez `user:` |
 | Podman | `/run/secrets`, défini à la main | `--secret ...,mode=0400` (Quadlet : `Secret=...,mode=0400`) |
-| Kubernetes | le chemin de montage du volume Secret, défini à la main | `defaultMode: 0400` ; les fichiers appartiennent à root, donc le pod tourne en uid 0, toutes capacités retirées sauf `NET_ADMIN` |
+| Kubernetes | le chemin de montage du volume Secret, défini à la main | `defaultMode: 0440` et `fsGroup` : les fichiers sont `root:<fsGroup>`, acceptés par la règle de groupe ci-dessus, donc le pod tourne avec un uid non root, toutes capacités retirées sauf `NET_ADMIN`. `add: [NET_ADMIN]` seul ne donne pas la capacité à un uid non root (pas d'ensemble ambiant) : le binaire de l'image doit porter `setcap cap_net_admin=+ep` (d'après capabilities(7), non mesuré sur un cluster) |
 | autres | n'importe quel répertoire | `chmod 0400`, propriété de l'utilisateur du service |
 
 Des unités prêtes à l'emploi pour systemd, Compose, Podman et Kubernetes se
