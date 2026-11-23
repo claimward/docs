@@ -40,6 +40,49 @@ no se puede eliminar.&lt;/p&gt;
 el inquilino &lt;code&gt;default&lt;/code&gt;, reconstruido a partir del entorno.&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
+&lt;h2 data-hextra-search-id="access-policy"&gt;Política de acceso&lt;span class="hx:absolute hx:-mt-20" id="access-policy"&gt;&lt;/span&gt;
+&lt;a href="#access-policy" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Las rutas de un inquilino no solo se anuncian: la pasarela las &lt;strong&gt;aplica&lt;/strong&gt;. Un
+inquilino puede llevar una &lt;code&gt;policy&lt;/code&gt;, una lista de reglas que dicen qué destino
+puede alcanzar un par, con qué protocolo y qué puertos:&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;[{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;default&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;policy&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;cidr&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;10.20.0.5/32&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;proto&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;tcp&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;ports&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;445&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;88&lt;/span&gt;&lt;span class="p"&gt;]},&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;cidr&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;10.20.0.5/32&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;proto&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;udp&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;ports&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;88&lt;/span&gt;&lt;span class="p"&gt;]}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;]}]&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copiar código"
+aria-label="Copiar código"
+data-copied-label="¡Copiado!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;proto&lt;/code&gt; es &lt;code&gt;tcp&lt;/code&gt; o &lt;code&gt;udp&lt;/code&gt;; &lt;code&gt;ports&lt;/code&gt; son números o rangos (&lt;code&gt;&amp;quot;9000-9010&amp;quot;&lt;/code&gt;) y son
+obligatorios. Solo IPv4.&lt;/li&gt;
+&lt;li&gt;Los &lt;code&gt;allowed_ips&lt;/code&gt; enviados a los clientes se &lt;strong&gt;derivan de la política&lt;/strong&gt; (los
+CIDR distintos): lo que un dispositivo enruta y lo que la pasarela deja pasar
+no pueden divergir. El formato de las rutas no cambia.&lt;/li&gt;
+&lt;li&gt;La pasarela posee una tabla nftables, &lt;code&gt;inet claimward&lt;/code&gt;, instalada por netlink
+(Linux, &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt;) y reemplazada atómicamente al arrancar y en cada
+cambio de par o de inquilino. El tráfico que llega de la interfaz WireGuard se
+&lt;strong&gt;deniega por defecto&lt;/strong&gt;, tanto en la cadena de reenvío como en la de entrada
+(el servidor de archivos puede ser el propio host de la pasarela); la
+dirección de cada par se confronta con las reglas de su inquilino. El DNS debe
+nombrarse en la política como todo lo demás.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Cierre ante el fallo&lt;/strong&gt;: si el conjunto de reglas no puede instalarse, el
+servidor no arranca, y se rechaza un registro cuyo conjunto de reglas no puede
+instalarse (&lt;code&gt;500 gateway_error&lt;/code&gt;).&lt;/li&gt;
+&lt;li&gt;Un inquilino con &lt;code&gt;allowed_ips&lt;/code&gt; y sin &lt;code&gt;policy&lt;/code&gt; se aplica como cualquier
+protocolo, cualquier puerto, hacia esos CIDR.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Los inquilinos con política se cargan al arrancar desde el archivo JSON que
+nombra &lt;code&gt;TENANTS_FILE&lt;/code&gt; (un arreglo de inquilinos con los campos de la API de
+administración); la API de administración también acepta &lt;code&gt;policy&lt;/code&gt;. La interfaz
+web de administración aún no la edita.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="choosing-one-per-session"&gt;Elegir uno por sesión&lt;span class="hx:absolute hx:-mt-20" id="choosing-one-per-session"&gt;&lt;/span&gt;
 &lt;a href="#choosing-one-per-session" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;table&gt;
 &lt;thead&gt;

@@ -40,6 +40,51 @@ kann nicht gelöscht werden.&lt;/p&gt;
 den Mandanten &lt;code&gt;default&lt;/code&gt; übrig, neu aufgebaut aus der Umgebung.&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
+&lt;h2 data-hextra-search-id="access-policy"&gt;Zugriffsrichtlinie&lt;span class="hx:absolute hx:-mt-20" id="access-policy"&gt;&lt;/span&gt;
+&lt;a href="#access-policy" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Die Routen eines Mandanten werden nicht nur angekündigt: das Gateway
+&lt;strong&gt;erzwingt&lt;/strong&gt; sie. Ein Mandant kann eine &lt;code&gt;policy&lt;/code&gt; tragen, eine Liste von Regeln,
+die sagen, welches Ziel ein Peer auf welchem Protokoll und welchen Ports
+erreichen darf:&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;[{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;default&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;policy&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;cidr&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;10.20.0.5/32&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;proto&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;tcp&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;ports&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;445&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;88&lt;/span&gt;&lt;span class="p"&gt;]},&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;cidr&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;10.20.0.5/32&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;proto&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;udp&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;ports&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;88&lt;/span&gt;&lt;span class="p"&gt;]}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;]}]&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;proto&lt;/code&gt; ist &lt;code&gt;tcp&lt;/code&gt; oder &lt;code&gt;udp&lt;/code&gt;; &lt;code&gt;ports&lt;/code&gt; sind Zahlen oder Bereiche
+(&lt;code&gt;&amp;quot;9000-9010&amp;quot;&lt;/code&gt;) und sind Pflicht. Nur IPv4.&lt;/li&gt;
+&lt;li&gt;Die an die Clients geschickten &lt;code&gt;allowed_ips&lt;/code&gt; werden &lt;strong&gt;aus der Richtlinie
+abgeleitet&lt;/strong&gt; (die verschiedenen CIDRs): was ein Gerät routet und was das
+Gateway durchlässt, können nicht auseinanderlaufen. Das Routenformat ändert
+sich nicht.&lt;/li&gt;
+&lt;li&gt;Das Gateway besitzt eine nftables-Tabelle, &lt;code&gt;inet claimward&lt;/code&gt;, per Netlink
+installiert (Linux, &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt;) und beim Start sowie bei jeder Änderung
+eines Peers oder Mandanten atomar ersetzt. Verkehr von der WireGuard-Schnittstelle
+wird &lt;strong&gt;standardmäßig verworfen&lt;/strong&gt;, in der Forward- wie in der Input-Kette (der
+Dateiserver kann der Gateway-Host selbst sein); die Adresse jedes Peers wird
+gegen die Regeln seines Mandanten geprüft. DNS muss in der Richtlinie wie alles
+andere genannt werden.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Fail closed&lt;/strong&gt;: Lässt sich das Regelwerk nicht installieren, startet der
+Server nicht, und eine Anmeldung, deren Regelwerk sich nicht installieren
+lässt, wird abgelehnt (&lt;code&gt;500 gateway_error&lt;/code&gt;).&lt;/li&gt;
+&lt;li&gt;Ein Mandant mit &lt;code&gt;allowed_ips&lt;/code&gt; und ohne &lt;code&gt;policy&lt;/code&gt; wird als jedes Protokoll,
+jeder Port zu diesen CIDRs durchgesetzt.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Mandanten mit Richtlinie werden beim Start aus der JSON-Datei geladen, die
+&lt;code&gt;TENANTS_FILE&lt;/code&gt; nennt (ein Array von Mandanten mit den Feldern der Admin-API);
+die Admin-API akzeptiert &lt;code&gt;policy&lt;/code&gt; ebenfalls. Die Admin-Weboberfläche bearbeitet
+sie noch nicht.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="choosing-one-per-session"&gt;Einen pro Sitzung wählen&lt;span class="hx:absolute hx:-mt-20" id="choosing-one-per-session"&gt;&lt;/span&gt;
 &lt;a href="#choosing-one-per-session" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;table&gt;
 &lt;thead&gt;

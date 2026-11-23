@@ -396,6 +396,12 @@ de routes en direct.&lt;/p&gt;
 &lt;td&gt;routes CSV du locataire &lt;code&gt;default&lt;/code&gt;&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
+&lt;td&gt;&lt;code&gt;TENANTS_FILE&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;fichier JSON de locataires chargé au démarrage, avec leur &lt;a href="https://claimward.github.io/docs/dev/fr/tenants/#access-policy"&gt;politique d&amp;rsquo;accès&lt;/a&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
 &lt;td&gt;&lt;code&gt;DNS&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;&lt;/td&gt;
 &lt;td&gt;—&lt;/td&gt;
@@ -1052,6 +1058,50 @@ ne peut pas être supprimé.&lt;/p&gt;
 le locataire &lt;code&gt;default&lt;/code&gt;, reconstruit à partir de l&amp;rsquo;environnement.&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
+&lt;h2 data-hextra-search-id="access-policy"&gt;Politique d&amp;rsquo;accès&lt;span class="hx:absolute hx:-mt-20" id="access-policy"&gt;&lt;/span&gt;
+&lt;a href="#access-policy" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Les routes d&amp;rsquo;un locataire ne sont pas seulement annoncées : la passerelle les
+&lt;strong&gt;applique&lt;/strong&gt;. Un locataire peut porter une &lt;code&gt;policy&lt;/code&gt;, une liste de règles qui
+disent quelle destination un pair peut joindre, sur quel protocole et quels
+ports :&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;[{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;default&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;policy&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;cidr&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;10.20.0.5/32&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;proto&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;tcp&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;ports&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;445&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;88&lt;/span&gt;&lt;span class="p"&gt;]},&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;cidr&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;10.20.0.5/32&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;proto&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;udp&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;ports&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;88&lt;/span&gt;&lt;span class="p"&gt;]}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;]}]&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copier le code"
+aria-label="Copier le code"
+data-copied-label="Copié !"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;proto&lt;/code&gt; vaut &lt;code&gt;tcp&lt;/code&gt; ou &lt;code&gt;udp&lt;/code&gt; ; &lt;code&gt;ports&lt;/code&gt; sont des nombres ou des plages
+(&lt;code&gt;&amp;quot;9000-9010&amp;quot;&lt;/code&gt;), et sont obligatoires. IPv4 uniquement.&lt;/li&gt;
+&lt;li&gt;Les &lt;code&gt;allowed_ips&lt;/code&gt; envoyés aux clients sont &lt;strong&gt;dérivés de la politique&lt;/strong&gt; (les
+CIDR distincts) : ce qu&amp;rsquo;un appareil route et ce que la passerelle laisse
+passer ne peuvent pas diverger. Le format des routes ne change pas.&lt;/li&gt;
+&lt;li&gt;La passerelle possède une table nftables, &lt;code&gt;inet claimward&lt;/code&gt;, installée par
+netlink (Linux, &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt;) et remplacée atomiquement au démarrage et à
+chaque changement de pair ou de locataire. Le trafic qui arrive de l&amp;rsquo;interface
+WireGuard est &lt;strong&gt;refusé par défaut&lt;/strong&gt;, dans la chaîne de transfert comme dans la
+chaîne d&amp;rsquo;entrée (le serveur de fichiers peut être l&amp;rsquo;hôte de la passerelle
+lui-même) ; l&amp;rsquo;adresse de chaque pair est confrontée aux règles de son
+locataire. Le DNS doit être nommé dans la politique comme le reste.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Fermé en cas d&amp;rsquo;échec&lt;/strong&gt; : si le jeu de règles ne peut pas être installé, le
+serveur ne démarre pas, et un enrôlement dont le jeu de règles ne peut pas
+être installé est refusé (&lt;code&gt;500 gateway_error&lt;/code&gt;).&lt;/li&gt;
+&lt;li&gt;Un locataire avec &lt;code&gt;allowed_ips&lt;/code&gt; et sans &lt;code&gt;policy&lt;/code&gt; est appliqué comme tout
+protocole, tout port, vers ces CIDR.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Les locataires avec politique sont chargés au démarrage depuis le fichier JSON
+nommé par &lt;code&gt;TENANTS_FILE&lt;/code&gt; (un tableau de locataires, avec les champs de l&amp;rsquo;API
+d&amp;rsquo;administration) ; l&amp;rsquo;API d&amp;rsquo;administration accepte aussi &lt;code&gt;policy&lt;/code&gt;. L&amp;rsquo;interface
+web d&amp;rsquo;administration ne l&amp;rsquo;édite pas encore.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="choosing-one-per-session"&gt;En choisir un par session&lt;span class="hx:absolute hx:-mt-20" id="choosing-one-per-session"&gt;&lt;/span&gt;
 &lt;a href="#choosing-one-per-session" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;table&gt;
 &lt;thead&gt;

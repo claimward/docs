@@ -402,6 +402,12 @@ updates.&lt;/p&gt;
 &lt;td&gt;CSV DNS servers of the &lt;code&gt;default&lt;/code&gt; tenant&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
+&lt;td&gt;&lt;code&gt;TENANTS_FILE&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;JSON file of tenants loaded at start, with their &lt;a href="https://claimward.github.io/docs/dev/tenants/#access-policy"&gt;access policy&lt;/a&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
 &lt;td&gt;&lt;code&gt;KEEPALIVE&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;&lt;/td&gt;
 &lt;td&gt;&lt;code&gt;25&lt;/code&gt;&lt;/td&gt;
@@ -1052,6 +1058,48 @@ cannot be deleted.&lt;/p&gt;
 the &lt;code&gt;default&lt;/code&gt; tenant, rebuilt from the environment.&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
+&lt;h2 data-hextra-search-id="access-policy"&gt;Access policy&lt;span class="hx:absolute hx:-mt-20" id="access-policy"&gt;&lt;/span&gt;
+&lt;a href="#access-policy" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;A tenant&amp;rsquo;s routes are not only advertised: the gateway &lt;strong&gt;enforces&lt;/strong&gt; them. A
+tenant may carry a &lt;code&gt;policy&lt;/code&gt;, a list of rules that say which destination a peer
+may reach, on which protocol and ports:&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;[{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;default&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;policy&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;cidr&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;10.20.0.5/32&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;proto&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;tcp&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;ports&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;445&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;88&lt;/span&gt;&lt;span class="p"&gt;]},&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;cidr&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;10.20.0.5/32&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;proto&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;udp&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;ports&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;88&lt;/span&gt;&lt;span class="p"&gt;]}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;]}]&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;proto&lt;/code&gt; is &lt;code&gt;tcp&lt;/code&gt; or &lt;code&gt;udp&lt;/code&gt;; &lt;code&gt;ports&lt;/code&gt; are numbers or ranges (&lt;code&gt;&amp;quot;9000-9010&amp;quot;&lt;/code&gt;), and
+are required. IPv4 only.&lt;/li&gt;
+&lt;li&gt;The &lt;code&gt;allowed_ips&lt;/code&gt; pushed to the clients are &lt;strong&gt;derived from the policy&lt;/strong&gt;
+(the distinct CIDRs), so what a device routes and what the gateway lets
+through cannot drift apart. The route format is unchanged.&lt;/li&gt;
+&lt;li&gt;The gateway owns one nftables table, &lt;code&gt;inet claimward&lt;/code&gt;, installed through
+netlink (Linux, &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt;) and replaced atomically at start and at
+every peer or tenant change. Traffic arriving from the WireGuard interface is
+&lt;strong&gt;denied by default&lt;/strong&gt;, in both the forward chain and the input chain (the
+file server may be the gateway host itself); each peer&amp;rsquo;s address is matched
+against its tenant&amp;rsquo;s rules. DNS must be named in the policy like anything
+else.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Fail closed&lt;/strong&gt;: if the ruleset cannot be installed, the server does not
+start, and an enrollment whose ruleset cannot be installed is refused
+(&lt;code&gt;500 gateway_error&lt;/code&gt;).&lt;/li&gt;
+&lt;li&gt;A tenant with &lt;code&gt;allowed_ips&lt;/code&gt; and no &lt;code&gt;policy&lt;/code&gt; is enforced as any protocol, any
+port, to those CIDRs.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Tenants with a policy are loaded at start from the JSON file named by
+&lt;code&gt;TENANTS_FILE&lt;/code&gt; (an array of tenants with the admin API&amp;rsquo;s fields); the admin API
+accepts &lt;code&gt;policy&lt;/code&gt; too. The admin WebUI does not edit it yet.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="choosing-one-per-session"&gt;Choosing one per session&lt;span class="hx:absolute hx:-mt-20" id="choosing-one-per-session"&gt;&lt;/span&gt;
 &lt;a href="#choosing-one-per-session" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;table&gt;
 &lt;thead&gt;
