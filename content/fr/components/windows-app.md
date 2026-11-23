@@ -64,11 +64,19 @@ Set-ExecutionPolicy -Scope Process Bypass
 
 Il copie les programmes et `wintun.dll` dans `C:\Program Files\Claimward`,
 crée le groupe local **Claimward Users** et vous y ajoute, écrit
-`C:\ProgramData\Claimward\helper.json`, enregistre et démarre le
+`C:\ProgramData\Claimward\helper.json` (après avoir vérifié ce dossier, voir
+ci-dessous), enregistre et démarre le
 service **ClaimwardHelper**, et ajoute un raccourci **Claimward VPN** au menu Démarrer.
 L'appartenance prend effet à votre **prochaine connexion à Windows** ; d'ici là, le
 socket vous refuse. Ajoutez d'autres personnes avec
 `Add-LocalGroupMember -Group 'Claimward Users' -Member <name>`.
+
+`-Server` n'accepte que des **URL https** : le jeton de connexion est envoyé à ce serveur.
+
+ProgramData permet à tout utilisateur de créer des dossiers ; l'installateur **refuse** donc un
+`C:\ProgramData\Claimward` préexistant qui est un point d'analyse (un lien) ou
+dont le propriétaire n'est ni SYSTEM (`S-1-5-18`) ni Administrators (`S-1-5-32-544`) :
+inspectez-le et supprimez-le, puis relancez l'installateur.
 
 `.\uninstall.ps1` supprime le service, le raccourci et les programmes ;
 `-RemoveData` supprime aussi `C:\ProgramData\Claimward` et le groupe. Il n'y a
@@ -82,7 +90,11 @@ WireGuard LLC et ne se trouve pas dans le dépôt.
 
 L'application lit `%AppData%\Claimward\config.json`, puis les variables `CLAIMWARD_*`
 (voir la [bibliothèque client]({{< relref "/components/client.md#files-on-the-device" >}})).
-La session est `%AppData%\claimward\session.json`.
+La session est scellée avec **DPAPI** dans un fichier par utilisateur, `session.dpapi`, sous
+`%AppData%\claimward`. Elle n'est jamais écrite en clair et il n'y a aucun repli en
+clair : si DPAPI échoue (client v0.5.0 et ultérieur), la connexion échoue avec une erreur
+qui le dit. Un `session.json` d'une ancienne version est déplacé dans DPAPI au premier
+démarrage, ou supprimé en cas d'échec.
 
 Le helper lit `C:\ProgramData\Claimward\helper.json` :
 
@@ -100,6 +112,5 @@ définit et vérifie sont décrites sous
 [Helper privilégié]({{< relref "/components/helper.md#the-socket-windows" >}}).
 
 {{< callout type="info" >}}
-**Reste à faire :** un installateur MSI, et la session dans le Gestionnaire d'identification
-Windows (DPAPI) plutôt que dans un fichier par utilisateur.
+**Reste à faire :** un installateur MSI.
 {{< /callout >}}

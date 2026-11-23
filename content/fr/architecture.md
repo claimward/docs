@@ -116,7 +116,8 @@ après *Disconnect* jusqu'à la fin de son bail.
   n'accepte aucune configuration de tunnel venant d'une requête. Voir
   [Helper privilégié]({{< relref "/components/helper.md" >}}).
 - L'**application** s'exécute sous l'identité de la personne. Elle détient la session (jeton porteur et clé
-  de l'appareil) dans un fichier `0600` de son répertoire de configuration.
+  de l'appareil) dans le magasin de secrets de la plateforme (Keychain macOS, DPAPI Windows, Secret
+  Service Linux), jamais en clair sur le disque : sans magasin utilisable, la connexion échoue.
 - Une surveillance des routes transporte le jeton porteur, elle passe donc par **TLS** sauf vers une
   adresse de bouclage.
 - Le contrat de communication se trouve en un seul endroit,

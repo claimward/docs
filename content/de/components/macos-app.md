@@ -102,7 +102,19 @@ v0.2.0) **ad hoc signiert und nicht notarisiert**. Das DMG enthält die App (mit
 Helper wird wie oben beschrieben installiert.
 
 {{< callout type="info" >}}
-**Noch ausstehend:** das Sitzungstoken in der Keychain (heute ist es eine Datei mit `0600`),
-der mit SMJobBless installierte Helper, ein mit einer
+**Noch ausstehend:** der mit SMJobBless installierte Helper, ein mit einer
 Developer ID signiertes Release und unter macOS angewendetes DNS.
 {{< /callout >}}
+
+## Sitzung und Server
+
+Die Sitzung (Tokens und der WireGuard-Schlüssel des Geräts) liegt in `session.enc`,
+versiegelt mit AES-GCM; der Schlüssel liegt in der Login-**Keychain**. Sie wird nie im
+Klartext auf die Platte geschrieben, und es gibt keinen Klartext-Fallback: Ist die Keychain
+gesperrt oder nicht verfügbar (Client v0.5.0 und neuer), schlägt die Anmeldung mit einem
+entsprechenden Fehler fehl. Eine `session.json` mit `0600` aus einer älteren Version wird
+beim ersten Start in den Speicher verschoben oder gelöscht, wenn das fehlschlägt.
+
+Der Server muss eine **https**-URL sein, und das Start-Token des Fensters wird nur in einem
+Header übertragen (nie in einer URL, in den Prozessargumenten oder in Logs); die Übergabe
+an eine laufende Instanz erfolgt über eine Datei.

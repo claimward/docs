@@ -116,7 +116,8 @@ Sie erneuern eine Lease nur durch erneutes Verbinden und lassen den Peer nach
   übernimmt keine Tunnelkonfiguration aus einer Anfrage. Siehe
   [Privilegierter Helper]({{< relref "/components/helper.md" >}}).
 - Die **App** läuft unter dem Benutzer der Person. Sie hält die Sitzung (Bearer-Token und Geräteschlüssel)
-  in einer Datei mit `0600` in deren Konfigurationsverzeichnis.
+  im Geheimnisspeicher der Plattform (macOS-Keychain, Windows-DPAPI, Linux-Secret-Service), nie
+  im Klartext auf der Platte: ohne nutzbaren Speicher schlägt die Anmeldung fehl.
 - Eine Beobachtung der Routen überträgt das Bearer-Token, daher läuft sie über **TLS**, außer zu einer
   Loopback-Adresse.
 - Der Wire-Vertrag liegt an einer einzigen Stelle,

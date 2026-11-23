@@ -64,6 +64,9 @@ CGO_ENABLED=0 go build -trimpath -o bin/ ./cmd/...
 sudo ./scripts/install.sh --server https://vpn.example.com
 ```
 
+`--server` accepts **https URLs only**: the sign-in token is sent to that
+server, so a plain `http://` URL is refused.
+
 `install.sh`:
 
 1. creates the `claimward` group and adds you to it (`$SUDO_USER`, or
@@ -85,7 +88,14 @@ also removes `/etc/claimward` and the group.
 The app: `~/.config/Claimward/config.json`, written by the settings form,
 mode `0600`, overridden by `CLAIMWARD_*` variables (see the
 [client library]({{< relref "/components/client.md#files-on-the-device" >}})).
-The session is `~/.config/claimward/session.json`, mode `0600`.
+The session (tokens and the device's WireGuard key) is kept in the desktop's
+**Secret Service** keyring through `secret-tool`, and is never written to disk
+in clear. **A Secret Service provider is required** (client v0.5.0 and later):
+install and unlock one such as gnome-keyring or KeePassXC, and install
+`secret-tool` (`libsecret-tools`). Without one, sign-in fails with an error
+naming what is missing; there is no plaintext fallback, on a headless server
+either. A `session.json` left by an older version is moved into the keyring on
+first start, or deleted if the keyring refuses it.
 
 The helper: `/etc/claimward/helper.json` (see
 [Privileged helper]({{< relref "/components/helper.md" >}})); after editing it,
@@ -104,5 +114,5 @@ the `claimward` group means being allowed to bring the VPN up and down.
 **Verified** in an Ubuntu 24.04 (arm64) virtual machine against a stand-in
 server. **Not yet verified**, according to the README: a real GNOME or KDE
 desktop, Wayland, HiDPI, a sign-in against a real identity provider, and a
-real claimward-vpn-server. The session file is not yet in a keyring.
+real claimward-vpn-server.
 {{< /callout >}}

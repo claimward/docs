@@ -64,6 +64,9 @@ CGO_ENABLED=0 go build -trimpath -o bin/ ./cmd/...
 sudo ./scripts/install.sh --server https://vpn.example.com
 ```
 
+`--server` akzeptiert **nur https-URLs**: Das Anmeldetoken wird an diesen
+Server gesendet, daher wird eine einfache `http://`-URL abgewiesen.
+
 `install.sh`:
 
 1. legt die Gruppe `claimward` an und fügt Sie ihr hinzu (`$SUDO_USER` oder
@@ -85,7 +88,15 @@ entfernt außerdem `/etc/claimward` und die Gruppe.
 Die App: `~/.config/Claimward/config.json`, vom Einstellungsformular geschrieben,
 Modus `0600`, überschrieben durch die Variablen `CLAIMWARD_*` (siehe die
 [Client-Bibliothek]({{< relref "/components/client.md#files-on-the-device" >}})).
-Die Sitzung ist `~/.config/claimward/session.json`, Modus `0600`.
+Die Sitzung (Tokens und der WireGuard-Schlüssel des Geräts) liegt im
+**Secret-Service**-Schlüsselbund des Desktops, über `secret-tool`, und wird nie im
+Klartext auf die Platte geschrieben. **Ein Secret-Service-Anbieter ist erforderlich**
+(Client v0.5.0 und neuer): Installieren und entsperren Sie einen, etwa gnome-keyring oder
+KeePassXC, und installieren Sie `secret-tool` (`libsecret-tools`). Ohne ihn schlägt die
+Anmeldung mit einem Fehler fehl, der benennt, was fehlt; es gibt keinen Klartext-Fallback,
+auch nicht auf einem Server ohne Oberfläche. Eine von einer älteren Version hinterlassene
+`session.json` wird beim ersten Start in den Schlüsselbund verschoben oder gelöscht, wenn
+der Schlüsselbund sie ablehnt.
 
 Der Helper: `/etc/claimward/helper.json` (siehe
 [Privilegierter Helper]({{< relref "/components/helper.md" >}})); führen Sie nach dem Bearbeiten
@@ -104,5 +115,5 @@ der Gruppe `claimward` zu sein bedeutet, das VPN auf- und abbauen zu dürfen.
 **Geprüft** in einer virtuellen Maschine mit Ubuntu 24.04 (arm64) gegen einen
 Ersatzserver. **Noch nicht geprüft**, laut README: ein echter GNOME- oder KDE-Desktop,
 Wayland, HiDPI, eine Anmeldung bei einem echten Identitätsanbieter und ein
-echter claimward-vpn-server. Die Sitzungsdatei liegt noch nicht in einem Schlüsselbund.
+echter claimward-vpn-server.
 {{< /callout >}}

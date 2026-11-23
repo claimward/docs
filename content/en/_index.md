@@ -46,8 +46,7 @@ webview; the Linux and Windows apps are pure Go
 
 {{< callout type="info" >}}
 **Status.** These are first releases. Still to come, according to each
-repository: the session token in the platform's secret store (Keychain,
-a keyring, the Windows Credential Manager), a signed and notarized macOS app,
+repository: a signed and notarized macOS app,
 an MSI for Windows, DNS applied on macOS and Linux, and state on the server
 that survives a restart. Each repository's README lists what remains.
 {{< /callout >}}

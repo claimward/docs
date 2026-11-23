@@ -64,6 +64,9 @@ CGO_ENABLED=0 go build -trimpath -o bin/ ./cmd/...
 sudo ./scripts/install.sh --server https://vpn.example.com
 ```
 
+`--server` acepta **solo URL https**: el token de inicio de sesión se envía a ese
+servidor, así que una URL `http://` simple se rechaza.
+
 `install.sh`:
 
 1. crea el grupo `claimward` y le añade a usted (`$SUDO_USER`, o
@@ -85,7 +88,14 @@ elimina además `/etc/claimward` y el grupo.
 La aplicación: `~/.config/Claimward/config.json`, escrito por el formulario de ajustes,
 modo `0600`, sobrescrito por las variables `CLAIMWARD_*` (véase la
 [biblioteca cliente]({{< relref "/components/client.md#files-on-the-device" >}})).
-La sesión es `~/.config/claimward/session.json`, modo `0600`.
+La sesión (tokens y la clave WireGuard del dispositivo) se guarda en el llavero
+**Secret Service** del escritorio mediante `secret-tool`, y nunca se escribe en claro en
+el disco. **Se requiere un proveedor de Secret Service** (cliente v0.5.0 y posteriores):
+instale y desbloquee uno, como gnome-keyring o KeePassXC, e instale `secret-tool`
+(`libsecret-tools`). Sin él, el inicio de sesión falla con un error que nombra lo que
+falta; no hay alternativa en texto claro, tampoco en un servidor sin interfaz gráfica.
+Un `session.json` dejado por una versión anterior se traslada al llavero en el primer
+arranque, o se elimina si el llavero lo rechaza.
 
 El helper: `/etc/claimward/helper.json` (véase
 [Helper con privilegios]({{< relref "/components/helper.md" >}})); después de editarlo,
@@ -104,5 +114,5 @@ grupo `claimward` significa tener permiso para activar y desactivar la VPN.
 **Verificado** en una máquina virtual Ubuntu 24.04 (arm64) frente a un servidor
 sustituto. **Aún no verificado**, según el README: un escritorio GNOME o KDE
 real, Wayland, HiDPI, un inicio de sesión con un proveedor de identidad real, y un
-claimward-vpn-server real. El archivo de sesión todavía no está en un llavero.
+claimward-vpn-server real.
 {{< /callout >}}

@@ -102,7 +102,19 @@ v0.2.0) are **ad-hoc signed and not notarized**. The DMG holds the app (with the
 helper is installed as above.
 
 {{< callout type="info" >}}
-**Still to come:** the session token in the Keychain (it is a `0600` file
-today), the helper installed with SMJobBless, a release signed with a
+**Still to come:** the helper installed with SMJobBless, a release signed with a
 Developer ID, and DNS applied on macOS.
 {{< /callout >}}
+
+## Session and servers
+
+The session (tokens and the device's WireGuard key) lives in `session.enc`,
+sealed with AES-GCM; the key is held in the login **Keychain**. It is never
+written to disk in clear and there is no plaintext fallback: if the Keychain is
+locked or unavailable (client v0.5.0 and later), sign-in fails with an error
+saying so. A `0600` `session.json` from an older version is moved into the
+store on first start, or deleted if that fails.
+
+The server must be an **https** URL, and the window's launch token travels in
+a header only (never in a URL, in the process arguments or in logs); the
+handoff to a running instance goes through a file.
