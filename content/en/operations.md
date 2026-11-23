@@ -85,9 +85,11 @@ its list admits nobody new. See
 
 ## Admin API and WebUI
 
-With `ADMIN_TOKEN` set, the server serves an embedded Svelte WebUI at
-`/admin/` and an API under `/admin/api/`, guarded by
-`Authorization: Bearer <ADMIN_TOKEN>` (compared in constant time). Without it,
+With the `admin-token` credential present (a file in `CREDENTIALS_DIRECTORY`,
+see [Credentials]({{< relref "/components/server.md#credentials" >}})), the
+server serves an embedded Svelte WebUI at `/admin/` and an API under
+`/admin/api/`, guarded by `Authorization: Bearer <contents of admin-token>`
+(compared in constant time). Without the file,
 `/admin/` answers `503`. The WebUI's files are served without authentication;
 it asks for the token and sends it with each call.
 

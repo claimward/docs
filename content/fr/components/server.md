@@ -21,7 +21,7 @@ appareil enrôlé. Il s'exécute sur l'hôte de passerelle Linux, à côté d'un
 | | `POST /api/v1/deregister` | retirer le pair |
 | | `GET /healthz` | vivacité |
 | | `GET /metrics` | métriques Prometheus |
-| | `/admin/` | API d'administration et WebUI, lorsque `ADMIN_TOKEN` est défini |
+| | `/admin/` | API d'administration et WebUI, lorsque l'identifiant `admin-token` existe |
 | `GRPC_ADDR` (`:8444`) | `claimward.routes.v1.RouteService/Watch` | diffuse les routes du locataire et leurs mises à jour |
 
 Les requêtes de l'API portent `Authorization: Bearer <token>` : un jeton d'accès GitHub,
@@ -36,7 +36,8 @@ de routes en direct.
 
 ## Configuration
 
-Toute la configuration se fait par l'environnement.
+Les réglages sont dans l'environnement. **Les secrets non** : depuis v0.6.0 ce
+sont des fichiers d'un répertoire d'identifiants, voir [Identifiants](#credentials) plus bas.
 
 | Variable | Requise | Défaut | Remarques |
 |----------|----------|---------|-------|
@@ -47,12 +48,11 @@ Toute la configuration se fait par l'environnement.
 | `OIDC_CLIENT_ID` | `oidc`, `go-authn` | — | l'audience que les jetons doivent porter |
 | `OIDC_ALLOWED_DOMAINS` | | — | liste CSV des domaines de messagerie autorisés (`oidc`) ; l'e-mail du jeton doit être vérifié |
 | `GOAUTHN_GATEWAY_CLIENT_ID` | `go-authn` | — | le client propre de la passerelle chez le fournisseur (`wireguard_peers`) |
-| `GOAUTHN_GATEWAY_SECRET_FILE` | `go-authn` | — | son secret, **uniquement depuis un fichier** |
 | `GOAUTHN_PEER_LIST_INTERVAL` | | `30s` | fréquence de récupération de la liste des clés enregistrées |
 | `GOAUTHN_SSF` | | `false` | interroger aussi le flux Shared Signals du fournisseur, afin qu'une désactivation soit prise en compte immédiatement ; le client de la passerelle doit y être un récepteur SSF |
 | `GOAUTHN_SSF_INTERVAL` | | `5s` | fréquence d'interrogation du flux SSF |
 | `WG_ENDPOINT` | ✅ | — | `host:port` public de la passerelle, annoncé aux clients |
-| `WG_PRIVATE_KEY` / `WG_PRIVATE_KEY_FILE` | ✅ | — | la clé privée base64 de la passerelle (la variable l'emporte sur le fichier) |
+| `CREDENTIALS_DIRECTORY` | ✅ | — | le répertoire qui contient les fichiers secrets, voir [Identifiants](#credentials) |
 | `WG_INTERFACE` | | `wg0` | interface à gérer |
 | `WG_DRYRUN` | | `false` | journaliser les opérations sur les pairs au lieu de les appliquer (développement local) |
 | `VPN_CIDR` | | `10.80.0.0/24` | plage d'adresses IPv4 ; son premier hôte est celui de la passerelle |
@@ -66,9 +66,61 @@ Toute la configuration se fait par l'environnement.
 | `METRICS_ADDR` | | `127.0.0.1:9090` | écouteur séparé pour `/metrics` (boucle locale par défaut ; plus servi sur `LISTEN_ADDR`) |
 | `MAX_DEVICES_PER_SUBJECT` | | `5` | appareils qu'une identité peut enrôler |
 | `GRPC_ENDPOINT` | | — | `host:port` du RouteService annoncé aux clients ; vide, ils ne surveillent rien |
-| `ADMIN_TOKEN` | | — | jeton porteur pour l'API d'administration et la WebUI ; vide, elles sont désactivées |
 | `TLS_CERT` / `TLS_KEY` | | — | HTTPS, et TLS sur le RouteService |
 | `DEBUG` | | — | n'importe quelle valeur : journalisation de débogage (une ligne par requête) |
+
+## Identifiants {#credentials}
+
+Chaque secret est un **fichier** du répertoire désigné par
+`CREDENTIALS_DIRECTORY`, jamais une variable d'environnement : l'environnement
+est copié dans chaque processus fils et chaque image mémoire. systemd définit la
+variable pour `LoadCredential=` et `LoadCredentialEncrypted=` ; sur les autres
+plateformes, vous la définissez vous-même. Les noms de fichiers sont fixes, et
+un saut de ligne final est retiré.
+
+| Fichier | Requis | Contenu |
+|------|----------|---------|
+| `wg-private-key` | toujours | la clé privée base64 de la passerelle |
+| `admin-token` | non | jeton porteur de l'API d'administration et de la WebUI ; **sans le fichier, elles sont désactivées** |
+| `goauthn-gateway-secret` | `AUTH_PROVIDER=go-authn` | le secret du client de la passerelle |
+| `github-token` | quand un locataire a des `members` | jeton porteur pour `GET /users/{login}` (voir [Locataires]({{< relref "/tenants.md" >}})) |
+
+Un fichier requis absent empêche le démarrage et est nommé. Avant de lire, le
+serveur contrôle chaque fichier par son descripteur ouvert (`O_NOFOLLOW`, puis
+`fstat`) et **refuse** un lien symbolique, tout ce qui n'est pas un fichier
+ordinaire, un fichier lisible par le groupe ou les autres, un fichier qui
+n'appartient pas à l'uid du serveur, un fichier vide et un fichier de plus de
+64 Kio. L'erreur donne la correction.
+
+| Plateforme | `CREDENTIALS_DIRECTORY` | Propriétaire et mode |
+|----------|-------------------------|----------------|
+| systemd | défini par `LoadCredentialEncrypted=` | l'utilisateur du service, `0400`, sur un tmpfs privé |
+| Docker Swarm | `/run/secrets`, défini à la main | `mode: 0400` sur le secret |
+| Docker Compose | `/run/secrets`, défini à la main | ceux du fichier de l'hôte : `chown` et `chmod 0400`, et ajustez `user:` |
+| Podman | `/run/secrets`, défini à la main | `--secret ...,mode=0400` (Quadlet : `Secret=...,mode=0400`) |
+| Kubernetes | le chemin de montage du volume Secret, défini à la main | `defaultMode: 0400` ; les fichiers appartiennent à root, donc le pod tourne en uid 0, toutes capacités retirées sauf `NET_ADMIN` |
+| autres | n'importe quel répertoire | `chmod 0400`, propriété de l'utilisateur du service |
+
+Des unités prêtes à l'emploi pour systemd, Compose, Podman et Kubernetes se
+trouvent dans le répertoire `deploy/` du dépôt, avec les étapes de
+`systemd-creds encrypt`. Les hôtes sans systemd pourront obtenir le même
+répertoire avec `go-authn/sdcreds` (`sdcreds s6-run`) dès que sa première
+version sera étiquetée ; rien n'en dépend pour l'instant.
+
+Le contrôle d'organisation du fournisseur `github` n'utilise pas `github-token` :
+il se fait avec le jeton de la *personne*, donc une appartenance privée n'est
+visible que si ce jeton porte `read:org`. L'identifiant est facultatif tant que
+seules des organisations sont utilisées.
+
+{{< callout type="warning" >}}
+**Migration depuis v0.5.0** (rupture). `ADMIN_TOKEN`, `WG_PRIVATE_KEY`,
+`WG_PRIVATE_KEY_FILE` et `GOAUTHN_GATEWAY_SECRET_FILE` ne sont plus lues, et le
+serveur refuse de démarrer tant que l'une d'elles est définie, en nommant le
+fichier à créer. Mettez chaque valeur dans son fichier (`admin-token`,
+`wg-private-key`, `goauthn-gateway-secret`), supprimez la variable et définissez
+`CREDENTIALS_DIRECTORY`. Un locataire avec `members` exige désormais aussi
+`github-token`.
+{{< /callout >}}
 
 ## Fournisseurs d'authentification {#authentication-providers}
 
@@ -121,7 +173,9 @@ export AUTH_PROVIDER=oidc
 export OIDC_ISSUER=https://accounts.google.com
 export OIDC_CLIENT_ID=xxxx.apps.googleusercontent.com
 export WG_ENDPOINT=vpn.example.com:51820
-export WG_PRIVATE_KEY=$(wg genkey)
+export CREDENTIALS_DIRECTORY=$HOME/.local/state/claimward-dev-creds
+(umask 077; mkdir -p "$CREDENTIALS_DIRECTORY"; wg genkey > "$CREDENTIALS_DIRECTORY/wg-private-key")
+chmod 0400 "$CREDENTIALS_DIRECTORY/wg-private-key"
 export WG_DRYRUN=true LISTEN_ADDR=:8080
 
 go run ./cmd/claimward-server

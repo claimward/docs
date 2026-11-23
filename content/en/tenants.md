@@ -45,7 +45,10 @@ subject is `github:<id>` for a pinned ID: a renamed account whose old login now
 belongs to somebody else is refused. An **unresolvable login is an error**: the
 server refuses to start, and the admin API answers `400`. The admin API and
 WebUI show the logins; to follow a rename, edit the tenant again. Resolution is
-unauthenticated (60 requests an hour per address on github.com).
+authenticated with the `github-token` credential (a file in
+`CREDENTIALS_DIRECTORY`, sent as a bearer: 5000 requests an hour on
+github.com). A tenant with `members` and no `github-token` stops the start; the
+token is never sent over plain HTTP except to a loopback address.
 
 A named member is also admitted by the GitHub entry gate without belonging to
 an allowed organisation (see [identity providers]({{< relref "/identity-providers.md" >}})).

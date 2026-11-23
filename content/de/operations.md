@@ -85,9 +85,11 @@ seine Liste nicht abrufen kann, lässt niemanden Neues zu. Siehe
 
 ## Admin-API und WebUI {#admin-api-and-webui}
 
-Wenn `ADMIN_TOKEN` gesetzt ist, stellt der Server eine eingebettete Svelte-WebUI unter
+Wenn die Credential `admin-token` vorhanden ist (eine Datei in
+`CREDENTIALS_DIRECTORY`, siehe [Credentials]({{< relref "/components/server.md#credentials" >}})),
+stellt der Server eine eingebettete Svelte-WebUI unter
 `/admin/` und eine API unter `/admin/api/` bereit, geschützt durch
-`Authorization: Bearer <ADMIN_TOKEN>` (in konstanter Zeit verglichen). Ohne es
+`Authorization: Bearer <Inhalt von admin-token>` (in konstanter Zeit verglichen). Ohne die Datei
 antwortet `/admin/` mit `503`. Die Dateien der WebUI werden ohne Authentifizierung ausgeliefert;
 sie fragt nach dem Token und sendet es bei jedem Aufruf mit.
 

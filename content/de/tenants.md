@@ -49,7 +49,10 @@ Konto, dessen alter Login jetzt jemand anderem gehört, wird abgewiesen. Ein
 **nicht auflösbarer Login ist ein Fehler**: Der Server startet nicht, und die
 Admin-API antwortet mit `400`. Admin-API und WebUI zeigen die Logins; um einer
 Umbenennung zu folgen, bearbeiten Sie den Mandanten erneut. Die Auflösung ist
-anonym (60 Anfragen pro Stunde und Adresse bei github.com).
+mit der Credential `github-token` authentifiziert (eine Datei in
+`CREDENTIALS_DIRECTORY`, als Bearer gesendet: 5000 Anfragen pro Stunde bei
+github.com). Ein Mandant mit `members` ohne `github-token` verhindert den Start;
+das Token wird nie über unverschlüsseltes HTTP gesendet, außer an eine Loopback-Adresse.
 
 Ein benanntes Mitglied wird vom GitHub-Eingangstor auch ohne Zugehörigkeit zu
 einer erlaubten Organisation zugelassen (siehe [Identitätsanbieter]({{< relref "/identity-providers.md" >}})).

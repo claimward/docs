@@ -106,7 +106,7 @@ AUTH_PROVIDER=go-authn
 OIDC_ISSUER=https://login.example.org
 OIDC_CLIENT_ID=claimward                       # the audience of the access tokens
 GOAUTHN_GATEWAY_CLIENT_ID=claimward-gw         # the gateway's own client
-GOAUTHN_GATEWAY_SECRET_FILE=/etc/claimward/claimward-gw.secret   # from a file only
+CREDENTIALS_DIRECTORY=/etc/claimward/credentials   # enthält wg-private-key und goauthn-gateway-secret (das Secret des Gateways, nur als Datei)
 GOAUTHN_SSF=true                               # optional
 ```
 

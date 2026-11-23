@@ -47,8 +47,10 @@ limitada a 64 KiB, la cuenta debe ser un `User`) y guarda el par en el campo
 pertenece ahora a otra persona es rechazada. Un **login no resoluble es un
 error**: el servidor se niega a arrancar y la API de administración responde
 `400`. La API y la WebUI muestran los logins; para seguir un cambio de nombre,
-edite de nuevo el inquilino. La resolución es anónima (60 solicitudes por hora y
-dirección en github.com).
+edite de nuevo el inquilino. La resolución se autentica con la credencial `github-token` (un archivo en
+`CREDENTIALS_DIRECTORY`, enviado como bearer: 5000 solicitudes por hora en
+github.com). Un inquilino con `members` y sin `github-token` impide el arranque;
+el token nunca se envía por HTTP sin cifrar, salvo a una dirección loopback.
 
 Un miembro nombrado también es admitido por la puerta de entrada de GitHub sin
 pertenecer a una organización permitida (véase los [proveedores de identidad]({{< relref "/identity-providers.md" >}})).
