@@ -64,7 +64,7 @@ sont des fichiers d'un répertoire d'identifiants, voir [Identifiants](#credenti
 | `TUNNEL_MTU` | | déduit | MTU de l'interface WireGuard, de 1280 à 9000, annoncé comme `mtu` ; toute autre valeur refuse le démarrage. Non défini : MTU de la liaison montante moins 80, au plus 1420, au moins 1280. La même table atomique `inet claimward` abaisse aussi le MSS de chaque SYN TCP traversant l'interface (transit dans les deux sens, et entrée pour la passerelle elle-même) à ce MTU moins 40 (IPv4) ou 60 (IPv6) |
 | `LISTEN_ADDR` | | `:8443` | adresse d'écoute HTTP |
 | `GRPC_ADDR` | | `:8444` | adresse d'écoute du RouteService ; les flux `Watch` sont ré-autorisés toutes les 15 s et se terminent quand l'identité n'est plus admise |
-| `METRICS_ADDR` | | `127.0.0.1:9090` | écouteur séparé pour `/metrics` (boucle locale par défaut ; plus servi sur `LISTEN_ADDR`) |
+| `METRICS_ADDR` | | — (désactivé) | écouteur séparé pour `/metrics`, servi **seulement si défini** (depuis la v0.9.0 il n'y a plus de port par défaut : l'ancien `127.0.0.1:9090` entrait en conflit avec Prometheus) ; jamais sur `LISTEN_ADDR`. Il nomme chaque tenant : gardez-le en boucle locale ou sur un réseau privé |
 | `MAX_DEVICES_PER_SUBJECT` | | `5` | appareils qu'une identité peut enrôler |
 | `GRPC_ENDPOINT` | | — | `host:port` du RouteService annoncé aux clients ; vide, ils ne surveillent rien |
 | `TLS_CERT` / `TLS_KEY` | | — | HTTPS, et TLS sur le RouteService |
@@ -94,11 +94,18 @@ n'appartient pas à l'uid du serveur, un fichier vide et un fichier de plus de
 64 Kio. Une exception depuis la v0.7.1 : un fichier appartenant à l'uid 0, de
 mode exactement `0440`, est accepté si son groupe est le gid du serveur ou l'un
 de ses groupes supplémentaires (ce que produit un volume Secret Kubernetes avec
-`fsGroup`). L'erreur donne la correction.
+`fsGroup`). Une seconde depuis la v0.9.0, pour systemd avec `DynamicUser=yes` :
+systemd laisse le fichier `root:root`, mode `0400`, plus une entrée d'ACL POSIX
+en lecture seule pour l'uid du service (`src/core/exec-credential.c:338-361`,
+`src/shared/acl-util.c:448-494`), donc `stat` affiche `0440`. Le serveur lit
+`system.posix_acl_access` depuis le descripteur ouvert et accepte exactement
+`user::r--`, `user:<son uid>:r--`, `group::---`, `mask::r--`, `other::---` ;
+tout autre utilisateur ou groupe nommé, tout bit d'écriture ou d'exécution, ou
+une valeur mal formée ou trop grande est refusé. L'erreur donne la correction.
 
 | Plateforme | `CREDENTIALS_DIRECTORY` | Propriétaire et mode |
 |----------|-------------------------|----------------|
-| systemd | défini par `LoadCredentialEncrypted=` | l'utilisateur du service, `0400`, sur un tmpfs privé |
+| systemd | défini par `LoadCredentialEncrypted=` | avec `DynamicUser=yes` (comme livré) : propriété de root avec une ACL en lecture seule pour l'uid du service, acceptée ; avec un `User=` fixe sur un système de fichiers sans ACL : l'utilisateur du service, `0400`. tmpfs privé |
 | Docker Swarm | `/run/secrets`, défini à la main | `mode: 0400` sur le secret |
 | Docker Compose | `/run/secrets`, défini à la main | ceux du fichier de l'hôte : `chown` et `chmod 0400`, et ajustez `user:` |
 | Podman | `/run/secrets`, défini à la main | `--secret ...,mode=0400` (Quadlet : `Secret=...,mode=0400`) |

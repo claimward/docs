@@ -64,7 +64,7 @@ files in a credentials directory, see [Credentials](#credentials) below.
 | `TUNNEL_MTU` | | derived | MTU of the WireGuard interface, 1280 to 9000, advertised as `mtu`; anything else refuses to start. Unset: the uplink MTU minus 80, at most 1420, at least 1280. The same atomic `inet claimward` table also clamps the MSS of every TCP SYN crossing the interface (forwarded both ways, and input for the gateway itself) to this MTU minus 40 (IPv4) or 60 (IPv6) |
 | `LISTEN_ADDR` | | `:8443` | HTTP listen address |
 | `GRPC_ADDR` | | `:8444` | RouteService listen address; `Watch` streams are re-authorised every 15 s and end when the identity is no longer allowed |
-| `METRICS_ADDR` | | `127.0.0.1:9090` | separate listener for `/metrics` (loopback by default; it is no longer served on `LISTEN_ADDR`) |
+| `METRICS_ADDR` | | — (off) | separate listener for `/metrics`, served **only when set** (since v0.9.0 there is no default port: the old `127.0.0.1:9090` clashed with Prometheus); never on `LISTEN_ADDR`. It names every tenant: keep it on loopback or a private network |
 | `MAX_DEVICES_PER_SUBJECT` | | `5` | devices one identity may enroll |
 | `GRPC_ENDPOINT` | | — | `host:port` of the RouteService advertised to clients; empty, they do not watch |
 | `TLS_CERT` / `TLS_KEY` | | — | HTTPS, and TLS on the RouteService |
@@ -92,11 +92,17 @@ readable by group or other, a file not owned by the server's uid, an empty file
 and one over 64 KiB. One exception since v0.7.1: a file owned by uid 0 with mode
 exactly `0440` is accepted when its group is the server's gid or one of its
 supplementary groups (what a Kubernetes Secret volume with `fsGroup` produces).
-The error gives the fix.
+A second one since v0.9.0, for systemd with `DynamicUser=yes`: systemd leaves
+the file `root:root`, mode `0400`, plus a read-only POSIX ACL entry for the
+service's uid (`src/core/exec-credential.c:338-361`, `src/shared/acl-util.c:448-494`),
+so `stat` shows `0440`. The server reads `system.posix_acl_access` from the open
+descriptor and accepts exactly `user::r--`, `user:<its uid>:r--`, `group::---`,
+`mask::r--`, `other::---`; any other named user or group, any write or execute
+bit, or a malformed or oversized value is refused. The error gives the fix.
 
 | Platform | `CREDENTIALS_DIRECTORY` | Owner and mode |
 |----------|-------------------------|----------------|
-| systemd | set by `LoadCredentialEncrypted=` | the service user, `0400`, on a private tmpfs |
+| systemd | set by `LoadCredentialEncrypted=` | with `DynamicUser=yes` (as shipped): root-owned with a read-only ACL for the service's uid, accepted; with a fixed `User=` on a filesystem without ACLs: the service user, `0400`. Private tmpfs |
 | Docker Swarm | `/run/secrets`, set by hand | `mode: 0400` on the secret |
 | Docker Compose | `/run/secrets`, set by hand | the host file's: `chown` and `chmod 0400` it, and set `user:` to match |
 | Podman | `/run/secrets`, set by hand | `--secret ...,mode=0400` (Quadlet: `Secret=...,mode=0400`) |
