@@ -557,17 +557,21 @@ une valeur mal formée ou trop grande est refusé. L&amp;rsquo;erreur donne la c
 &lt;td&gt;&lt;code&gt;defaultMode: 0440&lt;/code&gt; et &lt;code&gt;fsGroup&lt;/code&gt; : les fichiers sont &lt;code&gt;root:&amp;lt;fsGroup&amp;gt;&lt;/code&gt;, acceptés par la règle de groupe ci-dessus, donc le pod tourne avec un uid non root, toutes capacités retirées sauf &lt;code&gt;NET_ADMIN&lt;/code&gt;. &lt;code&gt;add: [NET_ADMIN]&lt;/code&gt; seul ne donne pas la capacité à un uid non root (pas d&amp;rsquo;ensemble ambiant) : le binaire de l&amp;rsquo;image doit porter &lt;code&gt;setcap cap_net_admin=+ep&lt;/code&gt; (d&amp;rsquo;après capabilities(7), non mesuré sur un cluster)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
+&lt;td&gt;s6 (sans systemd)&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;/run/sdcreds/claimward-server&lt;/code&gt;, défini par &lt;code&gt;sdcreds s6-run&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;l&amp;rsquo;utilisateur du service, &lt;code&gt;0400&lt;/code&gt;, dans un tmpfs privé (voir &lt;a href="#s6-deploy"&gt;s6&lt;/a&gt;)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
 &lt;td&gt;autres&lt;/td&gt;
 &lt;td&gt;n&amp;rsquo;importe quel répertoire&lt;/td&gt;
 &lt;td&gt;&lt;code&gt;chmod 0400&lt;/code&gt;, propriété de l&amp;rsquo;utilisateur du service&lt;/td&gt;
 &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
-&lt;p&gt;Des unités prêtes à l&amp;rsquo;emploi pour systemd, Compose, Podman et Kubernetes se
+&lt;p&gt;Des unités prêtes à l&amp;rsquo;emploi pour systemd, Compose, Podman, Kubernetes et s6 se
 trouvent dans le répertoire &lt;code&gt;deploy/&lt;/code&gt; du dépôt, avec les étapes de
-&lt;code&gt;systemd-creds encrypt&lt;/code&gt;. Les hôtes sans systemd pourront obtenir le même
-répertoire avec &lt;code&gt;go-authn/sdcreds&lt;/code&gt; (&lt;code&gt;sdcreds s6-run&lt;/code&gt;) dès que sa première
-version sera étiquetée ; rien n&amp;rsquo;en dépend pour l&amp;rsquo;instant.&lt;/p&gt;
+&lt;code&gt;systemd-creds encrypt&lt;/code&gt;. Les hôtes sans systemd obtiennent le même répertoire
+avec &lt;code&gt;go-authn/sdcreds&lt;/code&gt; (voir &lt;a href="#s6-deploy"&gt;s6&lt;/a&gt;) ; le serveur n&amp;rsquo;en dépend pas.&lt;/p&gt;
 &lt;p&gt;Le contrôle d&amp;rsquo;organisation du fournisseur &lt;code&gt;github&lt;/code&gt; n&amp;rsquo;utilise pas &lt;code&gt;github-token&lt;/code&gt; :
 il se fait avec le jeton de la &lt;em&gt;personne&lt;/em&gt;, donc une appartenance privée n&amp;rsquo;est
 visible que si ce jeton porte &lt;code&gt;read:org&lt;/code&gt;. L&amp;rsquo;identifiant est facultatif tant que
@@ -728,6 +732,40 @@ data-copied-label="Copié !"
 vraies machines virtuelles OpenBSD 7.9 et 8.0 : &lt;code&gt;rcctl start&lt;/code&gt;, la ligne de
 démarrage, &lt;code&gt;rcctl check&lt;/code&gt; et &lt;code&gt;rcctl stop&lt;/code&gt;, puis un démarrage sans l&amp;rsquo;ancre dans
 &lt;code&gt;pf.conf&lt;/code&gt;, qui doit échouer.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="s6-deploy"&gt;Déployer sous s6 (sdcreds)&lt;span class="hx:absolute hx:-mt-20" id="s6-deploy"&gt;&lt;/span&gt;
+&lt;a href="#s6-deploy" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Depuis la v0.10.2, le dépôt fournit &lt;code&gt;deploy/s6/claimward-server/&lt;/code&gt; (&lt;code&gt;run&lt;/code&gt; et
+&lt;code&gt;finish&lt;/code&gt;) pour les hôtes sans systemd. &lt;code&gt;sdcreds s6-run&lt;/code&gt; (go-authn/sdcreds v0.2.0
+ou plus récent) déchiffre chaque fichier de son répertoire &lt;code&gt;--source&lt;/code&gt; dans un
+tmpfs privé, écrit chacun en &lt;code&gt;0400&lt;/code&gt; avec pour propriétaire &lt;code&gt;--user&lt;/code&gt;, définit
+&lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt; et lance le serveur sous cet utilisateur. Un fichier dont
+le propriétaire est l&amp;rsquo;uid du processus, sans accès pour le groupe ni les autres,
+est la première forme que le chargeur accepte : il n&amp;rsquo;est donc pas modifié. Aucun
+secret ne passe par l&amp;rsquo;environnement, par argv ni par une URL.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Une capacité, conservée exprès.&lt;/strong&gt; Le serveur a besoin de &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt;
+(wgctrl, nftables, MTU de l&amp;rsquo;interface). Par défaut, &lt;code&gt;s6-run&lt;/code&gt; vide tous les
+ensembles de capacités du service et laisse &lt;code&gt;no_new_privs&lt;/code&gt; actif ; l&amp;rsquo;exemple
+passe &lt;code&gt;--keep-cap=CAP_NET_ADMIN&lt;/code&gt;, si bien que le serveur tourne avec cette
+seule capacité (&lt;code&gt;CapEff&lt;/code&gt; &lt;code&gt;0x1000&lt;/code&gt;). Elle agit sur l&amp;rsquo;espace de noms réseau dans
+lequel l&amp;rsquo;arbre de supervision s&amp;rsquo;exécute : celui de l&amp;rsquo;hôte, sauf si vous lancez
+&lt;code&gt;s6-svscan&lt;/code&gt; dans un espace de noms à part (&lt;code&gt;ip netns exec&lt;/code&gt;).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Noms.&lt;/strong&gt; Chaque fichier de &lt;code&gt;--source&lt;/code&gt; porte le nom de son secret
+(&lt;code&gt;wg-private-key&lt;/code&gt;, &lt;code&gt;github-token&lt;/code&gt;, &lt;code&gt;admin-token&lt;/code&gt;, &lt;code&gt;goauthn-gateway-secret&lt;/code&gt;) et
+est chiffré avec &lt;code&gt;sdcreds encrypt --name=&amp;lt;ce nom&amp;gt;&lt;/code&gt; ; tout autre nom arrête le
+démarrage. &lt;code&gt;s6-run&lt;/code&gt; exige root et &lt;code&gt;CAP_SYS_ADMIN&lt;/code&gt; (il monte un système de
+fichiers).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;La configuration&lt;/strong&gt; non secrète va dans &lt;code&gt;/etc/claimward/env&lt;/code&gt;, lu par le script
+&lt;code&gt;run&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Les conteneurs&lt;/strong&gt; n&amp;rsquo;en ont pas besoin : Compose, Podman et Kubernetes montent
+déjà les secrets comme des fichiers (tableau ci-dessus).&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;La CI exécute ce répertoire sous un vrai &lt;code&gt;s6-svscan&lt;/code&gt;, dans un espace de noms
+réseau, avec une vraie interface WireGuard et nftables (pas un essai à blanc).
+Elle vérifie que le journal contient la clé publique dérivée du secret chiffré
+(et pas une clé témoin), que le serveur tourne sous l&amp;rsquo;utilisateur du service
+avec &lt;code&gt;CapEff&lt;/code&gt; &lt;code&gt;0x1000&lt;/code&gt; et &lt;code&gt;no_new_privs&lt;/code&gt;, qu&amp;rsquo;aucun secret n&amp;rsquo;est dans son
+environnement, qu&amp;rsquo;un fichier de secret en mode &lt;code&gt;0644&lt;/code&gt; est refusé, et que l&amp;rsquo;arrêt
+du service supprime le montage.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="run-locally"&gt;Exécuter en local&lt;span class="hx:absolute hx:-mt-20" id="run-locally"&gt;&lt;/span&gt;
 &lt;a href="#run-locally" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Avec &lt;code&gt;WG_DRYRUN=true&lt;/code&gt;, aucun périphérique WireGuard n&amp;rsquo;est touché :&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;

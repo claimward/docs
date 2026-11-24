@@ -333,16 +333,21 @@ bit, or a malformed or oversized value is refused. The error gives the fix.&lt;/
 &lt;td&gt;&lt;code&gt;defaultMode: 0440&lt;/code&gt; and &lt;code&gt;fsGroup&lt;/code&gt;: the files are &lt;code&gt;root:&amp;lt;fsGroup&amp;gt;&lt;/code&gt;, accepted by the group rule above, so the pod runs as a non-root uid with every capability dropped but &lt;code&gt;NET_ADMIN&lt;/code&gt;. &lt;code&gt;add: [NET_ADMIN]&lt;/code&gt; alone does not give a non-root uid the capability (no ambient set): the image&amp;rsquo;s binary needs &lt;code&gt;setcap cap_net_admin=+ep&lt;/code&gt; (per capabilities(7), not measured on a cluster)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
+&lt;td&gt;s6 (no systemd)&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;/run/sdcreds/claimward-server&lt;/code&gt;, set by &lt;code&gt;sdcreds s6-run&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;the service user, &lt;code&gt;0400&lt;/code&gt;, in a private tmpfs (see &lt;a href="#s6-deploy"&gt;s6&lt;/a&gt;)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
 &lt;td&gt;otherwise&lt;/td&gt;
 &lt;td&gt;any directory&lt;/td&gt;
 &lt;td&gt;&lt;code&gt;chmod 0400&lt;/code&gt;, owned by the service user&lt;/td&gt;
 &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
-&lt;p&gt;Ready-made units for systemd, Compose, Podman and Kubernetes are in the
+&lt;p&gt;Ready-made units for systemd, Compose, Podman, Kubernetes and s6 are in the
 repository&amp;rsquo;s &lt;code&gt;deploy/&lt;/code&gt; directory, with the &lt;code&gt;systemd-creds encrypt&lt;/code&gt; steps. Hosts
-without systemd will be able to get the same directory from &lt;code&gt;go-authn/sdcreds&lt;/code&gt;
-(&lt;code&gt;sdcreds s6-run&lt;/code&gt;) once its first release is tagged; nothing depends on it yet.&lt;/p&gt;
+without systemd get the same directory from &lt;code&gt;go-authn/sdcreds&lt;/code&gt; (see
+&lt;a href="#s6-deploy"&gt;s6&lt;/a&gt;); the server does not depend on it.&lt;/p&gt;
 &lt;p&gt;The organisation check of the &lt;code&gt;github&lt;/code&gt; provider does not use &lt;code&gt;github-token&lt;/code&gt;: it
 runs with the &lt;em&gt;person&amp;rsquo;s&lt;/em&gt; token, so a private membership is visible only if that
 token carries &lt;code&gt;read:org&lt;/code&gt;. The credential is optional while only organisations
@@ -497,6 +502,37 @@ data-copied-label="Copied!"
 OpenBSD 7.9 and 8.0 virtual machines: &lt;code&gt;rcctl start&lt;/code&gt;, the startup line,
 &lt;code&gt;rcctl check&lt;/code&gt; and &lt;code&gt;rcctl stop&lt;/code&gt;, then a start without the anchor in &lt;code&gt;pf.conf&lt;/code&gt;,
 which must fail.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="s6-deploy"&gt;Deploying under s6 (sdcreds)&lt;span class="hx:absolute hx:-mt-20" id="s6-deploy"&gt;&lt;/span&gt;
+&lt;a href="#s6-deploy" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;From v0.10.2 the repository ships &lt;code&gt;deploy/s6/claimward-server/&lt;/code&gt; (&lt;code&gt;run&lt;/code&gt; and
+&lt;code&gt;finish&lt;/code&gt;) for hosts without systemd. &lt;code&gt;sdcreds s6-run&lt;/code&gt; (go-authn/sdcreds v0.2.0
+or later) decrypts every file of its &lt;code&gt;--source&lt;/code&gt; directory into a private tmpfs,
+writes each one &lt;code&gt;0400&lt;/code&gt; and owned by &lt;code&gt;--user&lt;/code&gt;, sets &lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt;, and
+starts the server as that user. A file owned by the process&amp;rsquo;s own uid with no
+group or other access is the first shape the loader accepts, so the loader is
+unchanged. Nothing secret goes in the environment, in argv or in a URL.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;One capability, kept on purpose.&lt;/strong&gt; The server needs &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt; (wgctrl,
+nftables, the interface MTU). &lt;code&gt;s6-run&lt;/code&gt; empties every capability set of the
+service by default and keeps &lt;code&gt;no_new_privs&lt;/code&gt;; the example passes
+&lt;code&gt;--keep-cap=CAP_NET_ADMIN&lt;/code&gt;, so the server runs with exactly that one
+(&lt;code&gt;CapEff&lt;/code&gt; &lt;code&gt;0x1000&lt;/code&gt;). The capability acts on the network namespace the
+supervision tree runs in: the host&amp;rsquo;s, unless you start &lt;code&gt;s6-svscan&lt;/code&gt; inside one
+of its own (&lt;code&gt;ip netns exec&lt;/code&gt;).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Names.&lt;/strong&gt; Each file of &lt;code&gt;--source&lt;/code&gt; is named like its credential
+(&lt;code&gt;wg-private-key&lt;/code&gt;, &lt;code&gt;github-token&lt;/code&gt;, &lt;code&gt;admin-token&lt;/code&gt;, &lt;code&gt;goauthn-gateway-secret&lt;/code&gt;) and
+encrypted with &lt;code&gt;sdcreds encrypt --name=&amp;lt;that name&amp;gt;&lt;/code&gt;; any other name stops the
+start. &lt;code&gt;s6-run&lt;/code&gt; needs root and &lt;code&gt;CAP_SYS_ADMIN&lt;/code&gt; (it mounts).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Configuration&lt;/strong&gt; that is not secret goes in &lt;code&gt;/etc/claimward/env&lt;/code&gt;, read by the
+&lt;code&gt;run&lt;/code&gt; script.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Containers&lt;/strong&gt; do not need it: Compose, Podman and Kubernetes mount secrets as
+files already (table above).&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The CI runs this directory under a real &lt;code&gt;s6-svscan&lt;/code&gt;, in a network namespace
+with a real WireGuard link and nftables (not a dry run). It checks that the log
+holds the public key derived from the encrypted credential (and not a control
+key), that the server runs as the service user with &lt;code&gt;CapEff&lt;/code&gt; &lt;code&gt;0x1000&lt;/code&gt; and
+&lt;code&gt;no_new_privs&lt;/code&gt;, that no secret is in its environment, that a credential file
+with mode &lt;code&gt;0644&lt;/code&gt; is refused, and that stopping the service removes the mount.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="run-locally"&gt;Run locally&lt;span class="hx:absolute hx:-mt-20" id="run-locally"&gt;&lt;/span&gt;
 &lt;a href="#run-locally" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;With &lt;code&gt;WG_DRYRUN=true&lt;/code&gt; no WireGuard device is touched:&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;

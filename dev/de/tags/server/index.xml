@@ -558,17 +558,20 @@ Fehlermeldung nennt die Abhilfe.&lt;/p&gt;
 &lt;td&gt;&lt;code&gt;defaultMode: 0440&lt;/code&gt; und &lt;code&gt;fsGroup&lt;/code&gt;: die Dateien sind &lt;code&gt;root:&amp;lt;fsGroup&amp;gt;&lt;/code&gt;, von der Gruppenregel oben akzeptiert, daher läuft der Pod als Nicht-root-UID mit allen Capabilities außer &lt;code&gt;NET_ADMIN&lt;/code&gt; entfernt. &lt;code&gt;add: [NET_ADMIN]&lt;/code&gt; allein gibt einer Nicht-root-UID die Capability nicht (keine Ambient-Menge): Die Binärdatei im Image braucht &lt;code&gt;setcap cap_net_admin=+ep&lt;/code&gt; (nach capabilities(7), nicht auf einem Cluster gemessen)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
+&lt;td&gt;s6 (ohne systemd)&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;/run/sdcreds/claimward-server&lt;/code&gt;, von &lt;code&gt;sdcreds s6-run&lt;/code&gt; gesetzt&lt;/td&gt;
+&lt;td&gt;der Dienstbenutzer, &lt;code&gt;0400&lt;/code&gt;, in einem privaten tmpfs (siehe &lt;a href="#s6-deploy"&gt;s6&lt;/a&gt;)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
 &lt;td&gt;sonst&lt;/td&gt;
 &lt;td&gt;ein beliebiges Verzeichnis&lt;/td&gt;
 &lt;td&gt;&lt;code&gt;chmod 0400&lt;/code&gt;, Eigentümer: der Dienstbenutzer&lt;/td&gt;
 &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
-&lt;p&gt;Fertige Units für systemd, Compose, Podman und Kubernetes liegen im Verzeichnis
-&lt;code&gt;deploy/&lt;/code&gt; des Repositorys, mit den Schritten für &lt;code&gt;systemd-creds encrypt&lt;/code&gt;. Hosts
-ohne systemd können dasselbe Verzeichnis künftig von &lt;code&gt;go-authn/sdcreds&lt;/code&gt;
-(&lt;code&gt;sdcreds s6-run&lt;/code&gt;) erhalten, sobald dessen erste Version getaggt ist; nichts
-hängt bisher davon ab.&lt;/p&gt;
+&lt;p&gt;Fertige Units für systemd, Compose, Podman, Kubernetes und s6 liegen im
+Verzeichnis &lt;code&gt;deploy/&lt;/code&gt; des Repositorys, mit den Schritten für &lt;code&gt;systemd-creds encrypt&lt;/code&gt;. Hosts ohne systemd erhalten dasselbe Verzeichnis von
+&lt;code&gt;go-authn/sdcreds&lt;/code&gt; (siehe &lt;a href="#s6-deploy"&gt;s6&lt;/a&gt;); der Server hängt nicht davon ab.&lt;/p&gt;
 &lt;p&gt;Die Organisationsprüfung des Anbieters &lt;code&gt;github&lt;/code&gt; verwendet &lt;code&gt;github-token&lt;/code&gt; nicht:
 Sie läuft mit dem Token der &lt;em&gt;Person&lt;/em&gt;, ein privates Mitglied ist also nur
 sichtbar, wenn dieses Token &lt;code&gt;read:org&lt;/code&gt; trägt. Die Credential ist optional,
@@ -730,6 +733,40 @@ data-copied-label="Kopiert!"
 echten OpenBSD-7.9- und -8.0-VMs aus: &lt;code&gt;rcctl start&lt;/code&gt;, die Startzeile,
 &lt;code&gt;rcctl check&lt;/code&gt; und &lt;code&gt;rcctl stop&lt;/code&gt;, danach einen Start ohne den Anchor in
 &lt;code&gt;pf.conf&lt;/code&gt;, der fehlschlagen muss.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="s6-deploy"&gt;Bereitstellung unter s6 (sdcreds)&lt;span class="hx:absolute hx:-mt-20" id="s6-deploy"&gt;&lt;/span&gt;
+&lt;a href="#s6-deploy" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Ab v0.10.2 liefert das Repository &lt;code&gt;deploy/s6/claimward-server/&lt;/code&gt; (&lt;code&gt;run&lt;/code&gt; und
+&lt;code&gt;finish&lt;/code&gt;) für Hosts ohne systemd mit. &lt;code&gt;sdcreds s6-run&lt;/code&gt; (go-authn/sdcreds v0.2.0
+oder neuer) entschlüsselt jede Datei seines &lt;code&gt;--source&lt;/code&gt;-Verzeichnisses in ein
+privates tmpfs, schreibt jede mit Modus &lt;code&gt;0400&lt;/code&gt; und &lt;code&gt;--user&lt;/code&gt; als Eigentümer,
+setzt &lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt; und startet den Server unter diesem Benutzer. Eine
+Datei, die der UID des Prozesses gehört und für Gruppe und andere nicht
+zugänglich ist, ist die erste Form, die der Lader akzeptiert; er bleibt also
+unverändert. Kein Geheimnis geht durch die Umgebung, durch argv oder eine URL.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Eine Capability, absichtlich behalten.&lt;/strong&gt; Der Server braucht &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt;
+(wgctrl, nftables, MTU der Schnittstelle). Standardmäßig leert &lt;code&gt;s6-run&lt;/code&gt; alle
+Capability-Mengen des Dienstes und lässt &lt;code&gt;no_new_privs&lt;/code&gt; aktiv; das Beispiel
+übergibt &lt;code&gt;--keep-cap=CAP_NET_ADMIN&lt;/code&gt;, sodass der Server mit genau dieser einen
+Capability läuft (&lt;code&gt;CapEff&lt;/code&gt; &lt;code&gt;0x1000&lt;/code&gt;). Sie wirkt auf den Netzwerk-Namespace, in
+dem der Supervisionsbaum läuft: den des Hosts, außer Sie starten &lt;code&gt;s6-svscan&lt;/code&gt;
+in einem eigenen (&lt;code&gt;ip netns exec&lt;/code&gt;).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Namen.&lt;/strong&gt; Jede Datei von &lt;code&gt;--source&lt;/code&gt; heißt wie ihr Geheimnis
+(&lt;code&gt;wg-private-key&lt;/code&gt;, &lt;code&gt;github-token&lt;/code&gt;, &lt;code&gt;admin-token&lt;/code&gt;, &lt;code&gt;goauthn-gateway-secret&lt;/code&gt;) und
+wird mit &lt;code&gt;sdcreds encrypt --name=&amp;lt;dieser Name&amp;gt;&lt;/code&gt; verschlüsselt; jeder andere
+Name stoppt den Start. &lt;code&gt;s6-run&lt;/code&gt; braucht root und &lt;code&gt;CAP_SYS_ADMIN&lt;/code&gt; (es mountet
+ein Dateisystem).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Nicht geheime Konfiguration&lt;/strong&gt; steht in &lt;code&gt;/etc/claimward/env&lt;/code&gt;, das das
+&lt;code&gt;run&lt;/code&gt;-Skript liest.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Container&lt;/strong&gt; brauchen es nicht: Compose, Podman und Kubernetes mounten
+Geheimnisse bereits als Dateien (Tabelle oben).&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Die CI führt dieses Verzeichnis unter einem echten &lt;code&gt;s6-svscan&lt;/code&gt; aus, in einem
+Netzwerk-Namespace, mit einer echten WireGuard-Schnittstelle und nftables (kein
+Trockenlauf). Sie prüft, dass das Log den aus dem verschlüsselten Geheimnis
+abgeleiteten öffentlichen Schlüssel enthält (und keinen Kontrollschlüssel), dass
+der Server als Dienstbenutzer mit &lt;code&gt;CapEff&lt;/code&gt; &lt;code&gt;0x1000&lt;/code&gt; und &lt;code&gt;no_new_privs&lt;/code&gt; läuft,
+dass kein Geheimnis in seiner Umgebung steht, dass eine Geheimnisdatei mit Modus
+&lt;code&gt;0644&lt;/code&gt; abgelehnt wird und dass das Stoppen des Dienstes den Mount entfernt.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="run-locally"&gt;Lokal ausführen&lt;span class="hx:absolute hx:-mt-20" id="run-locally"&gt;&lt;/span&gt;
 &lt;a href="#run-locally" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Mit &lt;code&gt;WG_DRYRUN=true&lt;/code&gt; wird kein WireGuard-Gerät angetastet:&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;

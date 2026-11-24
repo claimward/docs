@@ -336,17 +336,21 @@ rechaza. El error indica cómo corregirlo.&lt;/p&gt;
 &lt;td&gt;&lt;code&gt;defaultMode: 0440&lt;/code&gt; y &lt;code&gt;fsGroup&lt;/code&gt;: los archivos son &lt;code&gt;root:&amp;lt;fsGroup&amp;gt;&lt;/code&gt;, aceptados por la regla de grupo anterior, así que el pod se ejecuta con un uid no root y sin ninguna capability salvo &lt;code&gt;NET_ADMIN&lt;/code&gt;. &lt;code&gt;add: [NET_ADMIN]&lt;/code&gt; solo no da la capability a un uid no root (sin conjunto ambiente): el binario de la imagen necesita &lt;code&gt;setcap cap_net_admin=+ep&lt;/code&gt; (según capabilities(7), no medido en un clúster)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
+&lt;td&gt;s6 (sin systemd)&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;/run/sdcreds/claimward-server&lt;/code&gt;, definida por &lt;code&gt;sdcreds s6-run&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;el usuario del servicio, &lt;code&gt;0400&lt;/code&gt;, en un tmpfs privado (véase &lt;a href="#s6-deploy"&gt;s6&lt;/a&gt;)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
 &lt;td&gt;otras&lt;/td&gt;
 &lt;td&gt;cualquier directorio&lt;/td&gt;
 &lt;td&gt;&lt;code&gt;chmod 0400&lt;/code&gt;, propiedad del usuario del servicio&lt;/td&gt;
 &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
-&lt;p&gt;Hay unidades listas para systemd, Compose, Podman y Kubernetes en el directorio
-&lt;code&gt;deploy/&lt;/code&gt; del repositorio, con los pasos de &lt;code&gt;systemd-creds encrypt&lt;/code&gt;. Los hosts
-sin systemd podrán obtener el mismo directorio de &lt;code&gt;go-authn/sdcreds&lt;/code&gt;
-(&lt;code&gt;sdcreds s6-run&lt;/code&gt;) cuando se etiquete su primera versión; nada depende aún de
-ello.&lt;/p&gt;
+&lt;p&gt;Hay unidades listas para systemd, Compose, Podman, Kubernetes y s6 en el
+directorio &lt;code&gt;deploy/&lt;/code&gt; del repositorio, con los pasos de &lt;code&gt;systemd-creds encrypt&lt;/code&gt;.
+Los hosts sin systemd obtienen el mismo directorio de &lt;code&gt;go-authn/sdcreds&lt;/code&gt;
+(véase &lt;a href="#s6-deploy"&gt;s6&lt;/a&gt;); el servidor no depende de ello.&lt;/p&gt;
 &lt;p&gt;La comprobación de organización del proveedor &lt;code&gt;github&lt;/code&gt; no usa &lt;code&gt;github-token&lt;/code&gt;:
 se hace con el token de la &lt;em&gt;persona&lt;/em&gt;, así que una pertenencia privada solo es
 visible si ese token lleva &lt;code&gt;read:org&lt;/code&gt;. La credencial es opcional mientras solo
@@ -507,6 +511,40 @@ data-copied-label="¡Copiado!"
 máquinas virtuales OpenBSD 7.9 y 8.0 reales: &lt;code&gt;rcctl start&lt;/code&gt;, la línea de
 arranque, &lt;code&gt;rcctl check&lt;/code&gt; y &lt;code&gt;rcctl stop&lt;/code&gt;, y después un arranque sin el ancla en
 &lt;code&gt;pf.conf&lt;/code&gt;, que debe fallar.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="s6-deploy"&gt;Despliegue con s6 (sdcreds)&lt;span class="hx:absolute hx:-mt-20" id="s6-deploy"&gt;&lt;/span&gt;
+&lt;a href="#s6-deploy" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Desde la v0.10.2 el repositorio incluye &lt;code&gt;deploy/s6/claimward-server/&lt;/code&gt; (&lt;code&gt;run&lt;/code&gt; y
+&lt;code&gt;finish&lt;/code&gt;) para hosts sin systemd. &lt;code&gt;sdcreds s6-run&lt;/code&gt; (go-authn/sdcreds v0.2.0 o
+posterior) descifra cada archivo de su directorio &lt;code&gt;--source&lt;/code&gt; en un tmpfs
+privado, escribe cada uno con modo &lt;code&gt;0400&lt;/code&gt; y propietario &lt;code&gt;--user&lt;/code&gt;, define
+&lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt; e inicia el servidor con ese usuario. Un archivo cuyo
+propietario es el uid del proceso, sin acceso para el grupo ni para otros, es la
+primera forma que acepta el cargador, de modo que este no cambia. Ningún secreto
+pasa por el entorno, por argv ni por una URL.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Una capability, conservada a propósito.&lt;/strong&gt; El servidor necesita
+&lt;code&gt;CAP_NET_ADMIN&lt;/code&gt; (wgctrl, nftables, MTU de la interfaz). Por defecto &lt;code&gt;s6-run&lt;/code&gt;
+vacía todos los conjuntos de capabilities del servicio y mantiene
+&lt;code&gt;no_new_privs&lt;/code&gt;; el ejemplo pasa &lt;code&gt;--keep-cap=CAP_NET_ADMIN&lt;/code&gt;, así que el
+servidor se ejecuta con esa sola capability (&lt;code&gt;CapEff&lt;/code&gt; &lt;code&gt;0x1000&lt;/code&gt;). Actúa sobre
+el espacio de nombres de red en el que corre el árbol de supervisión: el del
+host, salvo que inicie &lt;code&gt;s6-svscan&lt;/code&gt; dentro de uno propio (&lt;code&gt;ip netns exec&lt;/code&gt;).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Nombres.&lt;/strong&gt; Cada archivo de &lt;code&gt;--source&lt;/code&gt; se llama como su credencial
+(&lt;code&gt;wg-private-key&lt;/code&gt;, &lt;code&gt;github-token&lt;/code&gt;, &lt;code&gt;admin-token&lt;/code&gt;, &lt;code&gt;goauthn-gateway-secret&lt;/code&gt;) y
+se cifra con &lt;code&gt;sdcreds encrypt --name=&amp;lt;ese nombre&amp;gt;&lt;/code&gt;; cualquier otro nombre
+detiene el arranque. &lt;code&gt;s6-run&lt;/code&gt; necesita root y &lt;code&gt;CAP_SYS_ADMIN&lt;/code&gt; (monta un
+sistema de archivos).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;La configuración&lt;/strong&gt; que no es secreta va en &lt;code&gt;/etc/claimward/env&lt;/code&gt;, que lee el
+script &lt;code&gt;run&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Los contenedores&lt;/strong&gt; no lo necesitan: Compose, Podman y Kubernetes ya montan
+los secretos como archivos (tabla anterior).&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;La CI ejecuta este directorio con un &lt;code&gt;s6-svscan&lt;/code&gt; real, en un espacio de nombres
+de red, con una interfaz WireGuard real y nftables (no una simulación).
+Comprueba que el registro contiene la clave pública derivada de la credencial
+cifrada (y no una clave de control), que el servidor corre con el usuario del
+servicio con &lt;code&gt;CapEff&lt;/code&gt; &lt;code&gt;0x1000&lt;/code&gt; y &lt;code&gt;no_new_privs&lt;/code&gt;, que ningún secreto está en su
+entorno, que un archivo de credencial con modo &lt;code&gt;0644&lt;/code&gt; se rechaza, y que al
+detener el servicio desaparece el montaje.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="run-locally"&gt;Ejecución en local&lt;span class="hx:absolute hx:-mt-20" id="run-locally"&gt;&lt;/span&gt;
 &lt;a href="#run-locally" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Con &lt;code&gt;WG_DRYRUN=true&lt;/code&gt; no se toca ningún dispositivo WireGuard:&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
