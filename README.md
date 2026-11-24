@@ -37,6 +37,11 @@ and push the tag. Choose the number by semver: **patch** for corrections,
 **minor** for pages or sections added, **major** for a reorganisation that
 breaks links. A tag in another form publishes nothing.
 
+Cut a new version whenever a component's release changes what its pages say,
+so that `latest/` (where the landing page's "Get started" leads) does not lag
+behind: `v0.5.0` is the first to document claimward-vpn-server v0.10.0 and
+claimward-vpn-client v0.6.0.
+
 ## Languages
 
 English is the default and sits at the root of each version
