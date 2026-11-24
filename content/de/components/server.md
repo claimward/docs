@@ -214,39 +214,64 @@ ioctls von `/dev/pf` an; er startet nie `pfctl`, und es gibt keinen Rückfall au
   tragen ein Generationssuffix pro Ladevorgang, sodass das kurze Fenster
   zwischen dem Übernehmen der Tabellen und dem der Regeln nie die Regeln eines
   Mandanten auf die Peers eines anderen anwenden kann.
-- **Kein `pledge(2)`.** Das Versprechen `pf` erlaubt nur zwölf der
-  `DIOC*`-ioctls (`sys/kern/kern_pledge.c`, `pledge_ioctl`); der Server braucht
-  zusätzlich `DIOCRINADEFINE`, `DIOCXROLLBACK`, `DIOCGETRULES`, `DIOCGETRULE`,
-  `DIOCXEND` und `DIOCRGETADDRS`. Jedes andere ioctl würde den Prozess beenden,
-  und ein Pledge lässt sich später nicht erweitern. Betreiben Sie ihn als
-  eigenen Dienst unter `rcctl` und halten Sie den übrigen Host abgesichert.
+- **Rechtetrennung (ab v0.11.0).** Das Versprechen `pf` von `pledge(2)` erlaubt
+  nur zwölf der `DIOC*`-ioctls (`sys/kern/kern_pledge.c`, `pledge_ioctl`); der
+  Server braucht zusätzlich `DIOCRINADEFINE`, `DIOCXROLLBACK`, `DIOCGETRULES`,
+  `DIOCGETRULE`, `DIOCXEND` und `DIOCRGETADDRS`; jedes andere ioctl würde den
+  Prozess beenden. Daher hat der Eltern-Prozess (root), der `/dev/pf` bedient,
+  kein Pledge. Der unprivilegierte Kindprozess `_claimward`, der die Geheimnisse
+  hält und das Netz bedient, wird vor dem Bedienen mit `unveil(2)` und
+  `pledge(2)` eingeschränkt (siehe unten).
+- **WireGuard-Peers (ab v0.11.0).** Vor v0.11.0 scheiterte unter OpenBSD eine
+  Anmeldung beim Hinzufügen des Peers zu `wg(4)` (Issue Nr. 79). Der Server
+  schreibt Peers jetzt mit den ioctls `SIOCSWG` und `SIOCGWG` aus
+  `sys/net/if_wg.h` und liest sie mit einem eigenen Dekoder zurück. In echten
+  OpenBSD-7.9- und -8.0-amd64-VMs geprüft: Das Strukturlayout stimmt mit dem des
+  C-Compilers überein, und Hinzufügen, Ersetzen, Entfernen und Aufräumen
+  funktionieren auf einer echten `wg(4)`-Schnittstelle. OpenBSD auf arm64 wird
+  nur cross-kompiliert, nicht auf einem Kernel ausgeführt.
 
 ### Bereitstellung unter OpenBSD (rc.d) {#openbsd-deploy}
 
 Ab v0.10.1 liefert das Repository `deploy/openbsd/` mit: ein `rc.d(8)`-Skript,
 ein `environment.example`, ein `hostname.wg0.example` und ein `pf.conf.example`.
 
-- **Er läuft als root.** Die WireGuard-Peer-Konfiguration von `wg(4)` liegt
-  hinter `suser(9)` (`sys/net/if_wg.c`), und `/dev/pf` ist nur durch seinen
-  Geräteknoten geschützt, der root vorbehalten ist: `pfopen`
+- **Zwei Prozesse (ab v0.11.0).** Die WireGuard-Peer-Konfiguration von `wg(4)`
+  liegt hinter `suser(9)` (`sys/net/if_wg.c`), und `/dev/pf` ist nur durch
+  seinen Geräteknoten geschützt, der root vorbehalten ist: `pfopen`
   (`sys/net/pf_ioctl.c`) prüft nichts weiter. OpenBSD hat keine privilegierte
-  Gruppe, mit der ein Benutzer `_claimward` das eine oder das andere dürfte;
-  das Skript setzt daher `daemon_user="root"`.
+  Gruppe, mit der ein unprivilegierter Benutzer das eine oder das andere dürfte;
+  das Skript startet den Daemon daher als root (`daemon_user="root"`), und der
+  Daemon teilt sich in zwei Prozesse. Der **Eltern-Prozess** (root) fügt Peers
+  hinzu und entfernt sie, setzt die Tunnel-MTU und lädt den pf-Anchor; er liest
+  kein Geheimnis, bedient kein Netz und macht nur `/dev/pf` per `unveil(2)`
+  sichtbar. Das **Kind**, ausgeführt als Benutzer `_claimward`, hält die
+  Geheimnisse, die TLS- und gRPC-Listener, den Identitätsanbieter und die
+  Mandantenrichtlinie und wird vor dem Bedienen mit `unveil(2)` und `pledge(2)`
+  (`stdio rpath inet dns`) eingeschränkt. Kann es die Rechte nicht abgeben,
+  startet der Server nicht. Das Kind fragt den Eltern-Prozess über ein
+  Socketpair, und dieser verweigert alles außerhalb des Adresspools
+  (`VPN_CIDR`).
+- **Der Benutzer `_claimward` muss existieren**, und die Ports müssen größer als
+  1024 sein (die Vorgaben 8443 und 8444 sind es); um auf 443 zu bedienen,
+  leiten Sie mit einem pf-`rdr-to` um.
 - **Geheimnisse sind Dateien** in `/etc/claimward/credentials`, einem
-  Verzeichnis `0700` im Besitz von root, jede Datei `0400` und im Besitz von
-  root (`install(1)`). Das Skript setzt `CREDENTIALS_DIRECTORY` darauf; kein
-  Geheimnis steht in der Umgebung, in Argumenten oder in einer URL. Die
-  nicht geheimen Einstellungen stehen in `/etc/claimward/environment`.
+  Verzeichnis `0700` im Besitz von `_claimward`, jede Datei `0400` und im Besitz
+  von `_claimward` (`install(1)`). Das Skript setzt `CREDENTIALS_DIRECTORY`
+  darauf; kein Geheimnis steht in der Umgebung, in Argumenten oder in einer URL.
+  Die nicht geheimen Einstellungen stehen in `/etc/claimward/environment`, die
+  root gehört.
 - **`wg0` muss existieren**, bevor der Server startet: `hostname.wg0` enthält
   denselben privaten Schlüssel wie das Geheimnis `wg-private-key` (Modus `0640`).
 
 ```sh
 install -m 0555 claimward-server /usr/local/bin/claimward-server
-install -d -m 0755 /etc/claimward
-install -d -m 0700 /etc/claimward/credentials
-install -m 0400 wg-private-key /etc/claimward/credentials/wg-private-key
-install -m 0600 environment.example /etc/claimward/environment   # dann bearbeiten
-install -m 0640 hostname.wg0.example /etc/hostname.wg0           # dann bearbeiten
+useradd -g =uid -c claimward -d /var/empty -s /sbin/nologin -r 1..999 _claimward
+install -d -m 0755 -o root -g wheel /etc/claimward
+install -d -m 0700 -o _claimward -g _claimward /etc/claimward/credentials
+install -m 0400 -o _claimward -g _claimward wg-private-key /etc/claimward/credentials/wg-private-key
+install -m 0600 -o root -g wheel environment.example /etc/claimward/environment   # dann bearbeiten
+install -m 0640 -o root -g wheel hostname.wg0.example /etc/hostname.wg0           # dann bearbeiten
 sh /etc/netstart wg0
 install -m 0555 claimward_server /etc/rc.d/claimward_server
 rcctl enable claimward_server
@@ -255,8 +280,10 @@ rcctl start claimward_server && rcctl check claimward_server
 
 Das Protokoll geht an syslog (`/var/log/daemon`). Die CI führt dieses Skript in
 echten OpenBSD-7.9- und -8.0-VMs aus: `rcctl start`, die Startzeile,
-`rcctl check` und `rcctl stop`, danach einen Start ohne den Anchor in
-`pf.conf`, der fehlschlagen muss.
+`rcctl check`, ein Eltern-Prozess als root mit einem Kind `_claimward`, eine
+Anmeldung über das Kind, deren Peer auf `wg0` erscheint, und `rcctl stop`;
+danach einen Start mit einem Geheimnis im Besitz von root und einen Start ohne
+den Anchor in `pf.conf`, die beide fehlschlagen müssen.
 
 ## Bereitstellung unter s6 (sdcreds) {#s6-deploy}
 

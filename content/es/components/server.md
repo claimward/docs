@@ -212,39 +212,63 @@ con `pfctl`.
   salir el proceso. Los nombres de tabla llevan un sufijo de generación por
   carga, de modo que la breve ventana entre la confirmación de las tablas y la
   de las reglas nunca puede aplicar las reglas de un tenant a los pares de otro.
-- **Sin `pledge(2)`.** La promesa `pf` solo permite doce de los ioctls `DIOC*`
+- **Separación de privilegios (desde la v0.11.0).** La promesa `pf` de
+  `pledge(2)` solo permite doce de los ioctls `DIOC*`
   (`sys/kern/kern_pledge.c`, `pledge_ioctl`), y el servidor necesita además
   `DIOCRINADEFINE`, `DIOCXROLLBACK`, `DIOCGETRULES`, `DIOCGETRULE`, `DIOCXEND` y
-  `DIOCRGETADDRS`. Cualquier otro ioctl mataría el proceso, y un pledge no puede
-  ampliarse después. Ejecútelo como servicio dedicado bajo `rcctl` y mantenga
-  el resto del equipo bloqueado.
+  `DIOCRGETADDRS`; cualquier otro ioctl mataría el proceso. Por eso el padre
+  root, que maneja `/dev/pf`, no lleva pledge. El hijo `_claimward`, sin
+  privilegios, que guarda los secretos y sirve la red, se restringe con
+  `unveil(2)` y `pledge(2)` antes de servir (véase más abajo).
+- **Pares WireGuard (desde la v0.11.0).** Antes de la v0.11.0, un alta en
+  OpenBSD fallaba al añadir el par a `wg(4)` (incidencia n.º 79). El servidor
+  escribe ahora los pares con los ioctls `SIOCSWG` y `SIOCGWG` de
+  `sys/net/if_wg.h` y los lee con su propio decodificador. Verificado en
+  máquinas virtuales OpenBSD 7.9 y 8.0 amd64 reales: la disposición de las
+  estructuras coincide con la del compilador de C, y añadir, reemplazar,
+  eliminar y barrer funcionan en una interfaz `wg(4)` real. OpenBSD arm64 solo
+  se compila de forma cruzada, no se ejecuta en un kernel.
 
 ### Despliegue en OpenBSD (rc.d) {#openbsd-deploy}
 
 Desde la v0.10.1 el repositorio incluye `deploy/openbsd/`: un script `rc.d(8)`,
 un `environment.example`, un `hostname.wg0.example` y un `pf.conf.example`.
 
-- **Se ejecuta como root.** La configuración de los pares WireGuard de `wg(4)`
-  está tras `suser(9)` (`sys/net/if_wg.c`), y `/dev/pf` solo está protegido por
-  su nodo de dispositivo, reservado a root: `pfopen` (`sys/net/pf_ioctl.c`) no
-  comprueba nada más. OpenBSD no tiene un grupo privilegiado que permita a un
-  usuario `_claimward` hacer ninguna de las dos cosas, así que el script fija
-  `daemon_user="root"`.
+- **Dos procesos (desde la v0.11.0).** La configuración de los pares WireGuard
+  de `wg(4)` está tras `suser(9)` (`sys/net/if_wg.c`), y `/dev/pf` solo está
+  protegido por su nodo de dispositivo, reservado a root: `pfopen`
+  (`sys/net/pf_ioctl.c`) no comprueba nada más. OpenBSD no tiene un grupo
+  privilegiado que permita a un usuario sin privilegios hacer ninguna de las dos
+  cosas, así que el script arranca el demonio como root (`daemon_user="root"`)
+  y el demonio se divide en dos. El **padre** (root) añade y elimina pares,
+  fija el MTU del túnel y carga el ancla pf; no lee ningún secreto, no sirve
+  ninguna red y solo hace `unveil(2)` de `/dev/pf`. El **hijo**, ejecutado como
+  usuario `_claimward`, guarda los secretos, los oyentes TLS y gRPC, el
+  proveedor de identidad y la política de los tenants, y se restringe con
+  `unveil(2)` y `pledge(2)` (`stdio rpath inet dns`) antes de servir. Si no
+  puede renunciar a los privilegios, el servidor no arranca. El hijo consulta al
+  padre mediante un socketpair, y el padre rechaza todo lo que quede fuera del
+  conjunto de direcciones (`VPN_CIDR`).
+- **El usuario `_claimward` debe existir** y los puertos deben ser mayores que
+  1024 (los valores por defecto 8443 y 8444 lo son); para servir en el 443,
+  redirija con un `rdr-to` de pf.
 - **Los secretos son archivos** en `/etc/claimward/credentials`, un directorio
-  `0700` propiedad de root, con cada archivo `0400` y propiedad de root
-  (`install(1)`). El script fija `CREDENTIALS_DIRECTORY` a ese directorio;
-  ningún secreto va en el entorno, en los argumentos ni en una URL. Los ajustes
-  no secretos están en `/etc/claimward/environment`.
+  `0700` propiedad de `_claimward`, con cada archivo `0400` y propiedad de
+  `_claimward` (`install(1)`). El script fija `CREDENTIALS_DIRECTORY` a ese
+  directorio; ningún secreto va en el entorno, en los argumentos ni en una URL.
+  Los ajustes no secretos están en `/etc/claimward/environment`, que sigue
+  siendo de root.
 - **`wg0` debe existir** antes de que arranque el servidor: `hostname.wg0` lleva
   la misma clave privada que el secreto `wg-private-key` (modo `0640`).
 
 ```sh
 install -m 0555 claimward-server /usr/local/bin/claimward-server
-install -d -m 0755 /etc/claimward
-install -d -m 0700 /etc/claimward/credentials
-install -m 0400 wg-private-key /etc/claimward/credentials/wg-private-key
-install -m 0600 environment.example /etc/claimward/environment   # luego editar
-install -m 0640 hostname.wg0.example /etc/hostname.wg0           # luego editar
+useradd -g =uid -c claimward -d /var/empty -s /sbin/nologin -r 1..999 _claimward
+install -d -m 0755 -o root -g wheel /etc/claimward
+install -d -m 0700 -o _claimward -g _claimward /etc/claimward/credentials
+install -m 0400 -o _claimward -g _claimward wg-private-key /etc/claimward/credentials/wg-private-key
+install -m 0600 -o root -g wheel environment.example /etc/claimward/environment   # luego editar
+install -m 0640 -o root -g wheel hostname.wg0.example /etc/hostname.wg0           # luego editar
 sh /etc/netstart wg0
 install -m 0555 claimward_server /etc/rc.d/claimward_server
 rcctl enable claimward_server
@@ -253,8 +277,10 @@ rcctl start claimward_server && rcctl check claimward_server
 
 El registro va a syslog (`/var/log/daemon`). La CI ejecuta este script en
 máquinas virtuales OpenBSD 7.9 y 8.0 reales: `rcctl start`, la línea de
-arranque, `rcctl check` y `rcctl stop`, y después un arranque sin el ancla en
-`pf.conf`, que debe fallar.
+arranque, `rcctl check`, un padre root con un hijo `_claimward`, un alta a
+través del hijo cuyo par aparece en `wg0`, y `rcctl stop`; después un arranque
+con un secreto propiedad de root y un arranque sin el ancla en `pf.conf`, que
+deben fallar ambos.
 
 ## Despliegue con s6 (sdcreds) {#s6-deploy}
 

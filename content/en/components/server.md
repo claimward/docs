@@ -205,38 +205,58 @@ policy with pf instead of nftables. It talks to the kernel directly through the
   exits. Table names carry a per-load generation suffix, so that the short
   window between the table commit and the rule commit can never apply one
   tenant's rules to another tenant's peers.
-- **No `pledge(2)`.** The `pf` promise lets a process issue only twelve of the
-  `DIOC*` ioctls (`sys/kern/kern_pledge.c`, `pledge_ioctl`), and the server also
-  needs `DIOCRINADEFINE`, `DIOCXROLLBACK`, `DIOCGETRULES`, `DIOCGETRULE`,
-  `DIOCXEND` and `DIOCRGETADDRS`. Any other ioctl would kill the process, and a
-  pledge cannot be widened later. Run it as a dedicated service under `rcctl`
-  and keep the rest of the host locked down.
+- **Privilege separation (from v0.11.0).** The `pf` promise of `pledge(2)` lets
+  a process issue only twelve of the `DIOC*` ioctls (`sys/kern/kern_pledge.c`,
+  `pledge_ioctl`), and the server also needs `DIOCRINADEFINE`, `DIOCXROLLBACK`,
+  `DIOCGETRULES`, `DIOCGETRULE`, `DIOCXEND` and `DIOCRGETADDRS`; any other ioctl
+  would kill the process. So the root parent, which drives `/dev/pf`, is not
+  pledged. The unprivileged `_claimward` child, which holds the secrets and
+  serves the network, is restricted with `unveil(2)` and `pledge(2)` before it
+  serves (see below).
+- **WireGuard peers (from v0.11.0).** Before v0.11.0 an enrolment on OpenBSD
+  failed when it added the peer to `wg(4)` (issue #79). The server now writes
+  peers with the `SIOCSWG` and `SIOCGWG` ioctls of `sys/net/if_wg.h` and reads
+  them back with its own decoder. Verified in real OpenBSD 7.9 and 8.0 amd64
+  virtual machines: the structure layout matches the C compiler's, and add,
+  replace, remove and sweep work on a real `wg(4)` interface. OpenBSD on arm64
+  is only cross-compiled, not run on a kernel.
 
 ### Deploying on OpenBSD (rc.d) {#openbsd-deploy}
 
 From v0.10.1 the repository ships `deploy/openbsd/`: an `rc.d(8)` script, an
 `environment.example`, a `hostname.wg0.example` and a `pf.conf.example`.
 
-- **It runs as root.** The WireGuard peer configuration of `wg(4)` is behind
-  `suser(9)` (`sys/net/if_wg.c`), and `/dev/pf` is guarded only by its device
-  node, which is root-only: `pfopen` (`sys/net/pf_ioctl.c`) checks nothing else.
-  OpenBSD has no privileged group that would let a `_claimward` user do either,
-  so the script sets `daemon_user="root"`.
+- **Two processes (from v0.11.0).** The WireGuard peer configuration of `wg(4)`
+  is behind `suser(9)` (`sys/net/if_wg.c`), and `/dev/pf` is guarded only by its
+  device node, which is root-only: `pfopen` (`sys/net/pf_ioctl.c`) checks
+  nothing else. OpenBSD has no privileged group that would let an unprivileged
+  user do either, so the script starts the daemon as root (`daemon_user="root"`)
+  and the daemon splits in two. The **parent** (root) adds and removes peers,
+  sets the tunnel MTU and loads the pf anchor; it reads no credential, serves no
+  network and `unveil(2)`s only `/dev/pf`. The **child**, run as the `_claimward`
+  user, holds the secrets, the TLS and gRPC listeners, the identity provider and
+  the tenant policy, and is restricted with `unveil(2)` and `pledge(2)`
+  (`stdio rpath inet dns`) before it serves. If it cannot drop privileges, the
+  server does not start. The child asks the parent through a socketpair, and the
+  parent refuses anything outside the address pool (`VPN_CIDR`).
+- **The `_claimward` user must exist** and the ports must be above 1024 (the
+  defaults 8443 and 8444 are); to serve on 443, redirect it with a pf `rdr-to`.
 - **Secrets are files** in `/etc/claimward/credentials`, a `0700` directory owned
-  by root, with each file `0400` and owned by root (`install(1)`). The script
-  sets `CREDENTIALS_DIRECTORY` to it; no secret goes in the environment, in
-  arguments or in a URL. The non-secret settings are in
-  `/etc/claimward/environment`.
+  by `_claimward`, with each file `0400` and owned by `_claimward` (`install(1)`).
+  The script sets `CREDENTIALS_DIRECTORY` to it; no secret goes in the
+  environment, in arguments or in a URL. The non-secret settings are in
+  `/etc/claimward/environment`, which stays root's.
 - **`wg0` must exist** before the server starts: `hostname.wg0` carries the same
   private key as the `wg-private-key` credential (mode `0640`).
 
 ```sh
 install -m 0555 claimward-server /usr/local/bin/claimward-server
-install -d -m 0755 /etc/claimward
-install -d -m 0700 /etc/claimward/credentials
-install -m 0400 wg-private-key /etc/claimward/credentials/wg-private-key
-install -m 0600 environment.example /etc/claimward/environment   # then edit
-install -m 0640 hostname.wg0.example /etc/hostname.wg0           # then edit
+useradd -g =uid -c claimward -d /var/empty -s /sbin/nologin -r 1..999 _claimward
+install -d -m 0755 -o root -g wheel /etc/claimward
+install -d -m 0700 -o _claimward -g _claimward /etc/claimward/credentials
+install -m 0400 -o _claimward -g _claimward wg-private-key /etc/claimward/credentials/wg-private-key
+install -m 0600 -o root -g wheel environment.example /etc/claimward/environment   # then edit
+install -m 0640 -o root -g wheel hostname.wg0.example /etc/hostname.wg0           # then edit
 sh /etc/netstart wg0
 install -m 0555 claimward_server /etc/rc.d/claimward_server
 rcctl enable claimward_server
@@ -245,8 +265,10 @@ rcctl start claimward_server && rcctl check claimward_server
 
 The log goes to syslog (`/var/log/daemon`). The CI runs this script in real
 OpenBSD 7.9 and 8.0 virtual machines: `rcctl start`, the startup line,
-`rcctl check` and `rcctl stop`, then a start without the anchor in `pf.conf`,
-which must fail.
+`rcctl check`, a root parent with one `_claimward` child, an enrolment through
+the child whose peer appears on `wg0`, and `rcctl stop`; then a start with a
+credential owned by root, and a start without the anchor in `pf.conf`, which
+must both fail.
 
 ## Deploying under s6 (sdcreds) {#s6-deploy}
 
