@@ -65,7 +65,7 @@ sie Dateien in einem Credentials-Verzeichnis, siehe [Credentials](#credentials) 
 | `TUNNEL_MTU` | | abgeleitet | MTU der WireGuard-Schnittstelle, 1280 bis 9000, als `mtu` angekündigt; alles andere verweigert den Start. Ungesetzt: Uplink-MTU minus 80, höchstens 1420, mindestens 1280. Dieselbe atomare Tabelle `inet claimward` senkt außerdem das MSS jedes TCP-SYN, das die Schnittstelle quert (weitergeleitet in beide Richtungen sowie Eingang für das Gateway selbst), auf diese MTU minus 40 (IPv4) bzw. 60 (IPv6) |
 | `LISTEN_ADDR` | | `:8443` | HTTP-Listen-Adresse |
 | `GRPC_ADDR` | | `:8444` | Listen-Adresse des RouteService; `Watch`-Streams werden alle 15 s neu autorisiert und enden, wenn die Identität nicht mehr zugelassen ist |
-| `METRICS_ADDR` | | `127.0.0.1:9090` | eigener Listener für `/metrics` (standardmäßig Loopback; nicht mehr auf `LISTEN_ADDR`) |
+| `METRICS_ADDR` | | — (aus) | eigener Listener für `/metrics`, **nur wenn gesetzt** (seit v0.9.0 gibt es keinen Standardport: der frühere `127.0.0.1:9090` kollidierte mit Prometheus); nie auf `LISTEN_ADDR`. Er nennt jeden Tenant: auf Loopback oder in einem privaten Netz halten |
 | `MAX_DEVICES_PER_SUBJECT` | | `5` | Geräte, die eine Identität registrieren darf |
 | `GRPC_ENDPOINT` | | — | den Clients mitgeteilter `host:port` des RouteService; ist er leer, beobachten sie nicht |
 | `TLS_CERT` / `TLS_KEY` | | — | HTTPS und TLS auf dem RouteService |
@@ -93,12 +93,20 @@ regulären Datei, eine für Gruppe oder andere lesbare Datei, eine Datei, die
 nicht der UID des Servers gehört, eine leere Datei und eine über 64 KiB. Eine
 Ausnahme seit v0.7.1: Eine Datei der UID 0 mit genau dem Modus `0440` wird
 akzeptiert, wenn ihre Gruppe die GID des Servers oder eine seiner
-Zusatzgruppen ist (so ein Kubernetes-Secret-Volume mit `fsGroup`). Die
+Zusatzgruppen ist (so ein Kubernetes-Secret-Volume mit `fsGroup`). Eine
+zweite seit v0.9.0, für systemd mit `DynamicUser=yes`: systemd lässt die Datei
+`root:root`, Modus `0400`, plus einen schreibgeschützten POSIX-ACL-Eintrag für
+die UID des Dienstes (`src/core/exec-credential.c:338-361`,
+`src/shared/acl-util.c:448-494`), sodass `stat` `0440` zeigt. Der Server liest
+`system.posix_acl_access` vom offenen Deskriptor und akzeptiert genau
+`user::r--`, `user:<seine UID>:r--`, `group::---`, `mask::r--`, `other::---`;
+jeder andere benannte Benutzer oder jede Gruppe, jedes Schreib- oder
+Ausführungsbit und ein fehlerhafter oder zu großer Wert werden abgelehnt. Die
 Fehlermeldung nennt die Abhilfe.
 
 | Plattform | `CREDENTIALS_DIRECTORY` | Eigentümer und Modus |
 |----------|-------------------------|----------------|
-| systemd | von `LoadCredentialEncrypted=` gesetzt | der Dienstbenutzer, `0400`, auf einem privaten tmpfs |
+| systemd | von `LoadCredentialEncrypted=` gesetzt | mit `DynamicUser=yes` (wie ausgeliefert): Eigentum von root mit schreibgeschützter ACL für die UID des Dienstes, akzeptiert; mit festem `User=` auf einem Dateisystem ohne ACL: der Dienstbenutzer, `0400`. Privates tmpfs |
 | Docker Swarm | `/run/secrets`, von Hand gesetzt | `mode: 0400` am Secret |
 | Docker Compose | `/run/secrets`, von Hand gesetzt | die der Host-Datei: `chown` und `chmod 0400`, und `user:` passend setzen |
 | Podman | `/run/secrets`, von Hand gesetzt | `--secret ...,mode=0400` (Quadlet: `Secret=...,mode=0400`) |
