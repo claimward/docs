@@ -221,6 +221,43 @@ ioctls von `/dev/pf` an; er startet nie `pfctl`, und es gibt keinen Rückfall au
   und ein Pledge lässt sich später nicht erweitern. Betreiben Sie ihn als
   eigenen Dienst unter `rcctl` und halten Sie den übrigen Host abgesichert.
 
+### Bereitstellung unter OpenBSD (rc.d) {#openbsd-deploy}
+
+Ab v0.10.1 liefert das Repository `deploy/openbsd/` mit: ein `rc.d(8)`-Skript,
+ein `environment.example`, ein `hostname.wg0.example` und ein `pf.conf.example`.
+
+- **Er läuft als root.** Die WireGuard-Peer-Konfiguration von `wg(4)` liegt
+  hinter `suser(9)` (`sys/net/if_wg.c`), und `/dev/pf` ist nur durch seinen
+  Geräteknoten geschützt, der root vorbehalten ist: `pfopen`
+  (`sys/net/pf_ioctl.c`) prüft nichts weiter. OpenBSD hat keine privilegierte
+  Gruppe, mit der ein Benutzer `_claimward` das eine oder das andere dürfte;
+  das Skript setzt daher `daemon_user="root"`.
+- **Geheimnisse sind Dateien** in `/etc/claimward/credentials`, einem
+  Verzeichnis `0700` im Besitz von root, jede Datei `0400` und im Besitz von
+  root (`install(1)`). Das Skript setzt `CREDENTIALS_DIRECTORY` darauf; kein
+  Geheimnis steht in der Umgebung, in Argumenten oder in einer URL. Die
+  nicht geheimen Einstellungen stehen in `/etc/claimward/environment`.
+- **`wg0` muss existieren**, bevor der Server startet: `hostname.wg0` enthält
+  denselben privaten Schlüssel wie das Geheimnis `wg-private-key` (Modus `0640`).
+
+```sh
+install -m 0555 claimward-server /usr/local/bin/claimward-server
+install -d -m 0755 /etc/claimward
+install -d -m 0700 /etc/claimward/credentials
+install -m 0400 wg-private-key /etc/claimward/credentials/wg-private-key
+install -m 0600 environment.example /etc/claimward/environment   # dann bearbeiten
+install -m 0640 hostname.wg0.example /etc/hostname.wg0           # dann bearbeiten
+sh /etc/netstart wg0
+install -m 0555 claimward_server /etc/rc.d/claimward_server
+rcctl enable claimward_server
+rcctl start claimward_server && rcctl check claimward_server
+```
+
+Das Protokoll geht an syslog (`/var/log/daemon`). Die CI führt dieses Skript in
+echten OpenBSD-7.9- und -8.0-VMs aus: `rcctl start`, die Startzeile,
+`rcctl check` und `rcctl stop`, danach einen Start ohne den Anchor in
+`pf.conf`, der fehlschlagen muss.
+
 ## Lokal ausführen {#run-locally}
 
 Mit `WG_DRYRUN=true` wird kein WireGuard-Gerät angetastet:

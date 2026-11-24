@@ -211,6 +211,42 @@ policy with pf instead of nftables. It talks to the kernel directly through the
   pledge cannot be widened later. Run it as a dedicated service under `rcctl`
   and keep the rest of the host locked down.
 
+### Deploying on OpenBSD (rc.d) {#openbsd-deploy}
+
+From v0.10.1 the repository ships `deploy/openbsd/`: an `rc.d(8)` script, an
+`environment.example`, a `hostname.wg0.example` and a `pf.conf.example`.
+
+- **It runs as root.** The WireGuard peer configuration of `wg(4)` is behind
+  `suser(9)` (`sys/net/if_wg.c`), and `/dev/pf` is guarded only by its device
+  node, which is root-only: `pfopen` (`sys/net/pf_ioctl.c`) checks nothing else.
+  OpenBSD has no privileged group that would let a `_claimward` user do either,
+  so the script sets `daemon_user="root"`.
+- **Secrets are files** in `/etc/claimward/credentials`, a `0700` directory owned
+  by root, with each file `0400` and owned by root (`install(1)`). The script
+  sets `CREDENTIALS_DIRECTORY` to it; no secret goes in the environment, in
+  arguments or in a URL. The non-secret settings are in
+  `/etc/claimward/environment`.
+- **`wg0` must exist** before the server starts: `hostname.wg0` carries the same
+  private key as the `wg-private-key` credential (mode `0640`).
+
+```sh
+install -m 0555 claimward-server /usr/local/bin/claimward-server
+install -d -m 0755 /etc/claimward
+install -d -m 0700 /etc/claimward/credentials
+install -m 0400 wg-private-key /etc/claimward/credentials/wg-private-key
+install -m 0600 environment.example /etc/claimward/environment   # then edit
+install -m 0640 hostname.wg0.example /etc/hostname.wg0           # then edit
+sh /etc/netstart wg0
+install -m 0555 claimward_server /etc/rc.d/claimward_server
+rcctl enable claimward_server
+rcctl start claimward_server && rcctl check claimward_server
+```
+
+The log goes to syslog (`/var/log/daemon`). The CI runs this script in real
+OpenBSD 7.9 and 8.0 virtual machines: `rcctl start`, the startup line,
+`rcctl check` and `rcctl stop`, then a start without the anchor in `pf.conf`,
+which must fail.
+
 ## Run locally
 
 With `WG_DRYRUN=true` no WireGuard device is touched:

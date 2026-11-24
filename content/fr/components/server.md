@@ -219,6 +219,43 @@ sur `pfctl`.
   processus, et un pledge ne peut pas être élargi ensuite. Lancez-le comme
   service dédié sous `rcctl` et gardez le reste de la machine verrouillé.
 
+### Déployer sous OpenBSD (rc.d) {#openbsd-deploy}
+
+Depuis la v0.10.1, le dépôt fournit `deploy/openbsd/` : un script `rc.d(8)`, un
+`environment.example`, un `hostname.wg0.example` et un `pf.conf.example`.
+
+- **Il tourne en root.** La configuration des pairs WireGuard de `wg(4)` est
+  derrière `suser(9)` (`sys/net/if_wg.c`), et `/dev/pf` n'est protégé que par
+  son nœud de périphérique, réservé à root : `pfopen` (`sys/net/pf_ioctl.c`) ne
+  vérifie rien d'autre. OpenBSD n'a pas de groupe privilégié qui permettrait à
+  un utilisateur `_claimward` de faire l'un ou l'autre ; le script fixe donc
+  `daemon_user="root"`.
+- **Les secrets sont des fichiers** dans `/etc/claimward/credentials`, un
+  répertoire `0700` appartenant à root, chaque fichier étant `0400` et
+  appartenant à root (`install(1)`). Le script y fixe `CREDENTIALS_DIRECTORY` ;
+  aucun secret n'est dans l'environnement, dans les arguments ou dans une URL.
+  Les réglages non secrets sont dans `/etc/claimward/environment`.
+- **`wg0` doit exister** avant le démarrage du serveur : `hostname.wg0` porte la
+  même clé privée que le secret `wg-private-key` (mode `0640`).
+
+```sh
+install -m 0555 claimward-server /usr/local/bin/claimward-server
+install -d -m 0755 /etc/claimward
+install -d -m 0700 /etc/claimward/credentials
+install -m 0400 wg-private-key /etc/claimward/credentials/wg-private-key
+install -m 0600 environment.example /etc/claimward/environment   # puis éditer
+install -m 0640 hostname.wg0.example /etc/hostname.wg0           # puis éditer
+sh /etc/netstart wg0
+install -m 0555 claimward_server /etc/rc.d/claimward_server
+rcctl enable claimward_server
+rcctl start claimward_server && rcctl check claimward_server
+```
+
+Le journal va dans syslog (`/var/log/daemon`). La CI exécute ce script dans de
+vraies machines virtuelles OpenBSD 7.9 et 8.0 : `rcctl start`, la ligne de
+démarrage, `rcctl check` et `rcctl stop`, puis un démarrage sans l'ancre dans
+`pf.conf`, qui doit échouer.
+
 ## Exécuter en local {#run-locally}
 
 Avec `WG_DRYRUN=true`, aucun périphérique WireGuard n'est touché :
