@@ -7,7 +7,7 @@ tags: [macos, application, helper, svelte]
 ---
 
 [`claimward-vpn-app-osx`](https://github.com/claimward/claimward-vpn-app-osx)
-**v0.2.0** est une application de la barre des menus (zone de notification) écrite en Go dont **toute l'interface
+**v0.6.0** est une application de la barre des menus (zone de notification) écrite en Go dont **toute l'interface
 utilisateur est une application monopage Svelte rendue dans une webview**. Sa logique (connexion,
 choix du locataire, connexion au VPN) et son helper sont les composants partagés
 [`pkg/appcore` et `pkg/helper`]({{< relref "/components/client.md" >}}).
@@ -109,11 +109,15 @@ Developer ID, et le DNS appliqué sur macOS.
 ## Session et serveurs
 
 La session (jetons et clé WireGuard de l'appareil) vit dans `session.enc`, scellée
-avec AES-GCM ; la clé est conservée dans le **Keychain** de session. Elle n'est jamais
+avec AES-GCM ; la clé est conservée dans le **Keychain** de connexion. Elle n'est jamais
 écrite en clair sur le disque et il n'y a aucun repli en clair : si le Keychain est
 verrouillé ou indisponible (client v0.5.0 et ultérieur), la connexion échoue avec une erreur
 qui le dit. Un `session.json` en `0600` d'une ancienne version est déplacé dans le
 magasin au premier démarrage, ou supprimé en cas d'échec.
+
+Le MTU du tunnel est le `mtu` du serveur, abaissé pour tenir dans le chemin vers
+le serveur (le MTU de l'interface vers son point d'accès, moins 60 en IPv4 ou 80
+en IPv6) et jamais inférieur à 1280 (client v0.6.0, `pkg/pathmtu`).
 
 Le serveur doit être une URL **https**, et le jeton de lancement de la fenêtre ne transite que
 dans un en-tête (jamais dans une URL, dans les arguments du processus ni dans les journaux) ;

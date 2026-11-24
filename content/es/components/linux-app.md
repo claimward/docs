@@ -7,7 +7,7 @@ tags: [linux, aplicación, helper, systemd]
 ---
 
 [`claimward-vpn-app-linux`](https://github.com/claimward/claimward-vpn-app-linux)
-**v0.2.1** es una **ventana y un icono en la bandeja del sistema dibujados en Go puro** con
+**v0.5.0** es una **ventana y un icono en la bandeja del sistema dibujados en Go puro** con
 [go-widgets](https://github.com/go-widgets): sin webview, sin GTK, sin cgo
 (`CGO_ENABLED=0`). Un **helper con privilegios** ejecutado por systemd gestiona el túnel
 WireGuard. La lógica es la de la aplicación macOS: ambas usan
@@ -57,7 +57,7 @@ arrancar y cerrar la ventana la cierra.
 
 ## Instalación {#install}
 
-Compile con su propio usuario (Go 1.27.1 o posterior) y después instale como root:
+Compile con su propio usuario (Go 1.27.4 o posterior) y después instale como root:
 
 ```sh
 CGO_ENABLED=0 go build -trimpath -o bin/ ./cmd/...
@@ -88,14 +88,18 @@ elimina además `/etc/claimward` y el grupo.
 La aplicación: `~/.config/Claimward/config.json`, escrito por el formulario de ajustes,
 modo `0600`, sobrescrito por las variables `CLAIMWARD_*` (véase la
 [biblioteca cliente]({{< relref "/components/client.md#files-on-the-device" >}})).
-La sesión (tokens y la clave WireGuard del dispositivo) se guarda en el llavero
-**Secret Service** del escritorio mediante `secret-tool`, y nunca se escribe en claro en
-el disco. **Se requiere un proveedor de Secret Service** (cliente v0.5.0 y posteriores):
+La sesión (tokens y la clave WireGuard del dispositivo) se sella con AES-GCM en
+`session.enc`; la clave se guarda en el llavero **Secret Service** del escritorio
+mediante `secret-tool`. Nunca se escribe en claro en el disco. **Se requiere un proveedor de Secret Service** (cliente v0.5.0 y posteriores):
 instale y desbloquee uno, como gnome-keyring o KeePassXC, e instale `secret-tool`
 (`libsecret-tools`). Sin él, el inicio de sesión falla con un error que nombra lo que
 falta; no hay alternativa en texto claro, tampoco en un servidor sin interfaz gráfica.
 Un `session.json` dejado por una versión anterior se traslada al llavero en el primer
 arranque, o se elimina si el llavero lo rechaza.
+
+La MTU del túnel es la `mtu` del servidor, reducida para caber en la ruta hacia
+el servidor (la MTU de la interfaz hacia su endpoint, menos 60 en IPv4 u 80 en
+IPv6) y nunca inferior a 1280 (cliente v0.6.0, `pkg/pathmtu`).
 
 El helper: `/etc/claimward/helper.json` (véase
 [Helper con privilegios]({{< relref "/components/helper.md" >}})); después de editarlo,

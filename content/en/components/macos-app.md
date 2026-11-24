@@ -7,7 +7,7 @@ tags: [macos, app, helper, svelte]
 ---
 
 [`claimward-vpn-app-osx`](https://github.com/claimward/claimward-vpn-app-osx)
-**v0.2.0** is a menu-bar (tray) app written in Go whose **whole user interface
+**v0.6.0** is a menu-bar (tray) app written in Go whose **whole user interface
 is a Svelte single-page app rendered in a webview**. Its logic (sign-in,
 tenant choice, connect) and its helper are the shared
 [`pkg/appcore` and `pkg/helper`]({{< relref "/components/client.md" >}}).
@@ -114,6 +114,10 @@ written to disk in clear and there is no plaintext fallback: if the Keychain is
 locked or unavailable (client v0.5.0 and later), sign-in fails with an error
 saying so. A `0600` `session.json` from an older version is moved into the
 store on first start, or deleted if that fails.
+
+The tunnel MTU is the server's `mtu`, lowered to fit the path to the server
+(the interface MTU towards its endpoint, minus 60 for IPv4 or 80 for IPv6) and
+never below 1280 (client v0.6.0, `pkg/pathmtu`).
 
 The server must be an **https** URL, and the window's launch token travels in
 a header only (never in a URL, in the process arguments or in logs); the

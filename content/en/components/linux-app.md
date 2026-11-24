@@ -7,7 +7,7 @@ tags: [linux, app, helper, systemd]
 ---
 
 [`claimward-vpn-app-linux`](https://github.com/claimward/claimward-vpn-app-linux)
-**v0.2.1** is a **window and a tray icon drawn in pure Go** with
+**v0.5.0** is a **window and a tray icon drawn in pure Go** with
 [go-widgets](https://github.com/go-widgets): no webview, no GTK, no cgo
 (`CGO_ENABLED=0`). A **privileged helper** run by systemd owns the WireGuard
 tunnel. The logic is the macOS app's: both use
@@ -57,7 +57,7 @@ start-up and closing the window quits it.
 
 ## Install
 
-Build as yourself (Go 1.27.1 or later), then install as root:
+Build as yourself (Go 1.27.4 or later), then install as root:
 
 ```sh
 CGO_ENABLED=0 go build -trimpath -o bin/ ./cmd/...
@@ -88,14 +88,18 @@ also removes `/etc/claimward` and the group.
 The app: `~/.config/Claimward/config.json`, written by the settings form,
 mode `0600`, overridden by `CLAIMWARD_*` variables (see the
 [client library]({{< relref "/components/client.md#files-on-the-device" >}})).
-The session (tokens and the device's WireGuard key) is kept in the desktop's
-**Secret Service** keyring through `secret-tool`, and is never written to disk
-in clear. **A Secret Service provider is required** (client v0.5.0 and later):
+The session (tokens and the device's WireGuard key) is sealed with AES-GCM in
+`session.enc`; the key is kept in the desktop's **Secret Service** keyring
+through `secret-tool`. It is never written to disk in clear. **A Secret Service provider is required** (client v0.5.0 and later):
 install and unlock one such as gnome-keyring or KeePassXC, and install
 `secret-tool` (`libsecret-tools`). Without one, sign-in fails with an error
 naming what is missing; there is no plaintext fallback, on a headless server
 either. A `session.json` left by an older version is moved into the keyring on
 first start, or deleted if the keyring refuses it.
+
+The tunnel MTU is the server's `mtu`, lowered to fit the path to the server
+(the interface MTU towards its endpoint, minus 60 for IPv4 or 80 for IPv6) and
+never below 1280 (client v0.6.0, `pkg/pathmtu`).
 
 The helper: `/etc/claimward/helper.json` (see
 [Privileged helper]({{< relref "/components/helper.md" >}})); after editing it,

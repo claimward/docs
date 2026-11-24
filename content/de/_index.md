@@ -39,10 +39,10 @@ Webview; die Linux- und die Windows-App sind reines Go
 | Repository | Release | Was es ist |
 |------------|---------|------------|
 | [`claimward-vpn-server`](https://github.com/claimward/claimward-vpn-server) | v0.2.0 | Steuerungsebene: prüft die Anmeldung, vergibt Adressen, programmiert das WireGuard-Gateway, streamt die Routen der Mandanten über gRPC, Admin-API und Metriken |
-| [`claimward-vpn-client`](https://github.com/claimward/claimward-vpn-client) | v0.3.1 | Go-**Bibliothek**, die sich die Apps und der Server teilen: Wire-Protokoll, Anmeldeanbieter, Tunnel, privilegierter Helper, App-Kern. Sie liefert kein Binary aus |
-| [`claimward-vpn-app-osx`](https://github.com/claimward/claimward-vpn-app-osx) | v0.2.0 | macOS-App: Menüleisten-App in Go, Svelte-Oberfläche in einer Webview, Helper als root-LaunchDaemon |
-| [`claimward-vpn-app-linux`](https://github.com/claimward/claimward-vpn-app-linux) | v0.2.1 | Linux-App: Fenster und Infobereich in reinem Go, von systemd ausgeführter Helper |
-| [`claimward-vpn-app-windows`](https://github.com/claimward/claimward-vpn-app-windows) | v0.3.0 | Windows-App: Fenster und Infobereich in reinem Go, Helper als Windows-Dienst, Wintun-Tunnel |
+| [`claimward-vpn-client`](https://github.com/claimward/claimward-vpn-client) | v0.6.0 | Go-**Bibliothek**, die sich die Apps und der Server teilen: Wire-Protokoll, Anmeldeanbieter, Tunnel, privilegierter Helper, App-Kern. Sie liefert kein Binary aus |
+| [`claimward-vpn-app-osx`](https://github.com/claimward/claimward-vpn-app-osx) | v0.6.0 | macOS-App: Menüleisten-App in Go, Svelte-Oberfläche in einer Webview, Helper als root-LaunchDaemon |
+| [`claimward-vpn-app-linux`](https://github.com/claimward/claimward-vpn-app-linux) | v0.5.0 | Linux-App: Fenster und Infobereich in reinem Go, von systemd ausgeführter Helper |
+| [`claimward-vpn-app-windows`](https://github.com/claimward/claimward-vpn-app-windows) | v0.6.0 | Windows-App: Fenster und Infobereich in reinem Go, Helper als Windows-Dienst, Wintun-Tunnel |
 
 {{< callout type="info" >}}
 **Stand.** Dies sind erste Releases. Laut den jeweiligen Repositorys steht
