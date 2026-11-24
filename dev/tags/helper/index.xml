@@ -587,7 +587,8 @@ access token. With go-authn, the device&amp;rsquo;s &lt;strong&gt;public&lt;/str
 registered at the provider, and the bearer is the token that registration
 returns.&lt;/li&gt;
 &lt;li&gt;The app generates the device&amp;rsquo;s WireGuard key pair at the first sign-in and
-keeps it in its session, held in the platform&amp;rsquo;s secret store, until the
+keeps it in its encrypted session file (&lt;code&gt;session.enc&lt;/code&gt;, whose key is in the
+Keychain or the Secret Service; &lt;code&gt;session.dpapi&lt;/code&gt; on Windows) until the
 person signs out, so the device keeps its public key across connections
 (and its address while it is enrolled). To connect, it hands the helper the server URL, the bearer, the
 private key and the tenant chosen for the session, over the helper&amp;rsquo;s socket.&lt;/li&gt;
@@ -673,8 +674,9 @@ configuration: it enrolls only with the servers that configuration names and
 takes no tunnel configuration from a request. See
 &lt;a href="https://claimward.github.io/docs/dev/components/helper/"&gt;Privileged helper&lt;/a&gt;.&lt;/li&gt;
 &lt;li&gt;The &lt;strong&gt;app&lt;/strong&gt; runs as the person. It holds the session (bearer token and device
-key) in the platform&amp;rsquo;s secret store (macOS Keychain, Windows DPAPI, Linux
-Secret Service), never in clear on disk: with no usable store, sign-in fails.&lt;/li&gt;
+key) in an encrypted file, never in clear on disk: sealed with a key kept in
+the macOS Keychain or the Linux Secret Service, or with Windows DPAPI. With
+no usable store, sign-in fails.&lt;/li&gt;
 &lt;li&gt;A route watch carries the bearer token, so it runs over &lt;strong&gt;TLS&lt;/strong&gt; except to a
 loopback address.&lt;/li&gt;
 &lt;li&gt;The wire contract lives in one place,

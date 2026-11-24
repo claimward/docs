@@ -996,7 +996,7 @@ Bei go-authn wird zuerst der &lt;strong&gt;öffentliche&lt;/strong&gt; Schlüsse
 registriert, und das Bearer-Token ist das Token, das diese Registrierung
 zurückgibt.&lt;/li&gt;
 &lt;li&gt;Die App erzeugt das WireGuard-Schlüsselpaar des Geräts bei der ersten Anmeldung und
-bewahrt es in ihrer Sitzung auf, die im Geheimnisspeicher der Plattform liegt, bis sich die Person abmeldet, sodass das Gerät
+bewahrt es in ihrer verschlüsselten Sitzungsdatei auf (&lt;code&gt;session.enc&lt;/code&gt;, deren Schlüssel in der Keychain oder im Secret Service liegt; &lt;code&gt;session.dpapi&lt;/code&gt; unter Windows), bis sich die Person abmeldet, sodass das Gerät
 seinen öffentlichen Schlüssel über Verbindungen hinweg behält (und seine Adresse, solange es registriert ist). Zum Verbinden übergibt sie dem Helper die Server-URL, das Bearer-Token, den
 privaten Schlüssel und den für die Sitzung gewählten Mandanten, über den Socket des Helpers.&lt;/li&gt;
 &lt;li&gt;Der Helper prüft, dass der Server &lt;strong&gt;einer der in seiner eigenen Konfiguration genannten&lt;/strong&gt; ist,
@@ -1081,8 +1081,8 @@ Konfiguration: Er registriert sich nur bei den Servern, die diese Konfiguration 
 übernimmt keine Tunnelkonfiguration aus einer Anfrage. Siehe
 &lt;a href="https://claimward.github.io/docs/dev/de/components/helper/"&gt;Privilegierter Helper&lt;/a&gt;.&lt;/li&gt;
 &lt;li&gt;Die &lt;strong&gt;App&lt;/strong&gt; läuft unter dem Benutzer der Person. Sie hält die Sitzung (Bearer-Token und Geräteschlüssel)
-im Geheimnisspeicher der Plattform (macOS-Keychain, Windows-DPAPI, Linux-Secret-Service), nie
-im Klartext auf der Platte: ohne nutzbaren Speicher schlägt die Anmeldung fehl.&lt;/li&gt;
+in einer verschlüsselten Datei, nie im Klartext auf der Platte: versiegelt mit einem Schlüssel
+aus der macOS-Keychain oder dem Linux-Secret-Service, oder mit Windows-DPAPI. Ohne nutzbaren Speicher schlägt die Anmeldung fehl.&lt;/li&gt;
 &lt;li&gt;Eine Beobachtung der Routen überträgt das Bearer-Token, daher läuft sie über &lt;strong&gt;TLS&lt;/strong&gt;, außer zu einer
 Loopback-Adresse.&lt;/li&gt;
 &lt;li&gt;Der Wire-Vertrag liegt an einer einzigen Stelle,

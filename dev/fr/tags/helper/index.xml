@@ -587,7 +587,7 @@ d&amp;rsquo;accès go-authn. Avec go-authn, la clé &lt;strong&gt;publique&lt;/s
 enregistrée auprès du fournisseur, et le bearer est le jeton que cet enregistrement
 renvoie.&lt;/li&gt;
 &lt;li&gt;L&amp;rsquo;application génère la paire de clés WireGuard de l&amp;rsquo;appareil à la première connexion et
-la conserve dans sa session, gardée dans le magasin de secrets de la plateforme, jusqu&amp;rsquo;à ce que la personne se déconnecte, si bien que l&amp;rsquo;appareil
+la conserve dans son fichier de session chiffré (&lt;code&gt;session.enc&lt;/code&gt;, dont la clé est dans le Keychain ou le Secret Service ; &lt;code&gt;session.dpapi&lt;/code&gt; sous Windows), jusqu&amp;rsquo;à ce que la personne se déconnecte, si bien que l&amp;rsquo;appareil
 garde sa clé publique d&amp;rsquo;une connexion à l&amp;rsquo;autre (et son adresse tant qu&amp;rsquo;il est enrôlé). Pour se connecter, elle remet au helper l&amp;rsquo;URL du serveur, le bearer, la
 clé privée et le locataire choisi pour la session, via le socket du helper.&lt;/li&gt;
 &lt;li&gt;Le helper vérifie que le serveur est &lt;strong&gt;l&amp;rsquo;un de ceux que nomme sa propre configuration&lt;/strong&gt;,
@@ -672,8 +672,8 @@ configuration : il ne s&amp;rsquo;enrôle qu&amp;rsquo;auprès des serveurs que 
 n&amp;rsquo;accepte aucune configuration de tunnel venant d&amp;rsquo;une requête. Voir
 &lt;a href="https://claimward.github.io/docs/dev/fr/components/helper/"&gt;Helper privilégié&lt;/a&gt;.&lt;/li&gt;
 &lt;li&gt;L&amp;rsquo;&lt;strong&gt;application&lt;/strong&gt; s&amp;rsquo;exécute sous l&amp;rsquo;identité de la personne. Elle détient la session (jeton porteur et clé
-de l&amp;rsquo;appareil) dans le magasin de secrets de la plateforme (Keychain macOS, DPAPI Windows, Secret
-Service Linux), jamais en clair sur le disque : sans magasin utilisable, la connexion échoue.&lt;/li&gt;
+de l&amp;rsquo;appareil) dans un fichier chiffré, jamais en clair sur le disque : scellé avec une clé gardée dans le
+Keychain macOS ou le Secret Service Linux, ou avec DPAPI sous Windows. Sans magasin utilisable, la connexion échoue.&lt;/li&gt;
 &lt;li&gt;Une surveillance des routes transporte le jeton porteur, elle passe donc par &lt;strong&gt;TLS&lt;/strong&gt; sauf vers une
 adresse de bouclage.&lt;/li&gt;
 &lt;li&gt;Le contrat de communication se trouve en un seul endroit,
