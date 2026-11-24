@@ -1,6 +1,6 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Claimward – Systemd</title><link>https://claimward.github.io/docs/dev/fr/tags/systemd/</link><description>Recent content in Systemd on Claimward</description><generator>Hugo -- gohugo.io</generator><language>fr</language><atom:link href="https://claimward.github.io/docs/dev/fr/tags/systemd/index.xml" rel="self" type="application/rss+xml"/><item><title>Application Linux</title><link>https://claimward.github.io/docs/dev/fr/components/linux-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/fr/components/linux-app/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-linux" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-linux&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.6.0&lt;/strong&gt; est &lt;strong&gt;une fenêtre et une icône dans la zone de notification dessinées en pur Go&lt;/strong&gt; avec
+&lt;strong&gt;v0.7.0&lt;/strong&gt; est &lt;strong&gt;une fenêtre et une icône dans la zone de notification dessinées en pur Go&lt;/strong&gt; avec
 &lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt; : pas de webview, pas de cgo
 (&lt;code&gt;CGO_ENABLED=0&lt;/code&gt;). Les quatre champs de texte des paramètres sont des &lt;strong&gt;champs GTK 4 natifs&lt;/strong&gt;
 (méthodes de saisie, sélection et presse-papiers du système), chargés à l&amp;rsquo;exécution sans cgo ;
@@ -40,7 +40,14 @@ interface dessinée à la main » avec &lt;a href="https://github.com/go-widgets
 &lt;a href="#what-it-does" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;ul&gt;
 &lt;li&gt;&lt;strong&gt;État&lt;/strong&gt; : qui est connecté, connecté au VPN ou non, l&amp;rsquo;adresse et l&amp;rsquo;interface,
 le locataire de la session, si le helper répond, le serveur. Il est interrogé
-toutes les 2 secondes.&lt;/li&gt;
+toutes les 2 secondes. Les écrans, ce que chaque bouton peut faire et
+l&amp;rsquo;interrogation sont le &lt;code&gt;pkg/appvm&lt;/code&gt; partagé du client (v0.7.0), que le modèle
+de vue de l&amp;rsquo;application se contente d&amp;rsquo;adapter à ses observables.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Notifications&lt;/strong&gt; : quand le tunnel tombe ou que la session expire,
+l&amp;rsquo;application envoie une notification de bureau, une fois par changement ; un
+clic dessus ouvre la fenêtre. Votre propre &lt;em&gt;Déconnecter&lt;/em&gt; ou &lt;em&gt;Se déconnecter&lt;/em&gt;
+n&amp;rsquo;est pas annoncé, et une notification qui ne peut pas partir est journalisée
+sans rien changer.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;Connexion&lt;/strong&gt; : pour un device flow, la fenêtre affiche le code et un bouton &lt;em&gt;Open sign-in
 page&lt;/em&gt; (&lt;code&gt;xdg-open&lt;/code&gt;) ; la connexion peut être annulée.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;Locataire&lt;/strong&gt; : lorsque le serveur refuse une connexion parce que la personne appartient

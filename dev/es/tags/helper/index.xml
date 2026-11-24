@@ -293,7 +293,7 @@ IPv6) y nunca inferior a 1280 (cliente v0.6.0, &lt;code&gt;pkg/pathmtu&lt;/code&
 en una cabecera (nunca en una URL, en los argumentos del proceso ni en los registros); el
 traspaso a una instancia en ejecución se hace mediante un archivo.&lt;/p&gt;</description></item><item><title>Aplicación Linux</title><link>https://claimward.github.io/docs/dev/es/components/linux-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/es/components/linux-app/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-linux" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-linux&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.6.0&lt;/strong&gt; es una &lt;strong&gt;ventana y un icono en la bandeja del sistema dibujados en Go puro&lt;/strong&gt; con
+&lt;strong&gt;v0.7.0&lt;/strong&gt; es una &lt;strong&gt;ventana y un icono en la bandeja del sistema dibujados en Go puro&lt;/strong&gt; con
 &lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt;: sin webview, sin cgo
 (&lt;code&gt;CGO_ENABLED=0&lt;/code&gt;). Los cuatro campos de texto de los ajustes son &lt;strong&gt;campos GTK 4 nativos&lt;/strong&gt;
 (métodos de entrada, selección y portapapeles del sistema), cargados en tiempo de ejecución sin cgo;
@@ -333,7 +333,13 @@ interfaz dibujada a mano&amp;rdquo; con &lt;a href="https://github.com/go-widget
 &lt;a href="#what-it-does" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;ul&gt;
 &lt;li&gt;&lt;strong&gt;Estado&lt;/strong&gt;: quién ha iniciado sesión, si está conectado o no, la dirección y la interfaz,
 el inquilino de la sesión, si el helper responde, el servidor. Se consulta
-cada 2 segundos.&lt;/li&gt;
+cada 2 segundos. Las pantallas, lo que puede hacer cada botón y la consulta
+son el &lt;code&gt;pkg/appvm&lt;/code&gt; compartido del cliente (v0.7.0), que el modelo de vista de
+la aplicación se limita a adaptar a sus observables.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Notificaciones&lt;/strong&gt;: cuando el túnel se cae o la sesión caduca, la aplicación
+envía una notificación de escritorio, una vez por cambio; al pulsarla se abre
+la ventana. Su propio &lt;em&gt;Desconectar&lt;/em&gt; o &lt;em&gt;Cerrar sesión&lt;/em&gt; no se anuncia, y una
+notificación que no puede enviarse se registra sin cambiar nada.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;Inicio de sesión&lt;/strong&gt;: en un flujo de dispositivo, la ventana muestra el código y un botón &lt;em&gt;Open sign-in
 page&lt;/em&gt; (&lt;code&gt;xdg-open&lt;/code&gt;); el inicio de sesión se puede cancelar.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;Inquilino&lt;/strong&gt;: cuando el servidor rechaza una conexión porque la persona pertenece
@@ -417,7 +423,7 @@ claimward-vpn-server real.&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;</description></item><item><title>Aplicación Windows</title><link>https://claimward.github.io/docs/dev/es/components/windows-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/es/components/windows-app/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-windows" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-windows&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.7.0&lt;/strong&gt; es una aplicación de escritorio con un icono en el área de notificación (bandeja del sistema). Todo es
+&lt;strong&gt;v0.8.0&lt;/strong&gt; es una aplicación de escritorio con un icono en el área de notificación (bandeja del sistema). Todo es
 Go con &lt;code&gt;CGO_ENABLED=0&lt;/code&gt;: la ventana y la bandeja del sistema las dibuja
 &lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt; (sin webview, sin servidor HTTP en la
 aplicación), salvo los cuatro campos de texto de los ajustes, que son &lt;strong&gt;controles Edit
@@ -453,7 +459,10 @@ el inquilino y si el helper responde; el aviso del flujo de dispositivo con un
 botón que abre la página en el navegador predeterminado (solo se entrega al shell
 una página &lt;code&gt;https&lt;/code&gt;); &lt;strong&gt;Connect / Disconnect / Sign out&lt;/strong&gt;; &lt;strong&gt;Choose
 tenant&lt;/strong&gt;; los ajustes, guardados en &lt;code&gt;%AppData%\Claimward\config.json&lt;/code&gt;; y el
-historial de conexiones. El estado se consulta cada 2 segundos. El menú de la bandeja del sistema ofrece
+historial de conexiones. El estado se consulta cada 2 segundos mediante el &lt;code&gt;pkg/appvm&lt;/code&gt; compartido del cliente (v0.7.0), que también decide lo que puede hacer cada botón.
+Cuando el túnel se cae o la sesión caduca, la aplicación envía una
+notificación, una vez por cambio; al pulsarla se abre la ventana (su propio
+Desconectar no se anuncia). El menú de la bandeja del sistema ofrece
 el estado, Connect, Disconnect, Open y Quit. Cerrar la ventana cierra la
 aplicación; el túnel pertenece al servicio y permanece activo hasta Disconnect.&lt;/p&gt;
 &lt;p&gt;El icono de la bandeja del sistema aparece a partir de &lt;strong&gt;v0.3.0&lt;/strong&gt;. Antes, la biblioteca de la bandeja no tenía

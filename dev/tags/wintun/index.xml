@@ -1,6 +1,6 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Claimward – Wintun</title><link>https://claimward.github.io/docs/dev/tags/wintun/</link><description>Recent content in Wintun on Claimward</description><generator>Hugo -- gohugo.io</generator><language>en</language><atom:link href="https://claimward.github.io/docs/dev/tags/wintun/index.xml" rel="self" type="application/rss+xml"/><item><title>Windows app</title><link>https://claimward.github.io/docs/dev/components/windows-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/components/windows-app/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-windows" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-windows&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.7.0&lt;/strong&gt; is a desktop app with a notification-area (tray) icon. Everything is
+&lt;strong&gt;v0.8.0&lt;/strong&gt; is a desktop app with a notification-area (tray) icon. Everything is
 Go with &lt;code&gt;CGO_ENABLED=0&lt;/code&gt;: the window and the tray are drawn by
 &lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt; (no webview, no HTTP server in the
 app), except the four settings text fields, which are &lt;strong&gt;native Win32 Edit
@@ -37,7 +37,11 @@ the tenant and whether the helper answers; the device-flow prompt with a
 button that opens the page in the default browser (only an &lt;code&gt;https&lt;/code&gt; page is
 ever handed to the shell); &lt;strong&gt;Connect / Disconnect / Sign out&lt;/strong&gt;; &lt;strong&gt;Choose
 tenant&lt;/strong&gt;; the settings, saved to &lt;code&gt;%AppData%\Claimward\config.json&lt;/code&gt;; and the
-connection log. The status is polled every 2 seconds. The tray menu offers
+connection log. The status is polled every 2 seconds, by the shared &lt;code&gt;pkg/appvm&lt;/code&gt;
+of the client (&lt;a href="https://claimward.github.io/docs/dev/components/client/"&gt;v0.7.0&lt;/a&gt;), which also decides what each button may do.
+When the tunnel drops, or the session expires, the app sends a notification
+once per change; clicking it opens the window (your own Disconnect is not
+announced). The tray menu offers
 the status, Connect, Disconnect, Open and Quit. Closing the window quits the
 app; the tunnel belongs to the service and stays up until Disconnect.&lt;/p&gt;
 &lt;p&gt;The tray icon appears from &lt;strong&gt;v0.3.0&lt;/strong&gt;. Before it, the tray library had no
