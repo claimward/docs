@@ -510,7 +510,10 @@ el servidor comprueba cada archivo a través de su descriptor abierto
 (&lt;code&gt;O_NOFOLLOW&lt;/code&gt;, luego &lt;code&gt;fstat&lt;/code&gt;) y &lt;strong&gt;rechaza&lt;/strong&gt; un enlace simbólico, cualquier cosa
 que no sea un archivo regular, un archivo legible por grupo u otros, un archivo
 que no pertenece al uid del servidor, un archivo vacío y uno de más de 64 KiB.
-El error indica cómo corregirlo.&lt;/p&gt;
+Una excepción desde la v0.7.1: se acepta un archivo del uid 0 con modo exactamente
+&lt;code&gt;0440&lt;/code&gt; si su grupo es el gid del servidor o uno de sus grupos suplementarios (lo
+que produce un volumen Secret de Kubernetes con &lt;code&gt;fsGroup&lt;/code&gt;). El error indica cómo
+corregirlo.&lt;/p&gt;
 &lt;table&gt;
 &lt;thead&gt;
 &lt;tr&gt;
@@ -543,7 +546,7 @@ El error indica cómo corregirlo.&lt;/p&gt;
 &lt;tr&gt;
 &lt;td&gt;Kubernetes&lt;/td&gt;
 &lt;td&gt;la ruta de montaje del volumen Secret, definida a mano&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;defaultMode: 0400&lt;/code&gt;; los archivos son de root, así que el pod se ejecuta con uid 0 y sin ninguna capability salvo &lt;code&gt;NET_ADMIN&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;defaultMode: 0440&lt;/code&gt; y &lt;code&gt;fsGroup&lt;/code&gt;: los archivos son &lt;code&gt;root:&amp;lt;fsGroup&amp;gt;&lt;/code&gt;, aceptados por la regla de grupo anterior, así que el pod se ejecuta con un uid no root y sin ninguna capability salvo &lt;code&gt;NET_ADMIN&lt;/code&gt;. &lt;code&gt;add: [NET_ADMIN]&lt;/code&gt; solo no da la capability a un uid no root (sin conjunto ambiente): el binario de la imagen necesita &lt;code&gt;setcap cap_net_admin=+ep&lt;/code&gt; (según capabilities(7), no medido en un clúster)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;otras&lt;/td&gt;

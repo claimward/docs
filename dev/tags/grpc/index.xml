@@ -508,7 +508,10 @@ file names are fixed, and one trailing newline is trimmed.&lt;/p&gt;
 server checks each file through its open descriptor (&lt;code&gt;O_NOFOLLOW&lt;/code&gt;, then
 &lt;code&gt;fstat&lt;/code&gt;) and &lt;strong&gt;refuses&lt;/strong&gt; a symbolic link, anything but a regular file, a file
 readable by group or other, a file not owned by the server&amp;rsquo;s uid, an empty file
-and one over 64 KiB. The error gives the fix.&lt;/p&gt;
+and one over 64 KiB. One exception since v0.7.1: a file owned by uid 0 with mode
+exactly &lt;code&gt;0440&lt;/code&gt; is accepted when its group is the server&amp;rsquo;s gid or one of its
+supplementary groups (what a Kubernetes Secret volume with &lt;code&gt;fsGroup&lt;/code&gt; produces).
+The error gives the fix.&lt;/p&gt;
 &lt;table&gt;
 &lt;thead&gt;
 &lt;tr&gt;
@@ -541,7 +544,7 @@ and one over 64 KiB. The error gives the fix.&lt;/p&gt;
 &lt;tr&gt;
 &lt;td&gt;Kubernetes&lt;/td&gt;
 &lt;td&gt;the Secret volume&amp;rsquo;s mount path, set by hand&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;defaultMode: 0400&lt;/code&gt;; the files belong to root, so the pod runs as uid 0 with every capability dropped but &lt;code&gt;NET_ADMIN&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;defaultMode: 0440&lt;/code&gt; and &lt;code&gt;fsGroup&lt;/code&gt;: the files are &lt;code&gt;root:&amp;lt;fsGroup&amp;gt;&lt;/code&gt;, accepted by the group rule above, so the pod runs as a non-root uid with every capability dropped but &lt;code&gt;NET_ADMIN&lt;/code&gt;. &lt;code&gt;add: [NET_ADMIN]&lt;/code&gt; alone does not give a non-root uid the capability (no ambient set): the image&amp;rsquo;s binary needs &lt;code&gt;setcap cap_net_admin=+ep&lt;/code&gt; (per capabilities(7), not measured on a cluster)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;otherwise&lt;/td&gt;

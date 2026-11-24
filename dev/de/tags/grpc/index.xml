@@ -509,7 +509,10 @@ Die Dateinamen sind fest, ein abschließender Zeilenumbruch wird entfernt.&lt;/p
 Lesen prüft der Server jede Datei über den offenen Deskriptor (&lt;code&gt;O_NOFOLLOW&lt;/code&gt;,
 dann &lt;code&gt;fstat&lt;/code&gt;) und &lt;strong&gt;verweigert&lt;/strong&gt; einen symbolischen Link, alles außer einer
 regulären Datei, eine für Gruppe oder andere lesbare Datei, eine Datei, die
-nicht der UID des Servers gehört, eine leere Datei und eine über 64 KiB. Die
+nicht der UID des Servers gehört, eine leere Datei und eine über 64 KiB. Eine
+Ausnahme seit v0.7.1: Eine Datei der UID 0 mit genau dem Modus &lt;code&gt;0440&lt;/code&gt; wird
+akzeptiert, wenn ihre Gruppe die GID des Servers oder eine seiner
+Zusatzgruppen ist (so ein Kubernetes-Secret-Volume mit &lt;code&gt;fsGroup&lt;/code&gt;). Die
 Fehlermeldung nennt die Abhilfe.&lt;/p&gt;
 &lt;table&gt;
 &lt;thead&gt;
@@ -543,7 +546,7 @@ Fehlermeldung nennt die Abhilfe.&lt;/p&gt;
 &lt;tr&gt;
 &lt;td&gt;Kubernetes&lt;/td&gt;
 &lt;td&gt;der Mount-Pfad des Secret-Volumes, von Hand gesetzt&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;defaultMode: 0400&lt;/code&gt;; die Dateien gehören root, daher läuft der Pod als UID 0 mit allen Capabilities außer &lt;code&gt;NET_ADMIN&lt;/code&gt; entfernt&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;defaultMode: 0440&lt;/code&gt; und &lt;code&gt;fsGroup&lt;/code&gt;: die Dateien sind &lt;code&gt;root:&amp;lt;fsGroup&amp;gt;&lt;/code&gt;, von der Gruppenregel oben akzeptiert, daher läuft der Pod als Nicht-root-UID mit allen Capabilities außer &lt;code&gt;NET_ADMIN&lt;/code&gt; entfernt. &lt;code&gt;add: [NET_ADMIN]&lt;/code&gt; allein gibt einer Nicht-root-UID die Capability nicht (keine Ambient-Menge): Die Binärdatei im Image braucht &lt;code&gt;setcap cap_net_admin=+ep&lt;/code&gt; (nach capabilities(7), nicht auf einem Cluster gemessen)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;sonst&lt;/td&gt;

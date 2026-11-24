@@ -510,7 +510,10 @@ serveur contrôle chaque fichier par son descripteur ouvert (&lt;code&gt;O_NOFOL
 &lt;code&gt;fstat&lt;/code&gt;) et &lt;strong&gt;refuse&lt;/strong&gt; un lien symbolique, tout ce qui n&amp;rsquo;est pas un fichier
 ordinaire, un fichier lisible par le groupe ou les autres, un fichier qui
 n&amp;rsquo;appartient pas à l&amp;rsquo;uid du serveur, un fichier vide et un fichier de plus de
-64 Kio. L&amp;rsquo;erreur donne la correction.&lt;/p&gt;
+64 Kio. Une exception depuis la v0.7.1 : un fichier appartenant à l&amp;rsquo;uid 0, de
+mode exactement &lt;code&gt;0440&lt;/code&gt;, est accepté si son groupe est le gid du serveur ou l&amp;rsquo;un
+de ses groupes supplémentaires (ce que produit un volume Secret Kubernetes avec
+&lt;code&gt;fsGroup&lt;/code&gt;). L&amp;rsquo;erreur donne la correction.&lt;/p&gt;
 &lt;table&gt;
 &lt;thead&gt;
 &lt;tr&gt;
@@ -543,7 +546,7 @@ n&amp;rsquo;appartient pas à l&amp;rsquo;uid du serveur, un fichier vide et un 
 &lt;tr&gt;
 &lt;td&gt;Kubernetes&lt;/td&gt;
 &lt;td&gt;le chemin de montage du volume Secret, défini à la main&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;defaultMode: 0400&lt;/code&gt; ; les fichiers appartiennent à root, donc le pod tourne en uid 0, toutes capacités retirées sauf &lt;code&gt;NET_ADMIN&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;defaultMode: 0440&lt;/code&gt; et &lt;code&gt;fsGroup&lt;/code&gt; : les fichiers sont &lt;code&gt;root:&amp;lt;fsGroup&amp;gt;&lt;/code&gt;, acceptés par la règle de groupe ci-dessus, donc le pod tourne avec un uid non root, toutes capacités retirées sauf &lt;code&gt;NET_ADMIN&lt;/code&gt;. &lt;code&gt;add: [NET_ADMIN]&lt;/code&gt; seul ne donne pas la capacité à un uid non root (pas d&amp;rsquo;ensemble ambiant) : le binaire de l&amp;rsquo;image doit porter &lt;code&gt;setcap cap_net_admin=+ep&lt;/code&gt; (d&amp;rsquo;après capabilities(7), non mesuré sur un cluster)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;autres&lt;/td&gt;
