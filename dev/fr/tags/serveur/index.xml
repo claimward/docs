@@ -931,7 +931,7 @@ d&amp;rsquo;accès go-authn. Avec go-authn, la clé &lt;strong&gt;publique&lt;/s
 enregistrée auprès du fournisseur, et le bearer est le jeton que cet enregistrement
 renvoie.&lt;/li&gt;
 &lt;li&gt;L&amp;rsquo;application génère la paire de clés WireGuard de l&amp;rsquo;appareil à la première connexion et
-la conserve dans son fichier de session jusqu&amp;rsquo;à ce que la personne se déconnecte, si bien que l&amp;rsquo;appareil
+la conserve dans sa session, gardée dans le magasin de secrets de la plateforme, jusqu&amp;rsquo;à ce que la personne se déconnecte, si bien que l&amp;rsquo;appareil
 garde sa clé publique d&amp;rsquo;une connexion à l&amp;rsquo;autre (et son adresse tant qu&amp;rsquo;il est enrôlé). Pour se connecter, elle remet au helper l&amp;rsquo;URL du serveur, le bearer, la
 clé privée et le locataire choisi pour la session, via le socket du helper.&lt;/li&gt;
 &lt;li&gt;Le helper vérifie que le serveur est &lt;strong&gt;l&amp;rsquo;un de ceux que nomme sa propre configuration&lt;/strong&gt;,

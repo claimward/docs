@@ -922,8 +922,9 @@ access token. With go-authn, the device&amp;rsquo;s &lt;strong&gt;public&lt;/str
 registered at the provider, and the bearer is the token that registration
 returns.&lt;/li&gt;
 &lt;li&gt;The app generates the device&amp;rsquo;s WireGuard key pair at the first sign-in and
-keeps it in its session file until the person signs out, so the device
-keeps its public key across connections (and its address while it is enrolled). To connect, it hands the helper the server URL, the bearer, the
+keeps it in its session, held in the platform&amp;rsquo;s secret store, until the
+person signs out, so the device keeps its public key across connections
+(and its address while it is enrolled). To connect, it hands the helper the server URL, the bearer, the
 private key and the tenant chosen for the session, over the helper&amp;rsquo;s socket.&lt;/li&gt;
 &lt;li&gt;The helper checks that the server is &lt;strong&gt;one its own configuration names&lt;/strong&gt;,
 then calls &lt;code&gt;POST /api/v1/enroll&lt;/code&gt; with the device&amp;rsquo;s public key and the

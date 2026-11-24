@@ -940,7 +940,7 @@ Bei go-authn wird zuerst der &lt;strong&gt;öffentliche&lt;/strong&gt; Schlüsse
 registriert, und das Bearer-Token ist das Token, das diese Registrierung
 zurückgibt.&lt;/li&gt;
 &lt;li&gt;Die App erzeugt das WireGuard-Schlüsselpaar des Geräts bei der ersten Anmeldung und
-bewahrt es in ihrer Sitzungsdatei auf, bis sich die Person abmeldet, sodass das Gerät
+bewahrt es in ihrer Sitzung auf, die im Geheimnisspeicher der Plattform liegt, bis sich die Person abmeldet, sodass das Gerät
 seinen öffentlichen Schlüssel über Verbindungen hinweg behält (und seine Adresse, solange es registriert ist). Zum Verbinden übergibt sie dem Helper die Server-URL, das Bearer-Token, den
 privaten Schlüssel und den für die Sitzung gewählten Mandanten, über den Socket des Helpers.&lt;/li&gt;
 &lt;li&gt;Der Helper prüft, dass der Server &lt;strong&gt;einer der in seiner eigenen Konfiguration genannten&lt;/strong&gt; ist,
