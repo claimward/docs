@@ -46,7 +46,7 @@ servidor y es dueño del túnel. La aplicación nunca habla con el servidor por 
    registra primero en el proveedor, y el bearer es el token que devuelve ese
    registro.
 2. La aplicación genera el par de claves WireGuard del dispositivo en el primer inicio de sesión y
-   lo conserva en su sesión, guardada en el almacén de secretos de la plataforma, hasta que la persona cierra la sesión, de modo que el dispositivo
+   lo conserva en su archivo de sesión cifrado (`session.enc`, cuya clave está en el Keychain o en el Secret Service; `session.dpapi` en Windows), hasta que la persona cierra la sesión, de modo que el dispositivo
    conserva su clave pública entre conexiones (y su dirección mientras está registrado). Para conectarse, entrega al helper la URL del servidor, el bearer, la
    clave privada y el inquilino elegido para la sesión, a través del socket del helper.
 3. El helper comprueba que el servidor es **uno de los que nombra su propia configuración**,
@@ -116,8 +116,8 @@ después de *Disconnect* hasta que termina su concesión.
   no acepta ninguna configuración de túnel procedente de una petición. Véase
   [Helper con privilegios]({{< relref "/components/helper.md" >}}).
 - La **aplicación** se ejecuta como la persona. Guarda la sesión (token bearer y clave
-  del dispositivo) en el almacén de secretos de la plataforma (Keychain de macOS, DPAPI de Windows,
-  Secret Service de Linux), nunca en claro en el disco: sin un almacén utilizable, el inicio de sesión falla.
+  del dispositivo) en un archivo cifrado, nunca en claro en el disco: sellado con una clave guardada en el
+  Keychain de macOS o en el Secret Service de Linux, o con DPAPI en Windows. Sin un almacén utilizable, el inicio de sesión falla.
 - Una observación de rutas lleva el token bearer, por eso pasa por **TLS** salvo hacia una
   dirección de loopback.
 - El contrato de comunicación está en un solo lugar,
