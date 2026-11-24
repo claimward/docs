@@ -421,7 +421,7 @@ files in a credentials directory, see &lt;a href="#credentials"&gt;Credentials&l
 &lt;td&gt;&lt;code&gt;TUNNEL_MTU&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;&lt;/td&gt;
 &lt;td&gt;derived&lt;/td&gt;
-&lt;td&gt;MTU of the WireGuard interface, 1280 to 9000, advertised as &lt;code&gt;mtu&lt;/code&gt;; anything else refuses to start. Unset: the uplink MTU minus 80, at most 1420, at least 1280&lt;/td&gt;
+&lt;td&gt;MTU of the WireGuard interface, 1280 to 9000, advertised as &lt;code&gt;mtu&lt;/code&gt;; anything else refuses to start. Unset: the uplink MTU minus 80, at most 1420, at least 1280. The same atomic &lt;code&gt;inet claimward&lt;/code&gt; table also clamps the MSS of every TCP SYN crossing the interface (forwarded both ways, and input for the gateway itself) to this MTU minus 40 (IPv4) or 60 (IPv6)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;LISTEN_ADDR&lt;/code&gt;&lt;/td&gt;

@@ -422,7 +422,7 @@ sie Dateien in einem Credentials-Verzeichnis, siehe &lt;a href="#credentials"&gt
 &lt;td&gt;&lt;code&gt;TUNNEL_MTU&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;&lt;/td&gt;
 &lt;td&gt;abgeleitet&lt;/td&gt;
-&lt;td&gt;MTU der WireGuard-Schnittstelle, 1280 bis 9000, als &lt;code&gt;mtu&lt;/code&gt; angekündigt; alles andere verweigert den Start. Ungesetzt: Uplink-MTU minus 80, höchstens 1420, mindestens 1280&lt;/td&gt;
+&lt;td&gt;MTU der WireGuard-Schnittstelle, 1280 bis 9000, als &lt;code&gt;mtu&lt;/code&gt; angekündigt; alles andere verweigert den Start. Ungesetzt: Uplink-MTU minus 80, höchstens 1420, mindestens 1280. Dieselbe atomare Tabelle &lt;code&gt;inet claimward&lt;/code&gt; senkt außerdem das MSS jedes TCP-SYN, das die Schnittstelle quert (weitergeleitet in beide Richtungen sowie Eingang für das Gateway selbst), auf diese MTU minus 40 (IPv4) bzw. 60 (IPv6)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;LISTEN_ADDR&lt;/code&gt;&lt;/td&gt;

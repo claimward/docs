@@ -421,7 +421,7 @@ sont des fichiers d&amp;rsquo;un répertoire d&amp;rsquo;identifiants, voir &lt;
 &lt;td&gt;&lt;code&gt;TUNNEL_MTU&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;&lt;/td&gt;
 &lt;td&gt;déduit&lt;/td&gt;
-&lt;td&gt;MTU de l&amp;rsquo;interface WireGuard, de 1280 à 9000, annoncé comme &lt;code&gt;mtu&lt;/code&gt; ; toute autre valeur refuse le démarrage. Non défini : MTU de la liaison montante moins 80, au plus 1420, au moins 1280&lt;/td&gt;
+&lt;td&gt;MTU de l&amp;rsquo;interface WireGuard, de 1280 à 9000, annoncé comme &lt;code&gt;mtu&lt;/code&gt; ; toute autre valeur refuse le démarrage. Non défini : MTU de la liaison montante moins 80, au plus 1420, au moins 1280. La même table atomique &lt;code&gt;inet claimward&lt;/code&gt; abaisse aussi le MSS de chaque SYN TCP traversant l&amp;rsquo;interface (transit dans les deux sens, et entrée pour la passerelle elle-même) à ce MTU moins 40 (IPv4) ou 60 (IPv6)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;LISTEN_ADDR&lt;/code&gt;&lt;/td&gt;
