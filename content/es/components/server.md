@@ -61,7 +61,7 @@ archivos de un directorio de credenciales, véase [Credenciales](#credentials) m
 | `DNS` | | — | servidores DNS CSV del inquilino `default` |
 | `KEEPALIVE` | | `25` | keepalive persistente anunciado a los clientes (segundos) |
 | `LEASE_TTL` | | `24h` | cuánto dura un registro sin heartbeat |
-| `TUNNEL_MTU` | | derivado | MTU de la interfaz WireGuard, de 1280 a 9000, anunciada como `mtu`; cualquier otro valor impide el arranque. Sin definir: MTU del enlace de salida menos 80, como máximo 1420, como mínimo 1280 |
+| `TUNNEL_MTU` | | derivado | MTU de la interfaz WireGuard, de 1280 a 9000, anunciada como `mtu`; cualquier otro valor impide el arranque. Sin definir: MTU del enlace de salida menos 80, como máximo 1420, como mínimo 1280. La misma tabla atómica `inet claimward` también reduce el MSS de cada SYN TCP que cruza la interfaz (reenviado en ambos sentidos, y entrada para la propia pasarela) a esta MTU menos 40 (IPv4) o 60 (IPv6) |
 | `LISTEN_ADDR` | | `:8443` | dirección de escucha HTTP |
 | `GRPC_ADDR` | | `:8444` | dirección de escucha del RouteService; los flujos `Watch` se reautorizan cada 15 s y terminan cuando la identidad deja de estar permitida |
 | `METRICS_ADDR` | | `127.0.0.1:9090` | escucha separada para `/metrics` (loopback por defecto; ya no se sirve en `LISTEN_ADDR`) |

@@ -62,7 +62,7 @@ sie Dateien in einem Credentials-Verzeichnis, siehe [Credentials](#credentials) 
 | `DNS` | | — | CSV-DNS-Server des Mandanten `default` |
 | `KEEPALIVE` | | `25` | den Clients mitgeteiltes Persistent Keepalive (Sekunden) |
 | `LEASE_TTL` | | `24h` | wie lange eine Registrierung ohne Heartbeat gilt |
-| `TUNNEL_MTU` | | abgeleitet | MTU der WireGuard-Schnittstelle, 1280 bis 9000, als `mtu` angekündigt; alles andere verweigert den Start. Ungesetzt: Uplink-MTU minus 80, höchstens 1420, mindestens 1280 |
+| `TUNNEL_MTU` | | abgeleitet | MTU der WireGuard-Schnittstelle, 1280 bis 9000, als `mtu` angekündigt; alles andere verweigert den Start. Ungesetzt: Uplink-MTU minus 80, höchstens 1420, mindestens 1280. Dieselbe atomare Tabelle `inet claimward` senkt außerdem das MSS jedes TCP-SYN, das die Schnittstelle quert (weitergeleitet in beide Richtungen sowie Eingang für das Gateway selbst), auf diese MTU minus 40 (IPv4) bzw. 60 (IPv6) |
 | `LISTEN_ADDR` | | `:8443` | HTTP-Listen-Adresse |
 | `GRPC_ADDR` | | `:8444` | Listen-Adresse des RouteService; `Watch`-Streams werden alle 15 s neu autorisiert und enden, wenn die Identität nicht mehr zugelassen ist |
 | `METRICS_ADDR` | | `127.0.0.1:9090` | eigener Listener für `/metrics` (standardmäßig Loopback; nicht mehr auf `LISTEN_ADDR`) |
