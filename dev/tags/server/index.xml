@@ -672,38 +672,60 @@ window between the table commit and the rule commit can never apply one
 tenant&amp;rsquo;s rules to another tenant&amp;rsquo;s peers.&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;&lt;strong&gt;No &lt;code&gt;pledge(2)&lt;/code&gt;.&lt;/strong&gt; The &lt;code&gt;pf&lt;/code&gt; promise lets a process issue only twelve of the
-&lt;code&gt;DIOC*&lt;/code&gt; ioctls (&lt;code&gt;sys/kern/kern_pledge.c&lt;/code&gt;, &lt;code&gt;pledge_ioctl&lt;/code&gt;), and the server also
-needs &lt;code&gt;DIOCRINADEFINE&lt;/code&gt;, &lt;code&gt;DIOCXROLLBACK&lt;/code&gt;, &lt;code&gt;DIOCGETRULES&lt;/code&gt;, &lt;code&gt;DIOCGETRULE&lt;/code&gt;,
-&lt;code&gt;DIOCXEND&lt;/code&gt; and &lt;code&gt;DIOCRGETADDRS&lt;/code&gt;. Any other ioctl would kill the process, and a
-pledge cannot be widened later. Run it as a dedicated service under &lt;code&gt;rcctl&lt;/code&gt;
-and keep the rest of the host locked down.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Privilege separation (from v0.11.0).&lt;/strong&gt; The &lt;code&gt;pf&lt;/code&gt; promise of &lt;code&gt;pledge(2)&lt;/code&gt; lets
+a process issue only twelve of the &lt;code&gt;DIOC*&lt;/code&gt; ioctls (&lt;code&gt;sys/kern/kern_pledge.c&lt;/code&gt;,
+&lt;code&gt;pledge_ioctl&lt;/code&gt;), and the server also needs &lt;code&gt;DIOCRINADEFINE&lt;/code&gt;, &lt;code&gt;DIOCXROLLBACK&lt;/code&gt;,
+&lt;code&gt;DIOCGETRULES&lt;/code&gt;, &lt;code&gt;DIOCGETRULE&lt;/code&gt;, &lt;code&gt;DIOCXEND&lt;/code&gt; and &lt;code&gt;DIOCRGETADDRS&lt;/code&gt;; any other ioctl
+would kill the process. So the root parent, which drives &lt;code&gt;/dev/pf&lt;/code&gt;, is not
+pledged. The unprivileged &lt;code&gt;_claimward&lt;/code&gt; child, which holds the secrets and
+serves the network, is restricted with &lt;code&gt;unveil(2)&lt;/code&gt; and &lt;code&gt;pledge(2)&lt;/code&gt; before it
+serves (see below).&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;WireGuard peers (from v0.11.0).&lt;/strong&gt; Before v0.11.0 an enrolment on OpenBSD
+failed when it added the peer to &lt;code&gt;wg(4)&lt;/code&gt; (issue #79). The server now writes
+peers with the &lt;code&gt;SIOCSWG&lt;/code&gt; and &lt;code&gt;SIOCGWG&lt;/code&gt; ioctls of &lt;code&gt;sys/net/if_wg.h&lt;/code&gt; and reads
+them back with its own decoder. Verified in real OpenBSD 7.9 and 8.0 amd64
+virtual machines: the structure layout matches the C compiler&amp;rsquo;s, and add,
+replace, remove and sweep work on a real &lt;code&gt;wg(4)&lt;/code&gt; interface. OpenBSD on arm64
+is only cross-compiled, not run on a kernel.&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
 &lt;h3 data-hextra-search-id="openbsd-deploy"&gt;Deploying on OpenBSD (rc.d)&lt;span class="hx:absolute hx:-mt-20" id="openbsd-deploy"&gt;&lt;/span&gt;
 &lt;a href="#openbsd-deploy" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;From v0.10.1 the repository ships &lt;code&gt;deploy/openbsd/&lt;/code&gt;: an &lt;code&gt;rc.d(8)&lt;/code&gt; script, an
 &lt;code&gt;environment.example&lt;/code&gt;, a &lt;code&gt;hostname.wg0.example&lt;/code&gt; and a &lt;code&gt;pf.conf.example&lt;/code&gt;.&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;It runs as root.&lt;/strong&gt; The WireGuard peer configuration of &lt;code&gt;wg(4)&lt;/code&gt; is behind
-&lt;code&gt;suser(9)&lt;/code&gt; (&lt;code&gt;sys/net/if_wg.c&lt;/code&gt;), and &lt;code&gt;/dev/pf&lt;/code&gt; is guarded only by its device
-node, which is root-only: &lt;code&gt;pfopen&lt;/code&gt; (&lt;code&gt;sys/net/pf_ioctl.c&lt;/code&gt;) checks nothing else.
-OpenBSD has no privileged group that would let a &lt;code&gt;_claimward&lt;/code&gt; user do either,
-so the script sets &lt;code&gt;daemon_user=&amp;quot;root&amp;quot;&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Two processes (from v0.11.0).&lt;/strong&gt; The WireGuard peer configuration of &lt;code&gt;wg(4)&lt;/code&gt;
+is behind &lt;code&gt;suser(9)&lt;/code&gt; (&lt;code&gt;sys/net/if_wg.c&lt;/code&gt;), and &lt;code&gt;/dev/pf&lt;/code&gt; is guarded only by its
+device node, which is root-only: &lt;code&gt;pfopen&lt;/code&gt; (&lt;code&gt;sys/net/pf_ioctl.c&lt;/code&gt;) checks
+nothing else. OpenBSD has no privileged group that would let an unprivileged
+user do either, so the script starts the daemon as root (&lt;code&gt;daemon_user=&amp;quot;root&amp;quot;&lt;/code&gt;)
+and the daemon splits in two. The &lt;strong&gt;parent&lt;/strong&gt; (root) adds and removes peers,
+sets the tunnel MTU and loads the pf anchor; it reads no credential, serves no
+network and &lt;code&gt;unveil(2)&lt;/code&gt;s only &lt;code&gt;/dev/pf&lt;/code&gt;. The &lt;strong&gt;child&lt;/strong&gt;, run as the &lt;code&gt;_claimward&lt;/code&gt;
+user, holds the secrets, the TLS and gRPC listeners, the identity provider and
+the tenant policy, and is restricted with &lt;code&gt;unveil(2)&lt;/code&gt; and &lt;code&gt;pledge(2)&lt;/code&gt;
+(&lt;code&gt;stdio rpath inet dns&lt;/code&gt;) before it serves. If it cannot drop privileges, the
+server does not start. The child asks the parent through a socketpair, and the
+parent refuses anything outside the address pool (&lt;code&gt;VPN_CIDR&lt;/code&gt;).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;The &lt;code&gt;_claimward&lt;/code&gt; user must exist&lt;/strong&gt; and the ports must be above 1024 (the
+defaults 8443 and 8444 are); to serve on 443, redirect it with a pf &lt;code&gt;rdr-to&lt;/code&gt;.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;Secrets are files&lt;/strong&gt; in &lt;code&gt;/etc/claimward/credentials&lt;/code&gt;, a &lt;code&gt;0700&lt;/code&gt; directory owned
-by root, with each file &lt;code&gt;0400&lt;/code&gt; and owned by root (&lt;code&gt;install(1)&lt;/code&gt;). The script
-sets &lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt; to it; no secret goes in the environment, in
-arguments or in a URL. The non-secret settings are in
-&lt;code&gt;/etc/claimward/environment&lt;/code&gt;.&lt;/li&gt;
+by &lt;code&gt;_claimward&lt;/code&gt;, with each file &lt;code&gt;0400&lt;/code&gt; and owned by &lt;code&gt;_claimward&lt;/code&gt; (&lt;code&gt;install(1)&lt;/code&gt;).
+The script sets &lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt; to it; no secret goes in the
+environment, in arguments or in a URL. The non-secret settings are in
+&lt;code&gt;/etc/claimward/environment&lt;/code&gt;, which stays root&amp;rsquo;s.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;&lt;code&gt;wg0&lt;/code&gt; must exist&lt;/strong&gt; before the server starts: &lt;code&gt;hostname.wg0&lt;/code&gt; carries the same
 private key as the &lt;code&gt;wg-private-key&lt;/code&gt; credential (mode &lt;code&gt;0640&lt;/code&gt;).&lt;/li&gt;
 &lt;/ul&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;install -m &lt;span class="m"&gt;0555&lt;/span&gt; claimward-server /usr/local/bin/claimward-server
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;install -d -m &lt;span class="m"&gt;0755&lt;/span&gt; /etc/claimward
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;install -d -m &lt;span class="m"&gt;0700&lt;/span&gt; /etc/claimward/credentials
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;install -m &lt;span class="m"&gt;0400&lt;/span&gt; wg-private-key /etc/claimward/credentials/wg-private-key
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;install -m &lt;span class="m"&gt;0600&lt;/span&gt; environment.example /etc/claimward/environment &lt;span class="c1"&gt;# then edit&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;install -m &lt;span class="m"&gt;0640&lt;/span&gt; hostname.wg0.example /etc/hostname.wg0 &lt;span class="c1"&gt;# then edit&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;useradd -g &lt;span class="o"&gt;=&lt;/span&gt;uid -c claimward -d /var/empty -s /sbin/nologin -r 1..999 _claimward
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;install -d -m &lt;span class="m"&gt;0755&lt;/span&gt; -o root -g wheel /etc/claimward
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;install -d -m &lt;span class="m"&gt;0700&lt;/span&gt; -o _claimward -g _claimward /etc/claimward/credentials
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;install -m &lt;span class="m"&gt;0400&lt;/span&gt; -o _claimward -g _claimward wg-private-key /etc/claimward/credentials/wg-private-key
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;install -m &lt;span class="m"&gt;0600&lt;/span&gt; -o root -g wheel environment.example /etc/claimward/environment &lt;span class="c1"&gt;# then edit&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;install -m &lt;span class="m"&gt;0640&lt;/span&gt; -o root -g wheel hostname.wg0.example /etc/hostname.wg0 &lt;span class="c1"&gt;# then edit&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sh /etc/netstart wg0
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;install -m &lt;span class="m"&gt;0555&lt;/span&gt; claimward_server /etc/rc.d/claimward_server
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;rcctl &lt;span class="nb"&gt;enable&lt;/span&gt; claimward_server
@@ -721,8 +743,10 @@ data-copied-label="Copied!"
 &lt;/div&gt;
 &lt;p&gt;The log goes to syslog (&lt;code&gt;/var/log/daemon&lt;/code&gt;). The CI runs this script in real
 OpenBSD 7.9 and 8.0 virtual machines: &lt;code&gt;rcctl start&lt;/code&gt;, the startup line,
-&lt;code&gt;rcctl check&lt;/code&gt; and &lt;code&gt;rcctl stop&lt;/code&gt;, then a start without the anchor in &lt;code&gt;pf.conf&lt;/code&gt;,
-which must fail.&lt;/p&gt;
+&lt;code&gt;rcctl check&lt;/code&gt;, a root parent with one &lt;code&gt;_claimward&lt;/code&gt; child, an enrolment through
+the child whose peer appears on &lt;code&gt;wg0&lt;/code&gt;, and &lt;code&gt;rcctl stop&lt;/code&gt;; then a start with a
+credential owned by root, and a start without the anchor in &lt;code&gt;pf.conf&lt;/code&gt;, which
+must both fail.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="s6-deploy"&gt;Deploying under s6 (sdcreds)&lt;span class="hx:absolute hx:-mt-20" id="s6-deploy"&gt;&lt;/span&gt;
 &lt;a href="#s6-deploy" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;From v0.10.2 the repository ships &lt;code&gt;deploy/s6/claimward-server/&lt;/code&gt; (&lt;code&gt;run&lt;/code&gt; and
 &lt;code&gt;finish&lt;/code&gt;) for hosts without systemd. &lt;code&gt;sdcreds s6-run&lt;/code&gt; (go-authn/sdcreds v0.2.0
