@@ -1,0 +1,174 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Claimward – Locataires</title><link>https://claimward.github.io/docs/v0.8.0/fr/tags/locataires/</link><description>Recent content in Locataires on Claimward</description><generator>Hugo -- gohugo.io</generator><language>fr</language><atom:link href="https://claimward.github.io/docs/v0.8.0/fr/tags/locataires/index.xml" rel="self" type="application/rss+xml"/><item><title>Locataires</title><link>https://claimward.github.io/docs/v0.8.0/fr/tenants/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/v0.8.0/fr/tenants/</guid><description>
+&lt;p&gt;Un &lt;strong&gt;locataire&lt;/strong&gt; est un ensemble de routes (&lt;code&gt;allowed_ips&lt;/code&gt;) et de serveurs DNS, ainsi que
+les règles qui disent qui lui appartient. Une personne peut appartenir à plusieurs
+locataires : elle en choisit un par session, et l&amp;rsquo;appareil se connecte à celui-là.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="membership"&gt;Appartenance&lt;span class="hx:absolute hx:-mt-20" id="membership"&gt;&lt;/span&gt;
+&lt;a href="#membership" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Une personne appartient à tout locataire qui mentionne l&amp;rsquo;un des éléments suivants :&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Champ&lt;/th&gt;
+&lt;th&gt;Comparé à&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;domains&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;le domaine d&amp;rsquo;une adresse e-mail &lt;strong&gt;vérifiée&lt;/strong&gt; (une adresse non vérifiée n&amp;rsquo;est qu&amp;rsquo;une chaîne saisie par la personne)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;groups&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;la revendication &lt;code&gt;groups&lt;/code&gt; du jeton (OIDC ; go-authn : droits eduPerson), ou les organisations GitHub de la personne&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;idps&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;l&amp;rsquo;établissement qui s&amp;rsquo;est porté garant d&amp;rsquo;elle : l&amp;rsquo;&lt;code&gt;idp&lt;/code&gt; de go-authn, un entity ID SAML&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;members&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;des &lt;strong&gt;logins&lt;/strong&gt; GitHub, nommés un à un, épinglés à l&amp;rsquo;identifiant numérique du compte (ci-dessous)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-amber-200 hx:bg-amber-100 hx:text-amber-900 hx:dark:border-amber-200/30 hx:dark:bg-amber-900/30 hx:dark:text-amber-200"&gt;
+&lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/&gt;&lt;/svg&gt;&lt;/div&gt;
+&lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Une personne qui ne correspond à aucun locataire est refusée&lt;/strong&gt; (v0.5.0,
+changement incompatible) : &lt;code&gt;403 not_a_member&lt;/code&gt; sur &lt;code&gt;/api/v1/tenants&lt;/code&gt; et
+&lt;code&gt;/api/v1/enroll&lt;/code&gt;, et le &lt;code&gt;Watch&lt;/code&gt; gRPC est refusé. Il n&amp;rsquo;y a plus de locataire de
+repli : le locataire &lt;code&gt;default&lt;/code&gt; ne reçoit que les personnes que ses propres
+&lt;code&gt;domains&lt;/code&gt;, &lt;code&gt;groups&lt;/code&gt;, &lt;code&gt;idps&lt;/code&gt; ou &lt;code&gt;members&lt;/code&gt; désignent. Un identifiant de locataire
+inconnu est une erreur, jamais les routes du locataire &lt;code&gt;default&lt;/code&gt;.&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;strong&gt;Migration depuis v0.4.x.&lt;/strong&gt; Les personnes qui tombaient dans &lt;code&gt;default&lt;/code&gt; doivent
+maintenant y être désignées : donnez à l&amp;rsquo;entrée &lt;code&gt;default&lt;/code&gt; de &lt;code&gt;TENANTS_FILE&lt;/code&gt; les
+&lt;code&gt;domains&lt;/code&gt;, &lt;code&gt;groups&lt;/code&gt;, &lt;code&gt;idps&lt;/code&gt; ou &lt;code&gt;members&lt;/code&gt; qui les désignent, puis redémarrez. Le
+locataire &lt;code&gt;default&lt;/code&gt; construit à partir de &lt;code&gt;PUSH_ROUTES&lt;/code&gt; et &lt;code&gt;DNS&lt;/code&gt; seuls ne
+désigne personne.&lt;/p&gt;
+&lt;h3 data-hextra-search-id="members"&gt;Membres nommés&lt;span class="hx:absolute hx:-mt-20" id="members"&gt;&lt;/span&gt;
+&lt;a href="#members" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;&lt;code&gt;members&lt;/code&gt; liste des logins GitHub, lisibles mais renommables : un login peut être
+libéré puis pris par quelqu&amp;rsquo;un d&amp;rsquo;autre. Le serveur &lt;strong&gt;épingle&lt;/strong&gt; donc chaque login à
+l&amp;rsquo;identifiant numérique du compte. Lorsqu&amp;rsquo;un locataire est chargé (&lt;code&gt;TENANTS_FILE&lt;/code&gt;)
+ou créé ou modifié via l&amp;rsquo;API d&amp;rsquo;administration, il appelle
+&lt;code&gt;GET {GITHUB_API_URL}/users/{login}&lt;/code&gt; (délai de 10 s, réponse limitée à 64 Kio,
+le compte doit être un &lt;code&gt;User&lt;/code&gt;) et enregistre la paire dans le champ &lt;code&gt;pinned&lt;/code&gt;, en
+lecture seule. Une personne est membre quand le sujet de son jeton est
+&lt;code&gt;github:&amp;lt;id&amp;gt;&lt;/code&gt; pour un identifiant épinglé : un compte renommé dont l&amp;rsquo;ancien login
+appartient désormais à quelqu&amp;rsquo;un d&amp;rsquo;autre est refusé. Un &lt;strong&gt;login introuvable est
+une erreur&lt;/strong&gt; : le serveur refuse de démarrer, et l&amp;rsquo;API d&amp;rsquo;administration répond
+&lt;code&gt;400&lt;/code&gt;. L&amp;rsquo;API et la WebUI montrent les logins ; pour suivre un renommage, modifiez
+à nouveau le locataire. La résolution est authentifiée par l&amp;rsquo;identifiant &lt;code&gt;github-token&lt;/code&gt; (un fichier de
+&lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt;, envoyé comme jeton porteur : 5000 requêtes par heure sur
+github.com). Un locataire avec &lt;code&gt;members&lt;/code&gt; et sans &lt;code&gt;github-token&lt;/code&gt; empêche le démarrage ;
+le jeton n&amp;rsquo;est jamais envoyé en HTTP clair, sauf vers une adresse de bouclage.&lt;/p&gt;
+&lt;p&gt;Un membre nommé est aussi admis par la porte d&amp;rsquo;entrée GitHub sans appartenir à
+une organisation autorisée (voir les &lt;a href="https://claimward.github.io/docs/v0.8.0/fr/identity-providers/"&gt;fournisseurs d&amp;rsquo;identité&lt;/a&gt;).&lt;/p&gt;
+&lt;h2 data-hextra-search-id="where-tenants-come-from"&gt;D&amp;rsquo;où viennent les locataires&lt;span class="hx:absolute hx:-mt-20" id="where-tenants-come-from"&gt;&lt;/span&gt;
+&lt;a href="#where-tenants-come-from" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Le serveur démarre avec un seul locataire, &lt;code&gt;default&lt;/code&gt;, dont les routes sont &lt;code&gt;PUSH_ROUTES&lt;/code&gt;
+(par défaut &lt;code&gt;VPN_CIDR&lt;/code&gt;) et dont les serveurs DNS sont &lt;code&gt;DNS&lt;/code&gt;. Les autres locataires sont
+créés, modifiés et supprimés via l&amp;rsquo;&lt;a href="https://claimward.github.io/docs/v0.8.0/fr/operations/#admin-api-and-webui"&gt;API d&amp;rsquo;administration et la WebUI&lt;/a&gt;,
+qui modifient les quatre listes d&amp;rsquo;appartenance à côté des routes. Le locataire par défaut
+ne peut pas être supprimé.&lt;/p&gt;
+&lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-amber-200 hx:bg-amber-100 hx:text-amber-900 hx:dark:border-amber-200/30 hx:dark:bg-amber-900/30 hx:dark:text-amber-200"&gt;
+&lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/&gt;&lt;/svg&gt;&lt;/div&gt;
+&lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;Les locataires sont conservés &lt;strong&gt;en mémoire&lt;/strong&gt; (v0.2.0) : un redémarrage du serveur ne laisse que
+le locataire &lt;code&gt;default&lt;/code&gt;, reconstruit à partir de l&amp;rsquo;environnement.&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;h2 data-hextra-search-id="access-policy"&gt;Politique d&amp;rsquo;accès&lt;span class="hx:absolute hx:-mt-20" id="access-policy"&gt;&lt;/span&gt;
+&lt;a href="#access-policy" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Les routes d&amp;rsquo;un locataire ne sont pas seulement annoncées : la passerelle les
+&lt;strong&gt;applique&lt;/strong&gt;. Un locataire peut porter une &lt;code&gt;policy&lt;/code&gt;, une liste de règles qui
+disent quelle destination un pair peut joindre, sur quel protocole et quels
+ports :&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;[{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;default&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;policy&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;cidr&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;10.20.0.5/32&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;proto&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;tcp&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;ports&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;445&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;88&lt;/span&gt;&lt;span class="p"&gt;]},&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;cidr&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;10.20.0.5/32&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;proto&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;udp&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;ports&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;88&lt;/span&gt;&lt;span class="p"&gt;]}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;]}]&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copier le code"
+aria-label="Copier le code"
+data-copied-label="Copié !"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;proto&lt;/code&gt; vaut &lt;code&gt;tcp&lt;/code&gt; ou &lt;code&gt;udp&lt;/code&gt; ; &lt;code&gt;ports&lt;/code&gt; sont des nombres ou des plages
+(&lt;code&gt;&amp;quot;9000-9010&amp;quot;&lt;/code&gt;), et sont obligatoires. IPv4 uniquement.&lt;/li&gt;
+&lt;li&gt;Les &lt;code&gt;allowed_ips&lt;/code&gt; envoyés aux clients sont &lt;strong&gt;dérivés de la politique&lt;/strong&gt; (les
+CIDR distincts) : ce qu&amp;rsquo;un appareil route et ce que la passerelle laisse
+passer ne peuvent pas diverger. Le format des routes ne change pas.&lt;/li&gt;
+&lt;li&gt;La passerelle possède une table nftables, &lt;code&gt;inet claimward&lt;/code&gt;, installée par
+netlink (Linux, &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt;), ou sous OpenBSD l&amp;rsquo;ancre pf &lt;code&gt;claimward&lt;/code&gt;
+chargée par &lt;code&gt;/dev/pf&lt;/code&gt; (voir &lt;a href="https://claimward.github.io/docs/v0.8.0/fr/components/server/#openbsd"&gt;OpenBSD&lt;/a&gt;).
+L&amp;rsquo;une comme l&amp;rsquo;autre est remplacée atomiquement au démarrage et à
+chaque changement de pair ou de locataire. Le trafic qui arrive de l&amp;rsquo;interface
+WireGuard est &lt;strong&gt;refusé par défaut&lt;/strong&gt;, dans la chaîne de transfert comme dans la
+chaîne d&amp;rsquo;entrée (le serveur de fichiers peut être l&amp;rsquo;hôte de la passerelle
+lui-même) ; l&amp;rsquo;adresse de chaque pair est confrontée aux règles de son
+locataire. Le DNS doit être nommé dans la politique comme le reste.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Fermé en cas d&amp;rsquo;échec&lt;/strong&gt; : si le jeu de règles ne peut pas être installé, le
+serveur ne démarre pas, et un enrôlement dont le jeu de règles ne peut pas
+être installé est refusé (&lt;code&gt;500 gateway_error&lt;/code&gt;).&lt;/li&gt;
+&lt;li&gt;Un locataire avec &lt;code&gt;allowed_ips&lt;/code&gt; et sans &lt;code&gt;policy&lt;/code&gt; est appliqué comme tout
+protocole, tout port, vers ces CIDR.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Les locataires avec politique sont chargés au démarrage depuis le fichier JSON
+nommé par &lt;code&gt;TENANTS_FILE&lt;/code&gt; (un tableau de locataires, avec les champs de l&amp;rsquo;API
+d&amp;rsquo;administration) ; l&amp;rsquo;API d&amp;rsquo;administration accepte aussi &lt;code&gt;policy&lt;/code&gt;. L&amp;rsquo;interface
+web d&amp;rsquo;administration ne l&amp;rsquo;édite pas encore.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="choosing-one-per-session"&gt;En choisir un par session&lt;span class="hx:absolute hx:-mt-20" id="choosing-one-per-session"&gt;&lt;/span&gt;
+&lt;a href="#choosing-one-per-session" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Requête&lt;/th&gt;
+&lt;th&gt;Ce que fait le serveur&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GET /api/v1/tenants&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;liste les locataires auxquels l&amp;rsquo;appelant peut se connecter, &lt;code&gt;[{&amp;quot;id&amp;quot;, &amp;quot;name&amp;quot;}]&lt;/code&gt;, pour qu&amp;rsquo;un client propose le choix&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;POST /api/v1/enroll&lt;/code&gt; avec &lt;code&gt;tenant&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;le locataire doit être l&amp;rsquo;un d&amp;rsquo;eux, sinon &lt;code&gt;403 not_a_member&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;POST /api/v1/enroll&lt;/code&gt; sans &lt;code&gt;tenant&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;l&amp;rsquo;unique locataire de l&amp;rsquo;appelant ; une personne qui en a plusieurs reçoit &lt;code&gt;409 tenant_required&lt;/code&gt;, avec la liste dans le message, plutôt que d&amp;rsquo;être routée vers un réseau qu&amp;rsquo;elle n&amp;rsquo;a pas choisi&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;POST /api/v1/heartbeat&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;refusé avec &lt;code&gt;403 not_a_member&lt;/code&gt; dès que la personne ne fait plus partie du locataire de la session&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;RouteService &lt;code&gt;Watch&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;diffuse les routes du locataire &lt;strong&gt;dans lequel l&amp;rsquo;appareil s&amp;rsquo;est enrôlé&lt;/strong&gt;, retrouvé par la clé de l&amp;rsquo;appareil, qui doit être celle de l&amp;rsquo;appelant&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Dans les applications (&lt;code&gt;pkg/appcore&lt;/code&gt;) :&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;Tenants&lt;/code&gt;&lt;/strong&gt; demande au serveur, via le helper, quels locataires la personne
+peut rejoindre ;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;SetTenant&lt;/code&gt;&lt;/strong&gt; enregistre le choix dans la session, et uniquement un locataire que le
+serveur a proposé ; une nouvelle connexion l&amp;rsquo;oublie ;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;Connect&lt;/code&gt;&lt;/strong&gt; enrôle l&amp;rsquo;appareil dans ce locataire. Une personne qui en a plusieurs et n&amp;rsquo;a pas
+choisi reçoit &lt;code&gt;ErrTenantRequired&lt;/code&gt;, avec les locataires dans l&amp;rsquo;état.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Une personne qui n&amp;rsquo;a qu&amp;rsquo;un locataire ne choisit jamais. L&amp;rsquo;application macOS ouvre sa fenêtre lorsqu&amp;rsquo;un
+&lt;strong&gt;Connect&lt;/strong&gt; depuis la barre des menus est refusé faute de choix ; les applications Linux et
+Windows affichent le choix dans leur fenêtre. L&amp;rsquo;application Linux ne permet pas de changer de
+locataire pendant la connexion.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="route-updates"&gt;Mises à jour des routes&lt;span class="hx:absolute hx:-mt-20" id="route-updates"&gt;&lt;/span&gt;
+&lt;a href="#route-updates" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Modifier les routes d&amp;rsquo;un locataire incrémente son &lt;code&gt;serial&lt;/code&gt; et pousse le nouvel ensemble vers chaque
+appareil qui surveille ce locataire via le RouteService gRPC. Le helper remplace
+les allowed IPs du pair WireGuard et ajoute ou retire les routes correspondantes,
+sans nouvel enrôlement. Supprimer un locataire met fin à ses surveillances.&lt;/p&gt;</description></item></channel></rss>
