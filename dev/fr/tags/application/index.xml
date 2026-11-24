@@ -1,20 +1,24 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Claimward – Application</title><link>https://claimward.github.io/docs/dev/fr/tags/application/</link><description>Recent content in Application on Claimward</description><generator>Hugo -- gohugo.io</generator><language>fr</language><atom:link href="https://claimward.github.io/docs/dev/fr/tags/application/index.xml" rel="self" type="application/rss+xml"/><item><title>Application macOS</title><link>https://claimward.github.io/docs/dev/fr/components/macos-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/fr/components/macos-app/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-osx" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-osx&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.6.0&lt;/strong&gt; est une application de la barre des menus (zone de notification) écrite en Go dont &lt;strong&gt;toute l&amp;rsquo;interface
-utilisateur est une application monopage Svelte rendue dans une webview&lt;/strong&gt;. Sa logique (connexion,
-choix du locataire, connexion au VPN) et son helper sont les composants partagés
-&lt;a href="https://claimward.github.io/docs/dev/fr/components/client/"&gt;&lt;code&gt;pkg/appcore&lt;/code&gt; et &lt;code&gt;pkg/helper&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;
+&lt;strong&gt;v0.7.0&lt;/strong&gt; est une application native écrite en Go : une fenêtre et une icône de la
+barre des menus, dessinées par &lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt;, avec les
+&lt;code&gt;NSTextField&lt;/code&gt; et &lt;code&gt;NSPopUpButton&lt;/code&gt; du système pour les saisies. Il n&amp;rsquo;y a ni webview, ni
+serveur web local, ni JavaScript (avant v0.7.0, la fenêtre était une page Svelte dans
+une webview). Sa logique (connexion, choix du locataire, connexion au VPN) et son helper
+sont les composants partagés
+&lt;a href="https://claimward.github.io/docs/dev/fr/components/client/"&gt;&lt;code&gt;pkg/appcore&lt;/code&gt; et &lt;code&gt;pkg/helper&lt;/code&gt;&lt;/a&gt; ; le modèle de
+vue est &lt;code&gt;pkg/appvm&lt;/code&gt;, le même que celui des applications Linux et Windows.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="design"&gt;Conception&lt;span class="hx:absolute hx:-mt-20" id="design"&gt;&lt;/span&gt;
 &lt;a href="#design" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
-&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; claimward-app (tray process, as you)
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ├─ systray menu: status / Open Claimward… / Configuration… / Connect / Disconnect / Quit
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ├─ uiserver loopback HTTP: embedded Svelte SPA + token-guarded JSON API
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; └─ appcore sign-in, tenant choice, session; drives the helper
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ spawns &amp;#34;claimward-app ui &amp;lt;url&amp;gt;&amp;#34; │ Unix socket (JSON), 0660 root:admin
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ▼ ▼
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; webview (WKWebView) claimward-helper (root LaunchDaemon)
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; renders the Svelte UI enrolls with the server, wireguard-go: utunN,
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; route pushes&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; claimward-app (one process, as you)
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ├─ window go-widgets, with NSTextField / NSPopUpButton embedded
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ├─ status item NSStatusItem: status / Open Claimward… / Connect / Disconnect / Quit
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ├─ notifications when the tunnel drops or the session expires (from the app bundle)
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; └─ view model pkg/appvm over appcore: sign-in, tenant choice, session
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ Unix socket (JSON), 0660 root:admin
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ▼
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; claimward-helper (root LaunchDaemon)
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; enrolls with the server, wireguard-go: utunN, route pushes&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
 &lt;button
 class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
 title="Copier le code"
@@ -26,12 +30,11 @@ data-copied-label="Copié !"
 &lt;/button&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;p&gt;Le processus de la zone de notification détient tout l&amp;rsquo;état et sert à la fois l&amp;rsquo;interface et une petite API JSON sur
-&lt;code&gt;127.0.0.1&lt;/code&gt;, protégée par un jeton propre à chaque lancement, comparé en temps constant. La
-webview est une fenêtre minimale pointée sur cette URL de bouclage, dans un processus distinct,
-car une seule boucle d&amp;rsquo;exécution Cocoa peut posséder le fil principal. Le
-&lt;a href="https://claimward.github.io/docs/dev/fr/components/helper/"&gt;helper&lt;/a&gt; s&amp;rsquo;enrôle auprès du serveur et
-détient le tunnel ; l&amp;rsquo;application n&amp;rsquo;est pas privilégiée.&lt;/p&gt;
+&lt;p&gt;L&amp;rsquo;application est un seul processus non privilégié qui détient tout l&amp;rsquo;état. Les saisies
+(URL du serveur, identifiants client) sont les champs de texte du système, avec sa méthode
+de saisie et sa correction orthographique ; les choix du fournisseur et du locataire sont
+des menus locaux. Le &lt;a href="https://claimward.github.io/docs/dev/fr/components/helper/"&gt;helper&lt;/a&gt; s&amp;rsquo;enrôle auprès du
+serveur et détient le tunnel. Fermer la fenêtre quitte l&amp;rsquo;application, comme sous Linux et Windows.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="build"&gt;Compilation&lt;span class="hx:absolute hx:-mt-20" id="build"&gt;&lt;/span&gt;
 &lt;a href="#build" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Avec &lt;a href="https://taskfile.dev" target="_blank" rel="noopener"&gt;go-task&lt;/a&gt; :&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
@@ -49,11 +52,11 @@ data-copied-label="Copié !"
 &lt;/button&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;p&gt;Lancez le bundle plutôt que le binaire nu : un binaire nu démarré depuis un
-agent de la barre des menus ne peut pas amener sa fenêtre au premier plan. À la main :&lt;/p&gt;
+&lt;p&gt;Lancez le bundle plutôt que le binaire nu : les notifications sont refusées à un
+processus qui n&amp;rsquo;est pas dans un bundle d&amp;rsquo;application, si bien qu&amp;rsquo;avec un binaire nu une
+coupure du tunnel n&amp;rsquo;arrive que dans le journal. À la main (plus de chaîne Node) :&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
-&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;cd&lt;/span&gt; frontend &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; npm install &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; npm run build &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="nb"&gt;cd&lt;/span&gt; .. &lt;span class="c1"&gt;# the Svelte UI, embedded with go:embed&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;CGO_ENABLED&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt; go build -o bin/claimward-app ./cmd/claimward-app
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;CGO_ENABLED&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt; go build -o bin/claimward-app ./cmd/claimward-app
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;CGO_ENABLED&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt; go build -o bin/claimward-helper ./cmd/claimward-helper&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
 &lt;button
 class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
@@ -67,8 +70,8 @@ data-copied-label="Copié !"
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;h2 data-hextra-search-id="configure"&gt;Configuration&lt;span class="hx:absolute hx:-mt-20" id="configure"&gt;&lt;/span&gt;
-&lt;a href="#configure" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;~/Library/Application Support/Claimward/config.json&lt;/code&gt;, également modifiable depuis
-&lt;strong&gt;Configuration…&lt;/strong&gt; (GitHub est la valeur par défaut) :&lt;/p&gt;
+&lt;a href="#configure" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;~/Library/Application Support/Claimward/config.json&lt;/code&gt;, également modifiable depuis la
+page &lt;strong&gt;Settings&lt;/strong&gt; de la fenêtre (GitHub est la valeur par défaut) :&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;server_url&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;https://vpn.example.com&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
@@ -141,9 +144,8 @@ magasin au premier démarrage, ou supprimé en cas d&amp;rsquo;échec.&lt;/p&gt;
 &lt;p&gt;Le MTU du tunnel est le &lt;code&gt;mtu&lt;/code&gt; du serveur, abaissé pour tenir dans le chemin vers
 le serveur (le MTU de l&amp;rsquo;interface vers son point d&amp;rsquo;accès, moins 60 en IPv4 ou 80
 en IPv6) et jamais inférieur à 1280 (client v0.6.0, &lt;code&gt;pkg/pathmtu&lt;/code&gt;).&lt;/p&gt;
-&lt;p&gt;Le serveur doit être une URL &lt;strong&gt;https&lt;/strong&gt;, et le jeton de lancement de la fenêtre ne transite que
-dans un en-tête (jamais dans une URL, dans les arguments du processus ni dans les journaux) ;
-le passage de relais vers une instance en cours d&amp;rsquo;exécution se fait par un fichier.&lt;/p&gt;</description></item><item><title>Application Linux</title><link>https://claimward.github.io/docs/dev/fr/components/linux-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/fr/components/linux-app/</guid><description>
+&lt;p&gt;Le serveur doit être une URL &lt;strong&gt;https&lt;/strong&gt;. Depuis v0.7.0, il n&amp;rsquo;y a plus d&amp;rsquo;API d&amp;rsquo;interface en
+bouclage ni de jeton de lancement : la fenêtre et la logique partagent un seul processus.&lt;/p&gt;</description></item><item><title>Application Linux</title><link>https://claimward.github.io/docs/dev/fr/components/linux-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/fr/components/linux-app/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-linux" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-linux&lt;/code&gt;&lt;/a&gt;
 &lt;strong&gt;v0.7.0&lt;/strong&gt; est &lt;strong&gt;une fenêtre et une icône dans la zone de notification dessinées en pur Go&lt;/strong&gt; avec
 &lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt; : pas de webview, pas de cgo
