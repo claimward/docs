@@ -212,39 +212,63 @@ sur `pfctl`.
   chargement, si bien que la courte fenêtre entre la validation des tables et
   celle des règles ne peut jamais appliquer les règles d'un tenant aux pairs d'un
   autre.
-- **Pas de `pledge(2)`.** La promesse `pf` n'autorise que douze des ioctls
-  `DIOC*` (`sys/kern/kern_pledge.c`, `pledge_ioctl`), alors que le serveur a
-  aussi besoin de `DIOCRINADEFINE`, `DIOCXROLLBACK`, `DIOCGETRULES`,
-  `DIOCGETRULE`, `DIOCXEND` et `DIOCRGETADDRS`. Tout autre ioctl tuerait le
-  processus, et un pledge ne peut pas être élargi ensuite. Lancez-le comme
-  service dédié sous `rcctl` et gardez le reste de la machine verrouillé.
+- **Séparation des privilèges (depuis la v0.11.0).** La promesse `pf` de
+  `pledge(2)` n'autorise que douze des ioctls `DIOC*`
+  (`sys/kern/kern_pledge.c`, `pledge_ioctl`), alors que le serveur a aussi
+  besoin de `DIOCRINADEFINE`, `DIOCXROLLBACK`, `DIOCGETRULES`, `DIOCGETRULE`,
+  `DIOCXEND` et `DIOCRGETADDRS` ; tout autre ioctl tuerait le processus. Le
+  parent root, qui pilote `/dev/pf`, n'a donc pas de pledge. L'enfant
+  `_claimward`, sans privilège, qui détient les secrets et sert le réseau, est
+  restreint par `unveil(2)` et `pledge(2)` avant de servir (voir plus bas).
+- **Pairs WireGuard (depuis la v0.11.0).** Avant la v0.11.0, une inscription
+  sous OpenBSD échouait à l'ajout du pair à `wg(4)` (ticket n° 79). Le serveur
+  écrit désormais les pairs avec les ioctls `SIOCSWG` et `SIOCGWG` de
+  `sys/net/if_wg.h` et les relit avec son propre décodeur. Vérifié dans de
+  vraies machines virtuelles OpenBSD 7.9 et 8.0 amd64 : la disposition des
+  structures est celle du compilateur C, et l'ajout, le remplacement, la
+  suppression et le balayage fonctionnent sur une vraie interface `wg(4)`.
+  OpenBSD arm64 est seulement compilé en croisé, pas exécuté sur un noyau.
 
 ### Déployer sous OpenBSD (rc.d) {#openbsd-deploy}
 
 Depuis la v0.10.1, le dépôt fournit `deploy/openbsd/` : un script `rc.d(8)`, un
 `environment.example`, un `hostname.wg0.example` et un `pf.conf.example`.
 
-- **Il tourne en root.** La configuration des pairs WireGuard de `wg(4)` est
-  derrière `suser(9)` (`sys/net/if_wg.c`), et `/dev/pf` n'est protégé que par
-  son nœud de périphérique, réservé à root : `pfopen` (`sys/net/pf_ioctl.c`) ne
-  vérifie rien d'autre. OpenBSD n'a pas de groupe privilégié qui permettrait à
-  un utilisateur `_claimward` de faire l'un ou l'autre ; le script fixe donc
-  `daemon_user="root"`.
+- **Deux processus (depuis la v0.11.0).** La configuration des pairs WireGuard
+  de `wg(4)` est derrière `suser(9)` (`sys/net/if_wg.c`), et `/dev/pf` n'est
+  protégé que par son nœud de périphérique, réservé à root : `pfopen`
+  (`sys/net/pf_ioctl.c`) ne vérifie rien d'autre. OpenBSD n'a pas de groupe
+  privilégié qui permettrait à un utilisateur sans privilège de faire l'un ou
+  l'autre ; le script lance donc le démon en root (`daemon_user="root"`) et le
+  démon se scinde en deux. Le **parent** (root) ajoute et retire les pairs,
+  règle le MTU du tunnel et charge l'ancre pf ; il ne lit aucun secret, ne sert
+  aucun réseau et ne fait `unveil(2)` que de `/dev/pf`. L'**enfant**, exécuté
+  sous l'utilisateur `_claimward`, détient les secrets, les écouteurs TLS et
+  gRPC, le fournisseur d'identité et la politique des tenants, et est restreint
+  par `unveil(2)` et `pledge(2)` (`stdio rpath inet dns`) avant de servir. S'il
+  ne peut pas abandonner ses privilèges, le serveur ne démarre pas. L'enfant
+  s'adresse au parent par une socketpair, et le parent refuse tout ce qui sort
+  du pool d'adresses (`VPN_CIDR`).
+- **L'utilisateur `_claimward` doit exister** et les ports doivent être
+  supérieurs à 1024 (les valeurs par défaut 8443 et 8444 le sont) ; pour servir
+  sur 443, redirigez-le avec un `rdr-to` pf.
 - **Les secrets sont des fichiers** dans `/etc/claimward/credentials`, un
-  répertoire `0700` appartenant à root, chaque fichier étant `0400` et
-  appartenant à root (`install(1)`). Le script y fixe `CREDENTIALS_DIRECTORY` ;
-  aucun secret n'est dans l'environnement, dans les arguments ou dans une URL.
-  Les réglages non secrets sont dans `/etc/claimward/environment`.
+  répertoire `0700` appartenant à `_claimward`, chaque fichier étant `0400` et
+  appartenant à `_claimward` (`install(1)`). Le script y fixe
+  `CREDENTIALS_DIRECTORY` ; aucun secret n'est dans l'environnement, dans les
+  arguments ou dans une URL. Les réglages non secrets sont dans
+  `/etc/claimward/environment`, qui reste à root.
 - **`wg0` doit exister** avant le démarrage du serveur : `hostname.wg0` porte la
   même clé privée que le secret `wg-private-key` (mode `0640`).
 
 ```sh
 install -m 0555 claimward-server /usr/local/bin/claimward-server
-install -d -m 0755 /etc/claimward
-install -d -m 0700 /etc/claimward/credentials
-install -m 0400 wg-private-key /etc/claimward/credentials/wg-private-key
-install -m 0600 environment.example /etc/claimward/environment   # puis éditer
-install -m 0640 hostname.wg0.example /etc/hostname.wg0           # puis éditer
+useradd -g =uid -c claimward -d /var/empty -s /sbin/nologin -r 1..999 _claimward
+install -d -m 0755 -o root -g wheel /etc/claimward
+install -d -m 0700 -o _claimward -g _claimward /etc/claimward/credentials
+install -m 0400 -o _claimward -g _claimward wg-private-key /etc/claimward/credentials/wg-private-key
+install -m 0600 -o root -g wheel environment.example /etc/claimward/environment   # puis éditer
+install -m 0640 -o root -g wheel hostname.wg0.example /etc/hostname.wg0           # puis éditer
 sh /etc/netstart wg0
 install -m 0555 claimward_server /etc/rc.d/claimward_server
 rcctl enable claimward_server
@@ -253,8 +277,10 @@ rcctl start claimward_server && rcctl check claimward_server
 
 Le journal va dans syslog (`/var/log/daemon`). La CI exécute ce script dans de
 vraies machines virtuelles OpenBSD 7.9 et 8.0 : `rcctl start`, la ligne de
-démarrage, `rcctl check` et `rcctl stop`, puis un démarrage sans l'ancre dans
-`pf.conf`, qui doit échouer.
+démarrage, `rcctl check`, un parent root avec un enfant `_claimward`, une
+inscription par l'enfant dont le pair apparaît sur `wg0`, et `rcctl stop` ;
+puis un démarrage avec un secret appartenant à root, et un démarrage sans
+l'ancre dans `pf.conf`, qui doivent tous deux échouer.
 
 ## Déployer sous s6 (sdcreds) {#s6-deploy}
 
