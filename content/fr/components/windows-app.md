@@ -7,7 +7,7 @@ tags: [windows, application, helper, wintun]
 ---
 
 [`claimward-vpn-app-windows`](https://github.com/claimward/claimward-vpn-app-windows)
-**v0.7.0** est une application de bureau avec une icône dans la zone de notification. Tout est
+**v0.8.0** est une application de bureau avec une icône dans la zone de notification. Tout est
 en Go avec `CGO_ENABLED=0` : la fenêtre et la zone de notification sont dessinées par
 [go-widgets](https://github.com/go-widgets) (pas de webview, pas de serveur HTTP dans
 l'application), sauf les quatre champs de texte des paramètres, qui sont des **contrôles Edit
@@ -36,7 +36,10 @@ le locataire et si le helper répond ; l'invite du device flow avec un
 bouton qui ouvre la page dans le navigateur par défaut (seule une page `https` est
 jamais transmise au shell) ; **Connect / Disconnect / Sign out** ; **Choose
 tenant** ; les paramètres, enregistrés dans `%AppData%\Claimward\config.json` ; et le
-journal de connexion. L'état est interrogé toutes les 2 secondes. Le menu de la zone de notification propose
+journal de connexion. L'état est interrogé toutes les 2 secondes par le `pkg/appvm` partagé du client (v0.7.0), qui décide aussi de ce que chaque bouton peut faire.
+Quand le tunnel tombe ou que la session expire, l'application envoie une
+notification, une fois par changement ; un clic dessus ouvre la fenêtre (votre
+propre Déconnecter n'est pas annoncé). Le menu de la zone de notification propose
 l'état, Connect, Disconnect, Open et Quit. Fermer la fenêtre quitte
 l'application ; le tunnel appartient au service et reste actif jusqu'à Disconnect.
 

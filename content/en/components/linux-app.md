@@ -7,7 +7,7 @@ tags: [linux, app, helper, systemd]
 ---
 
 [`claimward-vpn-app-linux`](https://github.com/claimward/claimward-vpn-app-linux)
-**v0.6.0** is a **window and a tray icon drawn in pure Go** with
+**v0.7.0** is a **window and a tray icon drawn in pure Go** with
 [go-widgets](https://github.com/go-widgets): no webview, no cgo
 (`CGO_ENABLED=0`). The four settings text fields are **native GTK 4 entries**
 (system input methods, selection, clipboard), loaded at run time without cgo; the
@@ -41,7 +41,13 @@ hand-drawn UI" with [bricolint](https://github.com/go-widgets/bricolint).
 
 - **Status**: who is signed in, connected or not, the address and interface,
   the session's tenant, whether the helper answers, the server. It is polled
-  every 2 seconds.
+  every 2 seconds. The screens, what each button may do and the poll are the
+  shared `pkg/appvm` of the client ([v0.7.0]({{< relref "/components/client.md" >}})), which the
+  app's view model only adapts to observables.
+- **Notifications**: when the tunnel drops, or the session expires, the app
+  sends a desktop notification, once per change; clicking it opens the window.
+  Your own *Disconnect* and *Sign out* are not announced, and a notification
+  that cannot be sent is logged and changes nothing.
 - **Sign in**: for a device flow the window shows the code and an *Open sign-in
   page* button (`xdg-open`); the sign-in can be cancelled.
 - **Tenant**: when the server refuses a connection because the person belongs
