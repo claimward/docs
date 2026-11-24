@@ -99,7 +99,7 @@ para systemd con `DynamicUser=yes`: systemd deja el archivo `root:root`, modo
 `0400`, más una entrada de ACL POSIX de solo lectura para el uid del servicio
 (`src/core/exec-credential.c:338-361`, `src/shared/acl-util.c:448-494`), así que
 `stat` muestra `0440`. El servidor lee `system.posix_acl_access` del descriptor
-abierto y acepta exactamente `user::r--`, `user:<su uid>:r--`, `group::---`,
+abierto y acepta exactamente `user::` (sin escritura ni ejecución), `user:<su uid>:r--`, `group::---`,
 `mask::r--`, `other::---`; cualquier otro usuario o grupo con nombre, cualquier
 bit de escritura o ejecución, o un valor mal formado o demasiado grande se
 rechaza. El error indica cómo corregirlo.

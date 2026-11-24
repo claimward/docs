@@ -22,8 +22,9 @@ alcanzan el RouteService, con un nombre que cubra el certificado.
 
 - Levante `wg0` con `wg-quick` o systemd-networkd al arrancar; Claimward solo
   gestiona sus pares. Ejecute el servidor con los permisos para configurar la interfaz
-  (root, o `CAP_NET_ADMIN`).
-- Active `net.ipv4.ip_forward`, y reglas de NAT o de cortafuegos, si los clientes enrutan
+  y el cortafuegos: en Linux root o `CAP_NET_ADMIN` (nftables); en OpenBSD root,
+  para `/dev/pf` (véase [OpenBSD]({{< relref "/components/server.md#openbsd" >}})).
+- En Linux, active `net.ipv4.ip_forward`, y reglas de NAT o de cortafuegos, si los clientes enrutan
   más allá de la subred de la VPN.
 - `GET /healthz` es la sonda de actividad (liveness).
 

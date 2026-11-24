@@ -32,19 +32,20 @@ sudo sysctl -w net.ipv4.ip_forward=1   # if you route beyond the VPN subnet
 ```sh
 go install github.com/claimward/claimward-vpn-server/cmd/claimward-server@v0.10.0
 
-export AUTH_PROVIDER=github                     # the default
-export GITHUB_ALLOWED_ORGS=claimward            # an org allowlist, or name tenant `members` instead (the server refuses to start with neither)
+export AUTH_PROVIDER=github                     # der Standard
+export GITHUB_ALLOWED_ORGS=claimward            # eine Allowlist von Organisationen, oder nennen Sie stattdessen `members` des Mandanten (ohne eines von beiden verweigert der Server den Start)
 export WG_ENDPOINT=vpn.example.com:51820
 export CREDENTIALS_DIRECTORY=/etc/claimward/credentials   # enthält die Datei wg-private-key (0400, Eigentümer: der Dienstbenutzer)
 export VPN_CIDR=10.80.0.0/24
-export TLS_CERT=/etc/claimward/fullchain.pem    # HTTPS, and TLS on the gRPC RouteService
+export TLS_CERT=/etc/claimward/fullchain.pem    # HTTPS, und TLS auf dem gRPC-RouteService
 export TLS_KEY=/etc/claimward/privkey.pem
-export GRPC_ENDPOINT=vpn.example.com:8444       # where clients watch for route updates
+export GRPC_ENDPOINT=vpn.example.com:8444       # wo die Clients auf Routen-Aktualisierungen warten
 
 sudo -E "$(go env GOPATH)/bin/claimward-server"
 ```
 
-Der Server benötigt die Rechte, `wg0` zu konfigurieren (root oder `CAP_NET_ADMIN`). Er
+Unter Linux benötigt der Server die Rechte, `wg0` zu konfigurieren (root oder `CAP_NET_ADMIN`);
+für OpenBSD siehe [OpenBSD]({{< relref "/components/server.md#openbsd" >}}). Er
 lauscht auf `:8443` (`LISTEN_ADDR`) für die Registrierungs-API und auf `:8444`
 (`GRPC_ADDR`) für den RouteService. Alle Variablen finden Sie in der
 [Server-Referenz]({{< relref "/components/server.md" >}}); für

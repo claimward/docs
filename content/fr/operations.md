@@ -22,8 +22,9 @@ atteignent le RouteService, avec un nom que couvre le certificat.
 
 - Montez `wg0` avec `wg-quick` ou systemd-networkd au démarrage ; Claimward ne fait que
   gérer ses pairs. Exécutez le serveur avec les droits de configurer l'interface
-  (root, ou `CAP_NET_ADMIN`).
-- Activez `net.ipv4.ip_forward`, ainsi que des règles NAT ou de pare-feu, si les clients routent
+  et le pare-feu : sous Linux root ou `CAP_NET_ADMIN` (nftables) ; sous OpenBSD root,
+  pour `/dev/pf` (voir [OpenBSD]({{< relref "/components/server.md#openbsd" >}})).
+- Sous Linux, activez `net.ipv4.ip_forward`, ainsi que des règles NAT ou de pare-feu, si les clients routent
   au-delà du sous-réseau VPN.
 - `GET /healthz` est la sonde de vivacité.
 

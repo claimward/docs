@@ -100,7 +100,7 @@ systemd laisse le fichier `root:root`, mode `0400`, plus une entrée d'ACL POSIX
 en lecture seule pour l'uid du service (`src/core/exec-credential.c:338-361`,
 `src/shared/acl-util.c:448-494`), donc `stat` affiche `0440`. Le serveur lit
 `system.posix_acl_access` depuis le descripteur ouvert et accepte exactement
-`user::r--`, `user:<son uid>:r--`, `group::---`, `mask::r--`, `other::---` ;
+`user::` (sans écriture ni exécution), `user:<son uid>:r--`, `group::---`, `mask::r--`, `other::---` ;
 tout autre utilisateur ou groupe nommé, tout bit d'écriture ou d'exécution, ou
 une valeur mal formée ou trop grande est refusé. L'erreur donne la correction.
 

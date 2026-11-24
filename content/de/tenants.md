@@ -91,7 +91,9 @@ erreichen darf:
   Gateway durchlässt, können nicht auseinanderlaufen. Das Routenformat ändert
   sich nicht.
 - Das Gateway besitzt eine nftables-Tabelle, `inet claimward`, per Netlink
-  installiert (Linux, `CAP_NET_ADMIN`) und beim Start sowie bei jeder Änderung
+  installiert (Linux, `CAP_NET_ADMIN`), oder unter OpenBSD der pf-Anchor `claimward`,
+  der über `/dev/pf` geladen wird (siehe [OpenBSD]({{< relref "/components/server.md#openbsd" >}})).
+  Beides wird beim Start sowie bei jeder Änderung
   eines Peers oder Mandanten atomar ersetzt. Verkehr von der WireGuard-Schnittstelle
   wird **standardmäßig verworfen**, in der Forward- wie in der Input-Kette (der
   Dateiserver kann der Gateway-Host selbst sein); die Adresse jedes Peers wird
