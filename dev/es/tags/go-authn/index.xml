@@ -463,6 +463,50 @@ ampliarse después. Ejecútelo como servicio dedicado bajo &lt;code&gt;rcctl&lt;
 el resto del equipo bloqueado.&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
+&lt;h3 data-hextra-search-id="openbsd-deploy"&gt;Despliegue en OpenBSD (rc.d)&lt;span class="hx:absolute hx:-mt-20" id="openbsd-deploy"&gt;&lt;/span&gt;
+&lt;a href="#openbsd-deploy" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;Desde la v0.10.1 el repositorio incluye &lt;code&gt;deploy/openbsd/&lt;/code&gt;: un script &lt;code&gt;rc.d(8)&lt;/code&gt;,
+un &lt;code&gt;environment.example&lt;/code&gt;, un &lt;code&gt;hostname.wg0.example&lt;/code&gt; y un &lt;code&gt;pf.conf.example&lt;/code&gt;.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Se ejecuta como root.&lt;/strong&gt; La configuración de los pares WireGuard de &lt;code&gt;wg(4)&lt;/code&gt;
+está tras &lt;code&gt;suser(9)&lt;/code&gt; (&lt;code&gt;sys/net/if_wg.c&lt;/code&gt;), y &lt;code&gt;/dev/pf&lt;/code&gt; solo está protegido por
+su nodo de dispositivo, reservado a root: &lt;code&gt;pfopen&lt;/code&gt; (&lt;code&gt;sys/net/pf_ioctl.c&lt;/code&gt;) no
+comprueba nada más. OpenBSD no tiene un grupo privilegiado que permita a un
+usuario &lt;code&gt;_claimward&lt;/code&gt; hacer ninguna de las dos cosas, así que el script fija
+&lt;code&gt;daemon_user=&amp;quot;root&amp;quot;&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Los secretos son archivos&lt;/strong&gt; en &lt;code&gt;/etc/claimward/credentials&lt;/code&gt;, un directorio
+&lt;code&gt;0700&lt;/code&gt; propiedad de root, con cada archivo &lt;code&gt;0400&lt;/code&gt; y propiedad de root
+(&lt;code&gt;install(1)&lt;/code&gt;). El script fija &lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt; a ese directorio;
+ningún secreto va en el entorno, en los argumentos ni en una URL. Los ajustes
+no secretos están en &lt;code&gt;/etc/claimward/environment&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;wg0&lt;/code&gt; debe existir&lt;/strong&gt; antes de que arranque el servidor: &lt;code&gt;hostname.wg0&lt;/code&gt; lleva
+la misma clave privada que el secreto &lt;code&gt;wg-private-key&lt;/code&gt; (modo &lt;code&gt;0640&lt;/code&gt;).&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;install -m &lt;span class="m"&gt;0555&lt;/span&gt; claimward-server /usr/local/bin/claimward-server
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;install -d -m &lt;span class="m"&gt;0755&lt;/span&gt; /etc/claimward
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;install -d -m &lt;span class="m"&gt;0700&lt;/span&gt; /etc/claimward/credentials
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;install -m &lt;span class="m"&gt;0400&lt;/span&gt; wg-private-key /etc/claimward/credentials/wg-private-key
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;install -m &lt;span class="m"&gt;0600&lt;/span&gt; environment.example /etc/claimward/environment &lt;span class="c1"&gt;# luego editar&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;install -m &lt;span class="m"&gt;0640&lt;/span&gt; hostname.wg0.example /etc/hostname.wg0 &lt;span class="c1"&gt;# luego editar&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sh /etc/netstart wg0
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;install -m &lt;span class="m"&gt;0555&lt;/span&gt; claimward_server /etc/rc.d/claimward_server
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;rcctl &lt;span class="nb"&gt;enable&lt;/span&gt; claimward_server
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;rcctl start claimward_server &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; rcctl check claimward_server&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copiar código"
+aria-label="Copiar código"
+data-copied-label="¡Copiado!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;El registro va a syslog (&lt;code&gt;/var/log/daemon&lt;/code&gt;). La CI ejecuta este script en
+máquinas virtuales OpenBSD 7.9 y 8.0 reales: &lt;code&gt;rcctl start&lt;/code&gt;, la línea de
+arranque, &lt;code&gt;rcctl check&lt;/code&gt; y &lt;code&gt;rcctl stop&lt;/code&gt;, y después un arranque sin el ancla en
+&lt;code&gt;pf.conf&lt;/code&gt;, que debe fallar.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="run-locally"&gt;Ejecución en local&lt;span class="hx:absolute hx:-mt-20" id="run-locally"&gt;&lt;/span&gt;
 &lt;a href="#run-locally" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Con &lt;code&gt;WG_DRYRUN=true&lt;/code&gt; no se toca ningún dispositivo WireGuard:&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
