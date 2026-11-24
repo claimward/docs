@@ -148,7 +148,7 @@ Against a server whose RouteService is not TLS the handshake fails before the
 token is sent, and the tunnel stays up without live route updates.&lt;/p&gt;
 &lt;p&gt;Stopping the helper takes the tunnel down.&lt;/p&gt;</description></item><item><title>Linux app</title><link>https://claimward.github.io/docs/dev/components/linux-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/components/linux-app/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-linux" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-linux&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.2.1&lt;/strong&gt; is a &lt;strong&gt;window and a tray icon drawn in pure Go&lt;/strong&gt; with
+&lt;strong&gt;v0.5.0&lt;/strong&gt; is a &lt;strong&gt;window and a tray icon drawn in pure Go&lt;/strong&gt; with
 &lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt;: no webview, no GTK, no cgo
 (&lt;code&gt;CGO_ENABLED=0&lt;/code&gt;). A &lt;strong&gt;privileged helper&lt;/strong&gt; run by systemd owns the WireGuard
 tunnel. The logic is the macOS app&amp;rsquo;s: both use
@@ -202,7 +202,7 @@ tray; &lt;em&gt;Quit&lt;/em&gt; leaves the tunnel as it is.&lt;/li&gt;
 one, or if the tray item cannot be put on the session bus, the app says so on
 start-up and closing the window quits it.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="install"&gt;Install&lt;span class="hx:absolute hx:-mt-20" id="install"&gt;&lt;/span&gt;
-&lt;a href="#install" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Build as yourself (Go 1.27.1 or later), then install as root:&lt;/p&gt;
+&lt;a href="#install" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Build as yourself (Go 1.27.4 or later), then install as root:&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;CGO_ENABLED&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt; go build -trimpath -o bin/ ./cmd/...
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo ./scripts/install.sh --server https://vpn.example.com&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
@@ -238,14 +238,17 @@ also removes &lt;code&gt;/etc/claimward&lt;/code&gt; and the group.&lt;/p&gt;
 &lt;a href="#configure" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;The app: &lt;code&gt;~/.config/Claimward/config.json&lt;/code&gt;, written by the settings form,
 mode &lt;code&gt;0600&lt;/code&gt;, overridden by &lt;code&gt;CLAIMWARD_*&lt;/code&gt; variables (see the
 &lt;a href="https://claimward.github.io/docs/dev/components/client/#files-on-the-device"&gt;client library&lt;/a&gt;).
-The session (tokens and the device&amp;rsquo;s WireGuard key) is kept in the desktop&amp;rsquo;s
-&lt;strong&gt;Secret Service&lt;/strong&gt; keyring through &lt;code&gt;secret-tool&lt;/code&gt;, and is never written to disk
-in clear. &lt;strong&gt;A Secret Service provider is required&lt;/strong&gt; (client v0.5.0 and later):
+The session (tokens and the device&amp;rsquo;s WireGuard key) is sealed with AES-GCM in
+&lt;code&gt;session.enc&lt;/code&gt;; the key is kept in the desktop&amp;rsquo;s &lt;strong&gt;Secret Service&lt;/strong&gt; keyring
+through &lt;code&gt;secret-tool&lt;/code&gt;. It is never written to disk in clear. &lt;strong&gt;A Secret Service provider is required&lt;/strong&gt; (client v0.5.0 and later):
 install and unlock one such as gnome-keyring or KeePassXC, and install
 &lt;code&gt;secret-tool&lt;/code&gt; (&lt;code&gt;libsecret-tools&lt;/code&gt;). Without one, sign-in fails with an error
 naming what is missing; there is no plaintext fallback, on a headless server
 either. A &lt;code&gt;session.json&lt;/code&gt; left by an older version is moved into the keyring on
 first start, or deleted if the keyring refuses it.&lt;/p&gt;
+&lt;p&gt;The tunnel MTU is the server&amp;rsquo;s &lt;code&gt;mtu&lt;/code&gt;, lowered to fit the path to the server
+(the interface MTU towards its endpoint, minus 60 for IPv4 or 80 for IPv6) and
+never below 1280 (client v0.6.0, &lt;code&gt;pkg/pathmtu&lt;/code&gt;).&lt;/p&gt;
 &lt;p&gt;The helper: &lt;code&gt;/etc/claimward/helper.json&lt;/code&gt; (see
 &lt;a href="https://claimward.github.io/docs/dev/components/helper/"&gt;Privileged helper&lt;/a&gt;); after editing it,
 &lt;code&gt;sudo systemctl restart claimward-helper&lt;/code&gt;.&lt;/p&gt;

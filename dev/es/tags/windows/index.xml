@@ -148,7 +148,7 @@ Frente a un servidor cuyo RouteService no usa TLS, el handshake falla antes de q
 se envíe el token, y el túnel sigue activo sin actualizaciones de rutas en vivo.&lt;/p&gt;
 &lt;p&gt;Detener el helper baja el túnel.&lt;/p&gt;</description></item><item><title>Aplicación Windows</title><link>https://claimward.github.io/docs/dev/es/components/windows-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/es/components/windows-app/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-windows" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-windows&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.3.0&lt;/strong&gt; es una aplicación de escritorio con un icono en el área de notificación (bandeja del sistema). Todo es
+&lt;strong&gt;v0.6.0&lt;/strong&gt; es una aplicación de escritorio con un icono en el área de notificación (bandeja del sistema). Todo es
 Go con &lt;code&gt;CGO_ENABLED=0&lt;/code&gt;: la ventana y la bandeja del sistema las dibuja
 &lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt; (sin webview, sin servidor HTTP en la
 aplicación), y el túnel es &lt;a href="https://git.zx2c4.com/wireguard-go" target="_blank" rel="noopener"&gt;wireguard-go&lt;/a&gt; sobre un
@@ -242,6 +242,9 @@ La sesión se sella con &lt;strong&gt;DPAPI&lt;/strong&gt; en un archivo por usu
 DPAPI falla (cliente v0.5.0 y posteriores), el inicio de sesión falla con un error que lo
 indica. Un &lt;code&gt;session.json&lt;/code&gt; de una versión anterior se traslada a DPAPI en el primer
 arranque, o se elimina si eso falla.&lt;/p&gt;
+&lt;p&gt;La MTU del túnel es la &lt;code&gt;mtu&lt;/code&gt; del servidor, reducida para caber en la ruta hacia
+el servidor (la MTU de la interfaz hacia su endpoint, menos 60 en IPv4 u 80 en
+IPv6) y nunca inferior a 1280 (cliente v0.6.0, &lt;code&gt;pkg/pathmtu&lt;/code&gt;).&lt;/p&gt;
 &lt;p&gt;El helper lee &lt;code&gt;C:\ProgramData\Claimward\helper.json&lt;/code&gt;:&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;

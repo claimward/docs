@@ -148,7 +148,7 @@ Face à un serveur dont le RouteService n&amp;rsquo;est pas en TLS, la négociat
 jeton, et le tunnel reste monté sans mises à jour des routes en direct.&lt;/p&gt;
 &lt;p&gt;L&amp;rsquo;arrêt du helper démonte le tunnel.&lt;/p&gt;</description></item><item><title>Application macOS</title><link>https://claimward.github.io/docs/dev/fr/components/macos-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/fr/components/macos-app/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-osx" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-osx&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.2.0&lt;/strong&gt; est une application de la barre des menus (zone de notification) écrite en Go dont &lt;strong&gt;toute l&amp;rsquo;interface
+&lt;strong&gt;v0.6.0&lt;/strong&gt; est une application de la barre des menus (zone de notification) écrite en Go dont &lt;strong&gt;toute l&amp;rsquo;interface
 utilisateur est une application monopage Svelte rendue dans une webview&lt;/strong&gt;. Sa logique (connexion,
 choix du locataire, connexion au VPN) et son helper sont les composants partagés
 &lt;a href="https://claimward.github.io/docs/dev/fr/components/client/"&gt;&lt;code&gt;pkg/appcore&lt;/code&gt; et &lt;code&gt;pkg/helper&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;
@@ -281,16 +281,19 @@ Developer ID, et le DNS appliqué sur macOS.&lt;/div&gt;
 &lt;/div&gt;
 &lt;h2 data-hextra-search-id="session-et-serveurs"&gt;Session et serveurs&lt;span class="hx:absolute hx:-mt-20" id="session-et-serveurs"&gt;&lt;/span&gt;
 &lt;a href="#session-et-serveurs" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;La session (jetons et clé WireGuard de l&amp;rsquo;appareil) vit dans &lt;code&gt;session.enc&lt;/code&gt;, scellée
-avec AES-GCM ; la clé est conservée dans le &lt;strong&gt;Keychain&lt;/strong&gt; de session. Elle n&amp;rsquo;est jamais
+avec AES-GCM ; la clé est conservée dans le &lt;strong&gt;Keychain&lt;/strong&gt; de connexion. Elle n&amp;rsquo;est jamais
 écrite en clair sur le disque et il n&amp;rsquo;y a aucun repli en clair : si le Keychain est
 verrouillé ou indisponible (client v0.5.0 et ultérieur), la connexion échoue avec une erreur
 qui le dit. Un &lt;code&gt;session.json&lt;/code&gt; en &lt;code&gt;0600&lt;/code&gt; d&amp;rsquo;une ancienne version est déplacé dans le
 magasin au premier démarrage, ou supprimé en cas d&amp;rsquo;échec.&lt;/p&gt;
+&lt;p&gt;Le MTU du tunnel est le &lt;code&gt;mtu&lt;/code&gt; du serveur, abaissé pour tenir dans le chemin vers
+le serveur (le MTU de l&amp;rsquo;interface vers son point d&amp;rsquo;accès, moins 60 en IPv4 ou 80
+en IPv6) et jamais inférieur à 1280 (client v0.6.0, &lt;code&gt;pkg/pathmtu&lt;/code&gt;).&lt;/p&gt;
 &lt;p&gt;Le serveur doit être une URL &lt;strong&gt;https&lt;/strong&gt;, et le jeton de lancement de la fenêtre ne transite que
 dans un en-tête (jamais dans une URL, dans les arguments du processus ni dans les journaux) ;
 le passage de relais vers une instance en cours d&amp;rsquo;exécution se fait par un fichier.&lt;/p&gt;</description></item><item><title>Application Linux</title><link>https://claimward.github.io/docs/dev/fr/components/linux-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/fr/components/linux-app/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-linux" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-linux&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.2.1&lt;/strong&gt; est &lt;strong&gt;une fenêtre et une icône dans la zone de notification dessinées en pur Go&lt;/strong&gt; avec
+&lt;strong&gt;v0.5.0&lt;/strong&gt; est &lt;strong&gt;une fenêtre et une icône dans la zone de notification dessinées en pur Go&lt;/strong&gt; avec
 &lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt; : pas de webview, pas de GTK, pas de cgo
 (&lt;code&gt;CGO_ENABLED=0&lt;/code&gt;). Un &lt;strong&gt;helper privilégié&lt;/strong&gt; exécuté par systemd détient le tunnel
 WireGuard. La logique est celle de l&amp;rsquo;application macOS : toutes deux utilisent
@@ -344,7 +347,7 @@ zone de notification ; &lt;em&gt;Quit&lt;/em&gt; laisse le tunnel tel quel.&lt;/
 hôte, ou si l&amp;rsquo;élément de la zone de notification ne peut pas être placé sur le bus de session, l&amp;rsquo;application le signale au
 démarrage et fermer la fenêtre la quitte.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="install"&gt;Installation&lt;span class="hx:absolute hx:-mt-20" id="install"&gt;&lt;/span&gt;
-&lt;a href="#install" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Compilez sous votre identité (Go 1.27.1 ou ultérieur), puis installez en tant que root :&lt;/p&gt;
+&lt;a href="#install" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Compilez sous votre identité (Go 1.27.4 ou ultérieur), puis installez en tant que root :&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;CGO_ENABLED&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt; go build -trimpath -o bin/ ./cmd/...
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo ./scripts/install.sh --server https://vpn.example.com&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
@@ -380,14 +383,17 @@ supprime aussi &lt;code&gt;/etc/claimward&lt;/code&gt; et le groupe.&lt;/p&gt;
 &lt;a href="#configure" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;L&amp;rsquo;application : &lt;code&gt;~/.config/Claimward/config.json&lt;/code&gt;, écrit par le formulaire des paramètres,
 mode &lt;code&gt;0600&lt;/code&gt;, surchargé par les variables &lt;code&gt;CLAIMWARD_*&lt;/code&gt; (voir la
 &lt;a href="https://claimward.github.io/docs/dev/fr/components/client/#files-on-the-device"&gt;bibliothèque client&lt;/a&gt;).
-La session (jetons et clé WireGuard de l&amp;rsquo;appareil) est conservée dans le trousseau
-&lt;strong&gt;Secret Service&lt;/strong&gt; du bureau via &lt;code&gt;secret-tool&lt;/code&gt;, et n&amp;rsquo;est jamais écrite en clair sur le
-disque. &lt;strong&gt;Un fournisseur de Secret Service est requis&lt;/strong&gt; (client v0.5.0 et ultérieur) :
+La session (jetons et clé WireGuard de l&amp;rsquo;appareil) est scellée avec AES-GCM dans
+&lt;code&gt;session.enc&lt;/code&gt; ; la clé est conservée dans le trousseau &lt;strong&gt;Secret Service&lt;/strong&gt; du bureau
+via &lt;code&gt;secret-tool&lt;/code&gt;. Elle n&amp;rsquo;est jamais écrite en clair sur le disque. &lt;strong&gt;Un fournisseur de Secret Service est requis&lt;/strong&gt; (client v0.5.0 et ultérieur) :
 installez et déverrouillez-en un, tel que gnome-keyring ou KeePassXC, et installez
 &lt;code&gt;secret-tool&lt;/code&gt; (&lt;code&gt;libsecret-tools&lt;/code&gt;). Sans cela, la connexion échoue avec une erreur qui
 nomme ce qui manque ; il n&amp;rsquo;y a aucun repli en clair, y compris sur un serveur sans
 interface. Un &lt;code&gt;session.json&lt;/code&gt; laissé par une ancienne version est déplacé dans le trousseau
 au premier démarrage, ou supprimé si le trousseau le refuse.&lt;/p&gt;
+&lt;p&gt;Le MTU du tunnel est le &lt;code&gt;mtu&lt;/code&gt; du serveur, abaissé pour tenir dans le chemin vers
+le serveur (le MTU de l&amp;rsquo;interface vers son point d&amp;rsquo;accès, moins 60 en IPv4 ou 80
+en IPv6) et jamais inférieur à 1280 (client v0.6.0, &lt;code&gt;pkg/pathmtu&lt;/code&gt;).&lt;/p&gt;
 &lt;p&gt;Le helper : &lt;code&gt;/etc/claimward/helper.json&lt;/code&gt; (voir
 &lt;a href="https://claimward.github.io/docs/dev/fr/components/helper/"&gt;Helper privilégié&lt;/a&gt;) ; après l&amp;rsquo;avoir modifié,
 &lt;code&gt;sudo systemctl restart claimward-helper&lt;/code&gt;.&lt;/p&gt;
@@ -408,7 +414,7 @@ vrai claimward-vpn-server.&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;</description></item><item><title>Application Windows</title><link>https://claimward.github.io/docs/dev/fr/components/windows-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/fr/components/windows-app/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-windows" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-windows&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.3.0&lt;/strong&gt; est une application de bureau avec une icône dans la zone de notification. Tout est
+&lt;strong&gt;v0.6.0&lt;/strong&gt; est une application de bureau avec une icône dans la zone de notification. Tout est
 en Go avec &lt;code&gt;CGO_ENABLED=0&lt;/code&gt; : la fenêtre et la zone de notification sont dessinées par
 &lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt; (pas de webview, pas de serveur HTTP dans
 l&amp;rsquo;application), et le tunnel est &lt;a href="https://git.zx2c4.com/wireguard-go" target="_blank" rel="noopener"&gt;wireguard-go&lt;/a&gt; sur un
@@ -502,6 +508,9 @@ La session est scellée avec &lt;strong&gt;DPAPI&lt;/strong&gt; dans un fichier 
 clair : si DPAPI échoue (client v0.5.0 et ultérieur), la connexion échoue avec une erreur
 qui le dit. Un &lt;code&gt;session.json&lt;/code&gt; d&amp;rsquo;une ancienne version est déplacé dans DPAPI au premier
 démarrage, ou supprimé en cas d&amp;rsquo;échec.&lt;/p&gt;
+&lt;p&gt;Le MTU du tunnel est le &lt;code&gt;mtu&lt;/code&gt; du serveur, abaissé pour tenir dans le chemin vers
+le serveur (le MTU de l&amp;rsquo;interface vers son point d&amp;rsquo;accès, moins 60 en IPv4 ou 80
+en IPv6) et jamais inférieur à 1280 (client v0.6.0, &lt;code&gt;pkg/pathmtu&lt;/code&gt;).&lt;/p&gt;
 &lt;p&gt;Le helper lit &lt;code&gt;C:\ProgramData\Claimward\helper.json&lt;/code&gt; :&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;

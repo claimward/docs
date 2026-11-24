@@ -1,6 +1,6 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Claimward – Wintun</title><link>https://claimward.github.io/docs/dev/tags/wintun/</link><description>Recent content in Wintun on Claimward</description><generator>Hugo -- gohugo.io</generator><language>en</language><atom:link href="https://claimward.github.io/docs/dev/tags/wintun/index.xml" rel="self" type="application/rss+xml"/><item><title>Windows app</title><link>https://claimward.github.io/docs/dev/components/windows-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/components/windows-app/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-windows" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-windows&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.3.0&lt;/strong&gt; is a desktop app with a notification-area (tray) icon. Everything is
+&lt;strong&gt;v0.6.0&lt;/strong&gt; is a desktop app with a notification-area (tray) icon. Everything is
 Go with &lt;code&gt;CGO_ENABLED=0&lt;/code&gt;: the window and the tray are drawn by
 &lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt; (no webview, no HTTP server in the
 app), and the tunnel is &lt;a href="https://git.zx2c4.com/wireguard-go" target="_blank" rel="noopener"&gt;wireguard-go&lt;/a&gt; on a
@@ -94,6 +94,9 @@ The session is sealed with &lt;strong&gt;DPAPI&lt;/strong&gt; in a per-user file
 fallback: if DPAPI fails (client v0.5.0 and later), sign-in fails with an error
 saying so. A &lt;code&gt;session.json&lt;/code&gt; from an older version is moved into DPAPI on first
 start, or deleted if that fails.&lt;/p&gt;
+&lt;p&gt;The tunnel MTU is the server&amp;rsquo;s &lt;code&gt;mtu&lt;/code&gt;, lowered to fit the path to the server
+(the interface MTU towards its endpoint, minus 60 for IPv4 or 80 for IPv6) and
+never below 1280 (client v0.6.0, &lt;code&gt;pkg/pathmtu&lt;/code&gt;).&lt;/p&gt;
 &lt;p&gt;The helper reads &lt;code&gt;C:\ProgramData\Claimward\helper.json&lt;/code&gt;:&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;

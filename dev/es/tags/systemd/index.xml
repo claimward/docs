@@ -1,6 +1,6 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Claimward – Systemd</title><link>https://claimward.github.io/docs/dev/es/tags/systemd/</link><description>Recent content in Systemd on Claimward</description><generator>Hugo -- gohugo.io</generator><language>es</language><atom:link href="https://claimward.github.io/docs/dev/es/tags/systemd/index.xml" rel="self" type="application/rss+xml"/><item><title>Aplicación Linux</title><link>https://claimward.github.io/docs/dev/es/components/linux-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/es/components/linux-app/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-linux" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-linux&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.2.1&lt;/strong&gt; es una &lt;strong&gt;ventana y un icono en la bandeja del sistema dibujados en Go puro&lt;/strong&gt; con
+&lt;strong&gt;v0.5.0&lt;/strong&gt; es una &lt;strong&gt;ventana y un icono en la bandeja del sistema dibujados en Go puro&lt;/strong&gt; con
 &lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt;: sin webview, sin GTK, sin cgo
 (&lt;code&gt;CGO_ENABLED=0&lt;/code&gt;). Un &lt;strong&gt;helper con privilegios&lt;/strong&gt; ejecutado por systemd gestiona el túnel
 WireGuard. La lógica es la de la aplicación macOS: ambas usan
@@ -54,7 +54,7 @@ extensión &lt;em&gt;AppIndicator and KStatusNotifierItem Support&lt;/em&gt;, wa
 él, o si el elemento de la bandeja no puede colocarse en el bus de sesión, la aplicación lo indica al
 arrancar y cerrar la ventana la cierra.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="install"&gt;Instalación&lt;span class="hx:absolute hx:-mt-20" id="install"&gt;&lt;/span&gt;
-&lt;a href="#install" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Compile con su propio usuario (Go 1.27.1 o posterior) y después instale como root:&lt;/p&gt;
+&lt;a href="#install" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Compile con su propio usuario (Go 1.27.4 o posterior) y después instale como root:&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;CGO_ENABLED&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt; go build -trimpath -o bin/ ./cmd/...
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo ./scripts/install.sh --server https://vpn.example.com&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
@@ -90,14 +90,17 @@ elimina además &lt;code&gt;/etc/claimward&lt;/code&gt; y el grupo.&lt;/p&gt;
 &lt;a href="#configure" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;La aplicación: &lt;code&gt;~/.config/Claimward/config.json&lt;/code&gt;, escrito por el formulario de ajustes,
 modo &lt;code&gt;0600&lt;/code&gt;, sobrescrito por las variables &lt;code&gt;CLAIMWARD_*&lt;/code&gt; (véase la
 &lt;a href="https://claimward.github.io/docs/dev/es/components/client/#files-on-the-device"&gt;biblioteca cliente&lt;/a&gt;).
-La sesión (tokens y la clave WireGuard del dispositivo) se guarda en el llavero
-&lt;strong&gt;Secret Service&lt;/strong&gt; del escritorio mediante &lt;code&gt;secret-tool&lt;/code&gt;, y nunca se escribe en claro en
-el disco. &lt;strong&gt;Se requiere un proveedor de Secret Service&lt;/strong&gt; (cliente v0.5.0 y posteriores):
+La sesión (tokens y la clave WireGuard del dispositivo) se sella con AES-GCM en
+&lt;code&gt;session.enc&lt;/code&gt;; la clave se guarda en el llavero &lt;strong&gt;Secret Service&lt;/strong&gt; del escritorio
+mediante &lt;code&gt;secret-tool&lt;/code&gt;. Nunca se escribe en claro en el disco. &lt;strong&gt;Se requiere un proveedor de Secret Service&lt;/strong&gt; (cliente v0.5.0 y posteriores):
 instale y desbloquee uno, como gnome-keyring o KeePassXC, e instale &lt;code&gt;secret-tool&lt;/code&gt;
 (&lt;code&gt;libsecret-tools&lt;/code&gt;). Sin él, el inicio de sesión falla con un error que nombra lo que
 falta; no hay alternativa en texto claro, tampoco en un servidor sin interfaz gráfica.
 Un &lt;code&gt;session.json&lt;/code&gt; dejado por una versión anterior se traslada al llavero en el primer
 arranque, o se elimina si el llavero lo rechaza.&lt;/p&gt;
+&lt;p&gt;La MTU del túnel es la &lt;code&gt;mtu&lt;/code&gt; del servidor, reducida para caber en la ruta hacia
+el servidor (la MTU de la interfaz hacia su endpoint, menos 60 en IPv4 u 80 en
+IPv6) y nunca inferior a 1280 (cliente v0.6.0, &lt;code&gt;pkg/pathmtu&lt;/code&gt;).&lt;/p&gt;
 &lt;p&gt;El helper: &lt;code&gt;/etc/claimward/helper.json&lt;/code&gt; (véase
 &lt;a href="https://claimward.github.io/docs/dev/es/components/helper/"&gt;Helper con privilegios&lt;/a&gt;); después de editarlo,
 &lt;code&gt;sudo systemctl restart claimward-helper&lt;/code&gt;.&lt;/p&gt;

@@ -148,7 +148,7 @@ Gegenüber einem Server, dessen RouteService kein TLS spricht, scheitert der Han
 Token gesendet wird, und der Tunnel bleibt ohne Live-Aktualisierungen der Routen bestehen.&lt;/p&gt;
 &lt;p&gt;Das Beenden des Helpers baut den Tunnel ab.&lt;/p&gt;</description></item><item><title>macOS-App</title><link>https://claimward.github.io/docs/dev/de/components/macos-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/de/components/macos-app/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-osx" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-osx&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.2.0&lt;/strong&gt; ist eine in Go geschriebene Menüleisten-App (Tray), deren &lt;strong&gt;gesamte Benutzeroberfläche
+&lt;strong&gt;v0.6.0&lt;/strong&gt; ist eine in Go geschriebene Menüleisten-App (Tray), deren &lt;strong&gt;gesamte Benutzeroberfläche
 eine in einer Webview dargestellte Svelte-Single-Page-App ist&lt;/strong&gt;. Ihre Logik (Anmeldung,
 Wahl des Mandanten, Verbinden) und ihr Helper sind die gemeinsamen
 &lt;a href="https://claimward.github.io/docs/dev/de/components/client/"&gt;&lt;code&gt;pkg/appcore&lt;/code&gt; und &lt;code&gt;pkg/helper&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;
@@ -286,6 +286,9 @@ Klartext auf die Platte geschrieben, und es gibt keinen Klartext-Fallback: Ist d
 gesperrt oder nicht verfügbar (Client v0.5.0 und neuer), schlägt die Anmeldung mit einem
 entsprechenden Fehler fehl. Eine &lt;code&gt;session.json&lt;/code&gt; mit &lt;code&gt;0600&lt;/code&gt; aus einer älteren Version wird
 beim ersten Start in den Speicher verschoben oder gelöscht, wenn das fehlschlägt.&lt;/p&gt;
+&lt;p&gt;Die MTU des Tunnels ist die &lt;code&gt;mtu&lt;/code&gt; des Servers, so weit gesenkt, dass sie in den
+Pfad zum Server passt (die Schnittstellen-MTU zum Endpunkt, minus 60 bei IPv4
+oder 80 bei IPv6), und nie kleiner als 1280 (Client v0.6.0, &lt;code&gt;pkg/pathmtu&lt;/code&gt;).&lt;/p&gt;
 &lt;p&gt;Der Server muss eine &lt;strong&gt;https&lt;/strong&gt;-URL sein, und das Start-Token des Fensters wird nur in einem
 Header übertragen (nie in einer URL, in den Prozessargumenten oder in Logs); die Übergabe
 an eine laufende Instanz erfolgt über eine Datei.&lt;/p&gt;</description></item></channel></rss>

@@ -500,7 +500,7 @@ geben Sie dem RouteService ein Zertifikat, damit Geräte Live-Aktualisierungen d
 &lt;/div&gt;
 &lt;/div&gt;</description></item><item><title>Client-Bibliothek</title><link>https://claimward.github.io/docs/dev/de/components/client/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/de/components/client/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-client" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-client&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.5.0&lt;/strong&gt; ist eine Go-&lt;strong&gt;Bibliothek&lt;/strong&gt;. Sie liefert kein Binary aus: Die ausführbaren Programme sind
+&lt;strong&gt;v0.6.0&lt;/strong&gt; ist eine Go-&lt;strong&gt;Bibliothek&lt;/strong&gt;. Sie liefert kein Binary aus: Die ausführbaren Programme sind
 die der Apps (&lt;code&gt;cmd/claimward-app&lt;/code&gt; und &lt;code&gt;cmd/claimward-helper&lt;/code&gt; in jedem App-Repository).
 Auch der Server importiert sie, für die Wire-Typen und die gRPC-Stubs.&lt;/p&gt;
 &lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-blue-200 hx:bg-blue-100 hx:text-blue-900 hx:dark:border-blue-200/30 hx:dark:bg-blue-900/30 hx:dark:text-blue-200"&gt;
@@ -592,8 +592,8 @@ das reine Bibliotheksmodul ist die Grundlage der Apps.&lt;/div&gt;
 &lt;td&gt;die Konfiguration der App (&lt;code&gt;appcore.Config&lt;/code&gt;), &lt;code&gt;0600&lt;/code&gt;, überschrieben durch die Variablen &lt;code&gt;CLAIMWARD_*&lt;/code&gt;&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
-&lt;td&gt;&lt;code&gt;&amp;lt;config dir&amp;gt;/claimward/session.enc&lt;/code&gt; (macOS), &lt;code&gt;session.dpapi&lt;/code&gt; (Windows)&lt;/td&gt;
-&lt;td&gt;die versiegelte Sitzung; ihr Schlüssel liegt in der Keychain, oder der Blob ist durch DPAPI geschützt. Unter Linux liegt die Sitzung selbst im Secret Service.&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;&amp;lt;config dir&amp;gt;/claimward/session.enc&lt;/code&gt; (macOS und Linux), &lt;code&gt;session.dpapi&lt;/code&gt; (Windows)&lt;/td&gt;
+&lt;td&gt;die versiegelte Sitzung; ihr Schlüssel liegt in der Keychain (macOS) oder im Secret Service (Linux), oder der Blob ist durch DPAPI geschützt. Unter Linux ist der Blob mit AES-GCM versiegelt, und nur sein Schlüssel liegt im Secret Service.&lt;/td&gt;
 &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
@@ -717,7 +717,8 @@ kümmert. Adresse, Routen, DNS und MTU werden über &lt;code&gt;winipcfg&lt;/cod
 Helper API, reines Go, &lt;code&gt;CGO_ENABLED=0&lt;/code&gt;).&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;Sitzungsspeicher.&lt;/strong&gt; Der Geheimnisspeicher der Plattform: die Login-Keychain von macOS
 (sie hält einen AES-GCM-Schlüssel; die Sitzung ist in &lt;code&gt;session.enc&lt;/code&gt; versiegelt), Windows-DPAPI
-(&lt;code&gt;session.dpapi&lt;/code&gt;), der Linux-Secret-Service über &lt;code&gt;secret-tool&lt;/code&gt;. Seit
+(&lt;code&gt;session.dpapi&lt;/code&gt;) und unter Linux ebenfalls eine versiegelte &lt;code&gt;session.enc&lt;/code&gt;, deren
+AES-GCM-Schlüssel im Secret Service über &lt;code&gt;secret-tool&lt;/code&gt; liegt. Seit
 &lt;strong&gt;v0.5.0&lt;/strong&gt; gibt es keinen Klartext-Fallback, und &lt;code&gt;CLAIMWARD_ALLOW_PLAINTEXT_SESSION&lt;/code&gt;
 hat keine Wirkung: ohne nutzbaren Speicher schlägt das Speichern der Sitzung fehl, und die
 Anmeldung schlägt mit einem Fehler fehl, der benennt, was fehlt (unter Linux einen Secret-Service-Anbieter

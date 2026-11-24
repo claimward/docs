@@ -1,6 +1,6 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Claimward – Wintun</title><link>https://claimward.github.io/docs/dev/de/tags/wintun/</link><description>Recent content in Wintun on Claimward</description><generator>Hugo -- gohugo.io</generator><language>de</language><atom:link href="https://claimward.github.io/docs/dev/de/tags/wintun/index.xml" rel="self" type="application/rss+xml"/><item><title>Windows-App</title><link>https://claimward.github.io/docs/dev/de/components/windows-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/de/components/windows-app/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-windows" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-windows&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.3.0&lt;/strong&gt; ist eine Desktop-App mit einem Symbol im Infobereich (Tray). Alles ist
+&lt;strong&gt;v0.6.0&lt;/strong&gt; ist eine Desktop-App mit einem Symbol im Infobereich (Tray). Alles ist
 Go mit &lt;code&gt;CGO_ENABLED=0&lt;/code&gt;: Das Fenster und der Infobereich werden von
 &lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt; gezeichnet (keine Webview, kein HTTP-Server in der
 App), und der Tunnel ist &lt;a href="https://git.zx2c4.com/wireguard-go" target="_blank" rel="noopener"&gt;wireguard-go&lt;/a&gt; auf einem
@@ -94,6 +94,9 @@ Die Sitzung wird mit &lt;strong&gt;DPAPI&lt;/strong&gt; in einer Datei pro Benut
 Klartext-Fallback: Schlägt DPAPI fehl (Client v0.5.0 und neuer), schlägt die Anmeldung mit
 einem entsprechenden Fehler fehl. Eine &lt;code&gt;session.json&lt;/code&gt; aus einer älteren Version wird beim
 ersten Start in DPAPI verschoben oder gelöscht, wenn das fehlschlägt.&lt;/p&gt;
+&lt;p&gt;Die MTU des Tunnels ist die &lt;code&gt;mtu&lt;/code&gt; des Servers, so weit gesenkt, dass sie in den
+Pfad zum Server passt (die Schnittstellen-MTU zum Endpunkt, minus 60 bei IPv4
+oder 80 bei IPv6), und nie kleiner als 1280 (Client v0.6.0, &lt;code&gt;pkg/pathmtu&lt;/code&gt;).&lt;/p&gt;
 &lt;p&gt;Der Helper liest &lt;code&gt;C:\ProgramData\Claimward\helper.json&lt;/code&gt;:&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;
