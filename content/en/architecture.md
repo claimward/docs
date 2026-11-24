@@ -46,7 +46,8 @@ server and owns the tunnel. The app never talks to the server itself.
    registered at the provider, and the bearer is the token that registration
    returns.
 2. The app generates the device's WireGuard key pair at the first sign-in and
-   keeps it in its session, held in the platform's secret store, until the
+   keeps it in its encrypted session file (`session.enc`, whose key is in the
+   Keychain or the Secret Service; `session.dpapi` on Windows) until the
    person signs out, so the device keeps its public key across connections
    (and its address while it is enrolled). To connect, it hands the helper the server URL, the bearer, the
    private key and the tenant chosen for the session, over the helper's socket.
@@ -117,8 +118,9 @@ after *Disconnect* until its lease ends.
   takes no tunnel configuration from a request. See
   [Privileged helper]({{< relref "/components/helper.md" >}}).
 - The **app** runs as the person. It holds the session (bearer token and device
-  key) in the platform's secret store (macOS Keychain, Windows DPAPI, Linux
-  Secret Service), never in clear on disk: with no usable store, sign-in fails.
+  key) in an encrypted file, never in clear on disk: sealed with a key kept in
+  the macOS Keychain or the Linux Secret Service, or with Windows DPAPI. With
+  no usable store, sign-in fails.
 - A route watch carries the bearer token, so it runs over **TLS** except to a
   loopback address.
 - The wire contract lives in one place,

@@ -46,7 +46,7 @@ serveur et possède le tunnel. L'application ne parle jamais elle-même au serve
    enregistrée auprès du fournisseur, et le bearer est le jeton que cet enregistrement
    renvoie.
 2. L'application génère la paire de clés WireGuard de l'appareil à la première connexion et
-   la conserve dans sa session, gardée dans le magasin de secrets de la plateforme, jusqu'à ce que la personne se déconnecte, si bien que l'appareil
+   la conserve dans son fichier de session chiffré (`session.enc`, dont la clé est dans le Keychain ou le Secret Service ; `session.dpapi` sous Windows), jusqu'à ce que la personne se déconnecte, si bien que l'appareil
    garde sa clé publique d'une connexion à l'autre (et son adresse tant qu'il est enrôlé). Pour se connecter, elle remet au helper l'URL du serveur, le bearer, la
    clé privée et le locataire choisi pour la session, via le socket du helper.
 3. Le helper vérifie que le serveur est **l'un de ceux que nomme sa propre configuration**,
@@ -116,8 +116,8 @@ après *Disconnect* jusqu'à la fin de son bail.
   n'accepte aucune configuration de tunnel venant d'une requête. Voir
   [Helper privilégié]({{< relref "/components/helper.md" >}}).
 - L'**application** s'exécute sous l'identité de la personne. Elle détient la session (jeton porteur et clé
-  de l'appareil) dans le magasin de secrets de la plateforme (Keychain macOS, DPAPI Windows, Secret
-  Service Linux), jamais en clair sur le disque : sans magasin utilisable, la connexion échoue.
+  de l'appareil) dans un fichier chiffré, jamais en clair sur le disque : scellé avec une clé gardée dans le
+  Keychain macOS ou le Secret Service Linux, ou avec DPAPI sous Windows. Sans magasin utilisable, la connexion échoue.
 - Une surveillance des routes transporte le jeton porteur, elle passe donc par **TLS** sauf vers une
   adresse de bouclage.
 - Le contrat de communication se trouve en un seul endroit,

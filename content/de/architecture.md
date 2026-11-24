@@ -46,7 +46,7 @@ Server und besitzt den Tunnel. Die App selbst spricht nie mit dem Server.
    registriert, und das Bearer-Token ist das Token, das diese Registrierung
    zurückgibt.
 2. Die App erzeugt das WireGuard-Schlüsselpaar des Geräts bei der ersten Anmeldung und
-   bewahrt es in ihrer Sitzung auf, die im Geheimnisspeicher der Plattform liegt, bis sich die Person abmeldet, sodass das Gerät
+   bewahrt es in ihrer verschlüsselten Sitzungsdatei auf (`session.enc`, deren Schlüssel in der Keychain oder im Secret Service liegt; `session.dpapi` unter Windows), bis sich die Person abmeldet, sodass das Gerät
    seinen öffentlichen Schlüssel über Verbindungen hinweg behält (und seine Adresse, solange es registriert ist). Zum Verbinden übergibt sie dem Helper die Server-URL, das Bearer-Token, den
    privaten Schlüssel und den für die Sitzung gewählten Mandanten, über den Socket des Helpers.
 3. Der Helper prüft, dass der Server **einer der in seiner eigenen Konfiguration genannten** ist,
@@ -116,8 +116,8 @@ Sie erneuern eine Lease nur durch erneutes Verbinden und lassen den Peer nach
   übernimmt keine Tunnelkonfiguration aus einer Anfrage. Siehe
   [Privilegierter Helper]({{< relref "/components/helper.md" >}}).
 - Die **App** läuft unter dem Benutzer der Person. Sie hält die Sitzung (Bearer-Token und Geräteschlüssel)
-  im Geheimnisspeicher der Plattform (macOS-Keychain, Windows-DPAPI, Linux-Secret-Service), nie
-  im Klartext auf der Platte: ohne nutzbaren Speicher schlägt die Anmeldung fehl.
+  in einer verschlüsselten Datei, nie im Klartext auf der Platte: versiegelt mit einem Schlüssel
+  aus der macOS-Keychain oder dem Linux-Secret-Service, oder mit Windows-DPAPI. Ohne nutzbaren Speicher schlägt die Anmeldung fehl.
 - Eine Beobachtung der Routen überträgt das Bearer-Token, daher läuft sie über **TLS**, außer zu einer
   Loopback-Adresse.
 - Der Wire-Vertrag liegt an einer einzigen Stelle,
