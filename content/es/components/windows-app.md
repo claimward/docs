@@ -7,10 +7,11 @@ tags: [windows, aplicación, helper, wintun]
 ---
 
 [`claimward-vpn-app-windows`](https://github.com/claimward/claimward-vpn-app-windows)
-**v0.6.0** es una aplicación de escritorio con un icono en el área de notificación (bandeja del sistema). Todo es
+**v0.7.0** es una aplicación de escritorio con un icono en el área de notificación (bandeja del sistema). Todo es
 Go con `CGO_ENABLED=0`: la ventana y la bandeja del sistema las dibuja
 [go-widgets](https://github.com/go-widgets) (sin webview, sin servidor HTTP en la
-aplicación), y el túnel es [wireguard-go](https://git.zx2c4.com/wireguard-go) sobre un
+aplicación), salvo los cuatro campos de texto de los ajustes, que son **controles Edit
+de Win32 nativos** (IME del sistema, selección, portapapeles; sin texto de ejemplo), y el túnel es [wireguard-go](https://git.zx2c4.com/wireguard-go) sobre un
 adaptador [Wintun](https://www.wintun.net), configurado mediante la IP Helper API.
 Su lógica y su helper son los compartidos
 [`pkg/appcore` y `pkg/helper`]({{< relref "/components/client.md" >}}).

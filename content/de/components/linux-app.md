@@ -7,9 +7,12 @@ tags: [linux, app, helper, systemd]
 ---
 
 [`claimward-vpn-app-linux`](https://github.com/claimward/claimward-vpn-app-linux)
-**v0.5.0** ist ein **Fenster und ein Symbol im Infobereich, in reinem Go gezeichnet** mit
-[go-widgets](https://github.com/go-widgets): keine Webview, kein GTK, kein cgo
-(`CGO_ENABLED=0`). Ein von systemd ausgeführter **privilegierter Helper** besitzt den WireGuard-Tunnel.
+**v0.6.0** ist ein **Fenster und ein Symbol im Infobereich, in reinem Go gezeichnet** mit
+[go-widgets](https://github.com/go-widgets): keine Webview, kein cgo
+(`CGO_ENABLED=0`). Die vier Texteingabefelder der Einstellungen sind **native GTK-4-Eingabefelder**
+(Eingabemethoden, Auswahl und Zwischenablage des Systems), zur Laufzeit ohne cgo geladen; der
+Desktop-Eintrag startet die App mit `GO_WIDGETS_GTK=1`. Ohne `libgtk-4` fällt die App
+auf gezeichnete Felder zurück. Die nativen Felder zeigen keinen Platzhaltertext. Ein von systemd ausgeführter **privilegierter Helper** besitzt den WireGuard-Tunnel.
 Die Logik ist die der macOS-App: Beide verwenden
 [`pkg/appcore` und `pkg/helper`]({{< relref "/components/client.md" >}}).
 
