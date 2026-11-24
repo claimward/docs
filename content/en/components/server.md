@@ -89,7 +89,7 @@ A missing required file stops the start and names the file. Before reading, the
 server checks each file through its open descriptor (`O_NOFOLLOW`, then
 `fstat`) and **refuses** a symbolic link, anything but a regular file, a file
 readable by group or other, a file not owned by the server's uid, an empty file
-and one over 64 KiB. One exception since v0.6.1: a file owned by uid 0 with mode
+and one over 64 KiB. One exception since v0.7.1: a file owned by uid 0 with mode
 exactly `0440` is accepted when its group is the server's gid or one of its
 supplementary groups (what a Kubernetes Secret volume with `fsGroup` produces).
 The error gives the fix.

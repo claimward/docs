@@ -91,7 +91,7 @@ Lesen prüft der Server jede Datei über den offenen Deskriptor (`O_NOFOLLOW`,
 dann `fstat`) und **verweigert** einen symbolischen Link, alles außer einer
 regulären Datei, eine für Gruppe oder andere lesbare Datei, eine Datei, die
 nicht der UID des Servers gehört, eine leere Datei und eine über 64 KiB. Eine
-Ausnahme seit v0.6.1: Eine Datei der UID 0 mit genau dem Modus `0440` wird
+Ausnahme seit v0.7.1: Eine Datei der UID 0 mit genau dem Modus `0440` wird
 akzeptiert, wenn ihre Gruppe die GID des Servers oder eine seiner
 Zusatzgruppen ist (so ein Kubernetes-Secret-Volume mit `fsGroup`). Die
 Fehlermeldung nennt die Abhilfe.

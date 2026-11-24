@@ -91,7 +91,7 @@ el servidor comprueba cada archivo a través de su descriptor abierto
 (`O_NOFOLLOW`, luego `fstat`) y **rechaza** un enlace simbólico, cualquier cosa
 que no sea un archivo regular, un archivo legible por grupo u otros, un archivo
 que no pertenece al uid del servidor, un archivo vacío y uno de más de 64 KiB.
-Una excepción desde la v0.6.1: se acepta un archivo del uid 0 con modo exactamente
+Una excepción desde la v0.7.1: se acepta un archivo del uid 0 con modo exactamente
 `0440` si su grupo es el gid del servidor o uno de sus grupos suplementarios (lo
 que produce un volumen Secret de Kubernetes con `fsGroup`). El error indica cómo
 corregirlo.

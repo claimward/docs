@@ -91,7 +91,7 @@ serveur contrôle chaque fichier par son descripteur ouvert (`O_NOFOLLOW`, puis
 `fstat`) et **refuse** un lien symbolique, tout ce qui n'est pas un fichier
 ordinaire, un fichier lisible par le groupe ou les autres, un fichier qui
 n'appartient pas à l'uid du serveur, un fichier vide et un fichier de plus de
-64 Kio. Une exception depuis la v0.6.1 : un fichier appartenant à l'uid 0, de
+64 Kio. Une exception depuis la v0.7.1 : un fichier appartenant à l'uid 0, de
 mode exactement `0440`, est accepté si son groupe est le gid du serveur ou l'un
 de ses groupes supplémentaires (ce que produit un volume Secret Kubernetes avec
 `fsGroup`). L'erreur donne la correction.
