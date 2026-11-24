@@ -100,7 +100,7 @@ zweite seit v0.9.0, für systemd mit `DynamicUser=yes`: systemd lässt die Datei
 die UID des Dienstes (`src/core/exec-credential.c:338-361`,
 `src/shared/acl-util.c:448-494`), sodass `stat` `0440` zeigt. Der Server liest
 `system.posix_acl_access` vom offenen Deskriptor und akzeptiert genau
-`user::r--`, `user:<seine UID>:r--`, `group::---`, `mask::r--`, `other::---`;
+`user::` (ohne Schreiben oder Ausführen), `user:<seine UID>:r--`, `group::---`, `mask::r--`, `other::---`;
 jeder andere benannte Benutzer oder jede Gruppe, jedes Schreib- oder
 Ausführungsbit und ein fehlerhafter oder zu großer Wert werden abgelehnt. Die
 Fehlermeldung nennt die Abhilfe.

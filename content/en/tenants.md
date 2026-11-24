@@ -85,7 +85,9 @@ may reach, on which protocol and ports:
   (the distinct CIDRs), so what a device routes and what the gateway lets
   through cannot drift apart. The route format is unchanged.
 - The gateway owns one nftables table, `inet claimward`, installed through
-  netlink (Linux, `CAP_NET_ADMIN`) and replaced atomically at start and at
+  netlink (Linux, `CAP_NET_ADMIN`), or on OpenBSD the pf anchor `claimward`
+  loaded through `/dev/pf` (see [OpenBSD]({{< relref "/components/server.md#openbsd" >}})).
+  Either is replaced atomically at start and at
   every peer or tenant change. Traffic arriving from the WireGuard interface is
   **denied by default**, in both the forward chain and the input chain (the
   file server may be the gateway host itself); each peer's address is matched

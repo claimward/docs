@@ -21,9 +21,10 @@ den RouteService erreichen, mit einem Namen, den das Zertifikat abdeckt.
 ## Gateway {#gateway}
 
 - Bringen Sie `wg0` beim Booten mit `wg-quick` oder systemd-networkd hoch; Claimward
-  verwaltet nur seine Peers. Starten Sie den Server mit den Rechten, die Schnittstelle zu konfigurieren
-  (root oder `CAP_NET_ADMIN`).
-- Aktivieren Sie `net.ipv4.ip_forward` sowie NAT- oder Firewall-Regeln, wenn Clients
+  verwaltet nur seine Peers. Starten Sie den Server mit den Rechten, die Schnittstelle und die Firewall zu
+  konfigurieren: unter Linux root oder `CAP_NET_ADMIN` (nftables); unter OpenBSD root,
+  für `/dev/pf` (siehe [OpenBSD]({{< relref "/components/server.md#openbsd" >}})).
+- Aktivieren Sie unter Linux `net.ipv4.ip_forward` sowie NAT- oder Firewall-Regeln, wenn Clients
   über das VPN-Subnetz hinaus routen.
 - `GET /healthz` ist die Liveness-Probe.
 

@@ -22,8 +22,9 @@ reach the RouteService at, with a name the certificate covers.
 
 - Bring up `wg0` with `wg-quick` or systemd-networkd at boot; Claimward only
   manages its peers. Run the server with the rights to configure the interface
-  (root, or `CAP_NET_ADMIN`).
-- Enable `net.ipv4.ip_forward`, and NAT or firewall rules, if clients route
+  and the firewall: on Linux root or `CAP_NET_ADMIN` (nftables); on OpenBSD root,
+  for `/dev/pf` (see [OpenBSD]({{< relref "/components/server.md#openbsd" >}})).
+- On Linux, enable `net.ipv4.ip_forward`, and NAT or firewall rules, if clients route
   beyond the VPN subnet.
 - `GET /healthz` is the liveness probe.
 

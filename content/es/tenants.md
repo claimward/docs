@@ -87,7 +87,9 @@ puede alcanzar un par, con qué protocolo y qué puertos:
   CIDR distintos): lo que un dispositivo enruta y lo que la pasarela deja pasar
   no pueden divergir. El formato de las rutas no cambia.
 - La pasarela posee una tabla nftables, `inet claimward`, instalada por netlink
-  (Linux, `CAP_NET_ADMIN`) y reemplazada atómicamente al arrancar y en cada
+  (Linux, `CAP_NET_ADMIN`), o en OpenBSD el ancla pf `claimward` cargada por
+  `/dev/pf` (véase [OpenBSD]({{< relref "/components/server.md#openbsd" >}})).
+  Ambas se reemplazan atómicamente al arrancar y en cada
   cambio de par o de inquilino. El tráfico que llega de la interfaz WireGuard se
   **deniega por defecto**, tanto en la cadena de reenvío como en la de entrada
   (el servidor de archivos puede ser el propio host de la pasarela); la

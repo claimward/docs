@@ -44,7 +44,8 @@ export GRPC_ENDPOINT=vpn.example.com:8444       # where clients watch for route 
 sudo -E "$(go env GOPATH)/bin/claimward-server"
 ```
 
-The server needs the rights to configure `wg0` (root, or `CAP_NET_ADMIN`). It
+On Linux the server needs the rights to configure `wg0` (root, or `CAP_NET_ADMIN`);
+for OpenBSD see [OpenBSD]({{< relref "/components/server.md#openbsd" >}}). It
 listens on `:8443` (`LISTEN_ADDR`) for the enrollment API and on `:8444`
 (`GRPC_ADDR`) for the RouteService. See the
 [server reference]({{< relref "/components/server.md" >}}) for every variable;
