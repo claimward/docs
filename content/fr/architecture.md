@@ -46,7 +46,7 @@ serveur et possède le tunnel. L'application ne parle jamais elle-même au serve
    enregistrée auprès du fournisseur, et le bearer est le jeton que cet enregistrement
    renvoie.
 2. L'application génère la paire de clés WireGuard de l'appareil à la première connexion et
-   la conserve dans son fichier de session jusqu'à ce que la personne se déconnecte, si bien que l'appareil
+   la conserve dans sa session, gardée dans le magasin de secrets de la plateforme, jusqu'à ce que la personne se déconnecte, si bien que l'appareil
    garde sa clé publique d'une connexion à l'autre (et son adresse tant qu'il est enrôlé). Pour se connecter, elle remet au helper l'URL du serveur, le bearer, la
    clé privée et le locataire choisi pour la session, via le socket du helper.
 3. Le helper vérifie que le serveur est **l'un de ceux que nomme sa propre configuration**,

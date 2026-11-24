@@ -46,7 +46,7 @@ Server und besitzt den Tunnel. Die App selbst spricht nie mit dem Server.
    registriert, und das Bearer-Token ist das Token, das diese Registrierung
    zurückgibt.
 2. Die App erzeugt das WireGuard-Schlüsselpaar des Geräts bei der ersten Anmeldung und
-   bewahrt es in ihrer Sitzungsdatei auf, bis sich die Person abmeldet, sodass das Gerät
+   bewahrt es in ihrer Sitzung auf, die im Geheimnisspeicher der Plattform liegt, bis sich die Person abmeldet, sodass das Gerät
    seinen öffentlichen Schlüssel über Verbindungen hinweg behält (und seine Adresse, solange es registriert ist). Zum Verbinden übergibt sie dem Helper die Server-URL, das Bearer-Token, den
    privaten Schlüssel und den für die Sitzung gewählten Mandanten, über den Socket des Helpers.
 3. Der Helper prüft, dass der Server **einer der in seiner eigenen Konfiguration genannten** ist,

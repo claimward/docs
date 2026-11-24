@@ -46,8 +46,9 @@ server and owns the tunnel. The app never talks to the server itself.
    registered at the provider, and the bearer is the token that registration
    returns.
 2. The app generates the device's WireGuard key pair at the first sign-in and
-   keeps it in its session file until the person signs out, so the device
-   keeps its public key across connections (and its address while it is enrolled). To connect, it hands the helper the server URL, the bearer, the
+   keeps it in its session, held in the platform's secret store, until the
+   person signs out, so the device keeps its public key across connections
+   (and its address while it is enrolled). To connect, it hands the helper the server URL, the bearer, the
    private key and the tenant chosen for the session, over the helper's socket.
 3. The helper checks that the server is **one its own configuration names**,
    then calls `POST /api/v1/enroll` with the device's public key and the
