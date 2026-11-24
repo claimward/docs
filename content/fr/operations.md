@@ -107,7 +107,10 @@ partagé statique.
 
 ## Métriques {#metrics}
 
-`GET /metrics` sert des métriques Prometheus, sans authentification :
+`GET /metrics` sert des métriques Prometheus, sans authentification, sur sa
+propre écoute : `METRICS_ADDR`, qui n'a pas de défaut, donc il n'y a pas de
+métriques tant qu'on ne la définit pas (jamais sur le port d'enrôlement). Elles
+nomment chaque locataire : gardez cette écoute en boucle locale ou sur un réseau privé.
 
 | Métrique | |
 |---|---|

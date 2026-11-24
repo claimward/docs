@@ -7,9 +7,10 @@ tags: [server, wireguard, grpc, github, oidc, go-authn]
 ---
 
 [`claimward-vpn-server`](https://github.com/claimward/claimward-vpn-server)
-**v0.2.0** ist die Steuerungsebene. Er prüft das Bearer-Token, das ein Gerät vorlegt,
+**v0.10.0** ist die Steuerungsebene. Er prüft das Bearer-Token, das ein Gerät vorlegt,
 vergibt VPN-Adressen und programmiert das WireGuard-Gateway mit einem Peer pro
-registriertem Gerät. Er läuft auf dem Linux-Gateway-Host, neben einem vorhandenen `wg0`.
+registriertem Gerät. Er läuft auf dem Gateway-Host, neben einem vorhandenen `wg0`: Linux
+(nftables) oder, ab v0.10.0, OpenBSD (pf, siehe [OpenBSD](#openbsd)).
 
 ## Was er bereitstellt {#what-it-serves}
 
@@ -20,9 +21,9 @@ registriertem Gerät. Er läuft auf dem Linux-Gateway-Host, neben einem vorhande
 | | `POST /api/v1/heartbeat` | die Lease des Geräts erneuern |
 | | `POST /api/v1/deregister` | den Peer entfernen |
 | | `GET /healthz` | Liveness |
-| | `GET /metrics` | Prometheus-Metriken |
 | | `/admin/` | Admin-API und WebUI, wenn die Credential `admin-token` existiert |
 | `GRPC_ADDR` (`:8444`) | `claimward.routes.v1.RouteService/Watch` | streamt die Routen des Mandanten und ihre Aktualisierungen |
+| `METRICS_ADDR` (kein Standard: aus, solange nicht gesetzt) | `GET /metrics` | Prometheus-Metriken, auf einem eigenen Listener, nie auf `LISTEN_ADDR` |
 
 Die API-Anfragen tragen `Authorization: Bearer <token>`: ein GitHub-Access-Token,
 ein OIDC-ID-Token oder ein go-authn-Access-Token, je nach `AUTH_PROVIDER`.

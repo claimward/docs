@@ -38,7 +38,7 @@ webview; the Linux and Windows apps are pure Go
 
 | Repository | Release | What it is |
 |------------|---------|------------|
-| [`claimward-vpn-server`](https://github.com/claimward/claimward-vpn-server) | v0.2.0 | Control plane: verifies the sign-in, allocates addresses, programs the WireGuard gateway, streams tenant routes over gRPC, admin API and metrics |
+| [`claimward-vpn-server`](https://github.com/claimward/claimward-vpn-server) | v0.10.0 | Control plane: verifies the sign-in, allocates addresses, programs the WireGuard gateway, streams tenant routes over gRPC, admin API and metrics |
 | [`claimward-vpn-client`](https://github.com/claimward/claimward-vpn-client) | v0.6.0 | Go **library** shared by the apps and the server: wire protocol, sign-in providers, tunnel, privileged helper, app core. It ships no binary |
 | [`claimward-vpn-app-osx`](https://github.com/claimward/claimward-vpn-app-osx) | v0.6.0 | macOS app: Go menu-bar app, Svelte UI in a webview, root LaunchDaemon helper |
 | [`claimward-vpn-app-linux`](https://github.com/claimward/claimward-vpn-app-linux) | v0.5.0 | Linux app: window and tray in pure Go, helper run by systemd |

@@ -7,9 +7,10 @@ tags: [serveur, wireguard, grpc, github, oidc, go-authn]
 ---
 
 [`claimward-vpn-server`](https://github.com/claimward/claimward-vpn-server)
-**v0.2.0** est le plan de contrôle. Il vérifie le jeton porteur (bearer) que présente un appareil,
+**v0.10.0** est le plan de contrôle. Il vérifie le jeton porteur (bearer) que présente un appareil,
 attribue les adresses VPN, et programme la passerelle WireGuard avec un pair par
-appareil enrôlé. Il s'exécute sur l'hôte de passerelle Linux, à côté d'un `wg0` existant.
+appareil enrôlé. Il s'exécute sur l'hôte de passerelle, à côté d'un `wg0` existant : Linux
+(nftables) ou, depuis la v0.10.0, OpenBSD (pf, voir [OpenBSD](#openbsd)).
 
 ## Ce qu'il sert {#what-it-serves}
 
@@ -20,9 +21,9 @@ appareil enrôlé. Il s'exécute sur l'hôte de passerelle Linux, à côté d'un
 | | `POST /api/v1/heartbeat` | renouveler le bail de l'appareil |
 | | `POST /api/v1/deregister` | retirer le pair |
 | | `GET /healthz` | vivacité |
-| | `GET /metrics` | métriques Prometheus |
 | | `/admin/` | API d'administration et WebUI, lorsque l'identifiant `admin-token` existe |
 | `GRPC_ADDR` (`:8444`) | `claimward.routes.v1.RouteService/Watch` | diffuse les routes du locataire et leurs mises à jour |
+| `METRICS_ADDR` (pas de défaut : désactivé si non défini) | `GET /metrics` | métriques Prometheus, sur une écoute à part, jamais sur `LISTEN_ADDR` |
 
 Les requêtes de l'API portent `Authorization: Bearer <token>` : un jeton d'accès GitHub,
 un jeton d'identité (ID token) OIDC, ou un jeton d'accès go-authn, selon `AUTH_PROVIDER`.
