@@ -295,7 +295,7 @@ A second one since v0.9.0, for systemd with &lt;code&gt;DynamicUser=yes&lt;/code
 the file &lt;code&gt;root:root&lt;/code&gt;, mode &lt;code&gt;0400&lt;/code&gt;, plus a read-only POSIX ACL entry for the
 service&amp;rsquo;s uid (&lt;code&gt;src/core/exec-credential.c:338-361&lt;/code&gt;, &lt;code&gt;src/shared/acl-util.c:448-494&lt;/code&gt;),
 so &lt;code&gt;stat&lt;/code&gt; shows &lt;code&gt;0440&lt;/code&gt;. The server reads &lt;code&gt;system.posix_acl_access&lt;/code&gt; from the open
-descriptor and accepts exactly &lt;code&gt;user::r--&lt;/code&gt;, &lt;code&gt;user:&amp;lt;its uid&amp;gt;:r--&lt;/code&gt;, &lt;code&gt;group::---&lt;/code&gt;,
+descriptor and accepts exactly &lt;code&gt;user::&lt;/code&gt; (no write or execute), &lt;code&gt;user:&amp;lt;its uid&amp;gt;:r--&lt;/code&gt;, &lt;code&gt;group::---&lt;/code&gt;,
 &lt;code&gt;mask::r--&lt;/code&gt;, &lt;code&gt;other::---&lt;/code&gt;; any other named user or group, any write or execute
 bit, or a malformed or oversized value is refused. The error gives the fix.&lt;/p&gt;
 &lt;table&gt;

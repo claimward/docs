@@ -13,8 +13,9 @@ alcanzan el RouteService, con un nombre que cubra el certificado.&lt;/p&gt;
 &lt;a href="#gateway" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;ul&gt;
 &lt;li&gt;Levante &lt;code&gt;wg0&lt;/code&gt; con &lt;code&gt;wg-quick&lt;/code&gt; o systemd-networkd al arrancar; Claimward solo
 gestiona sus pares. Ejecute el servidor con los permisos para configurar la interfaz
-(root, o &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt;).&lt;/li&gt;
-&lt;li&gt;Active &lt;code&gt;net.ipv4.ip_forward&lt;/code&gt;, y reglas de NAT o de cortafuegos, si los clientes enrutan
+y el cortafuegos: en Linux root o &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt; (nftables); en OpenBSD root,
+para &lt;code&gt;/dev/pf&lt;/code&gt; (véase &lt;a href="https://claimward.github.io/docs/dev/es/components/server/#openbsd"&gt;OpenBSD&lt;/a&gt;).&lt;/li&gt;
+&lt;li&gt;En Linux, active &lt;code&gt;net.ipv4.ip_forward&lt;/code&gt;, y reglas de NAT o de cortafuegos, si los clientes enrutan
 más allá de la subred de la VPN.&lt;/li&gt;
 &lt;li&gt;&lt;code&gt;GET /healthz&lt;/code&gt; es la sonda de actividad (liveness).&lt;/li&gt;
 &lt;/ul&gt;

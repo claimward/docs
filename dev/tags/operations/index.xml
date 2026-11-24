@@ -13,8 +13,9 @@ reach the RouteService at, with a name the certificate covers.&lt;/p&gt;
 &lt;a href="#gateway" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;ul&gt;
 &lt;li&gt;Bring up &lt;code&gt;wg0&lt;/code&gt; with &lt;code&gt;wg-quick&lt;/code&gt; or systemd-networkd at boot; Claimward only
 manages its peers. Run the server with the rights to configure the interface
-(root, or &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt;).&lt;/li&gt;
-&lt;li&gt;Enable &lt;code&gt;net.ipv4.ip_forward&lt;/code&gt;, and NAT or firewall rules, if clients route
+and the firewall: on Linux root or &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt; (nftables); on OpenBSD root,
+for &lt;code&gt;/dev/pf&lt;/code&gt; (see &lt;a href="https://claimward.github.io/docs/dev/components/server/#openbsd"&gt;OpenBSD&lt;/a&gt;).&lt;/li&gt;
+&lt;li&gt;On Linux, enable &lt;code&gt;net.ipv4.ip_forward&lt;/code&gt;, and NAT or firewall rules, if clients route
 beyond the VPN subnet.&lt;/li&gt;
 &lt;li&gt;&lt;code&gt;GET /healthz&lt;/code&gt; is the liveness probe.&lt;/li&gt;
 &lt;/ul&gt;

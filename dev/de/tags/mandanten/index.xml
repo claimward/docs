@@ -107,7 +107,9 @@ abgeleitet&lt;/strong&gt; (die verschiedenen CIDRs): was ein Gerät routet und w
 Gateway durchlässt, können nicht auseinanderlaufen. Das Routenformat ändert
 sich nicht.&lt;/li&gt;
 &lt;li&gt;Das Gateway besitzt eine nftables-Tabelle, &lt;code&gt;inet claimward&lt;/code&gt;, per Netlink
-installiert (Linux, &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt;) und beim Start sowie bei jeder Änderung
+installiert (Linux, &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt;), oder unter OpenBSD der pf-Anchor &lt;code&gt;claimward&lt;/code&gt;,
+der über &lt;code&gt;/dev/pf&lt;/code&gt; geladen wird (siehe &lt;a href="https://claimward.github.io/docs/dev/de/components/server/#openbsd"&gt;OpenBSD&lt;/a&gt;).
+Beides wird beim Start sowie bei jeder Änderung
 eines Peers oder Mandanten atomar ersetzt. Verkehr von der WireGuard-Schnittstelle
 wird &lt;strong&gt;standardmäßig verworfen&lt;/strong&gt;, in der Forward- wie in der Input-Kette (der
 Dateiserver kann der Gateway-Host selbst sein); die Adresse jedes Peers wird

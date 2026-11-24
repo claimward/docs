@@ -105,7 +105,9 @@ data-copied-label="Copié !"
 CIDR distincts) : ce qu&amp;rsquo;un appareil route et ce que la passerelle laisse
 passer ne peuvent pas diverger. Le format des routes ne change pas.&lt;/li&gt;
 &lt;li&gt;La passerelle possède une table nftables, &lt;code&gt;inet claimward&lt;/code&gt;, installée par
-netlink (Linux, &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt;) et remplacée atomiquement au démarrage et à
+netlink (Linux, &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt;), ou sous OpenBSD l&amp;rsquo;ancre pf &lt;code&gt;claimward&lt;/code&gt;
+chargée par &lt;code&gt;/dev/pf&lt;/code&gt; (voir &lt;a href="https://claimward.github.io/docs/dev/fr/components/server/#openbsd"&gt;OpenBSD&lt;/a&gt;).
+L&amp;rsquo;une comme l&amp;rsquo;autre est remplacée atomiquement au démarrage et à
 chaque changement de pair ou de locataire. Le trafic qui arrive de l&amp;rsquo;interface
 WireGuard est &lt;strong&gt;refusé par défaut&lt;/strong&gt;, dans la chaîne de transfert comme dans la
 chaîne d&amp;rsquo;entrée (le serveur de fichiers peut être l&amp;rsquo;hôte de la passerelle

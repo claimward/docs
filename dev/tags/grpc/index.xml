@@ -516,7 +516,7 @@ A second one since v0.9.0, for systemd with &lt;code&gt;DynamicUser=yes&lt;/code
 the file &lt;code&gt;root:root&lt;/code&gt;, mode &lt;code&gt;0400&lt;/code&gt;, plus a read-only POSIX ACL entry for the
 service&amp;rsquo;s uid (&lt;code&gt;src/core/exec-credential.c:338-361&lt;/code&gt;, &lt;code&gt;src/shared/acl-util.c:448-494&lt;/code&gt;),
 so &lt;code&gt;stat&lt;/code&gt; shows &lt;code&gt;0440&lt;/code&gt;. The server reads &lt;code&gt;system.posix_acl_access&lt;/code&gt; from the open
-descriptor and accepts exactly &lt;code&gt;user::r--&lt;/code&gt;, &lt;code&gt;user:&amp;lt;its uid&amp;gt;:r--&lt;/code&gt;, &lt;code&gt;group::---&lt;/code&gt;,
+descriptor and accepts exactly &lt;code&gt;user::&lt;/code&gt; (no write or execute), &lt;code&gt;user:&amp;lt;its uid&amp;gt;:r--&lt;/code&gt;, &lt;code&gt;group::---&lt;/code&gt;,
 &lt;code&gt;mask::r--&lt;/code&gt;, &lt;code&gt;other::---&lt;/code&gt;; any other named user or group, any write or execute
 bit, or a malformed or oversized value is refused. The error gives the fix.&lt;/p&gt;
 &lt;table&gt;
@@ -1183,7 +1183,9 @@ are required. IPv4 only.&lt;/li&gt;
 (the distinct CIDRs), so what a device routes and what the gateway lets
 through cannot drift apart. The route format is unchanged.&lt;/li&gt;
 &lt;li&gt;The gateway owns one nftables table, &lt;code&gt;inet claimward&lt;/code&gt;, installed through
-netlink (Linux, &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt;) and replaced atomically at start and at
+netlink (Linux, &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt;), or on OpenBSD the pf anchor &lt;code&gt;claimward&lt;/code&gt;
+loaded through &lt;code&gt;/dev/pf&lt;/code&gt; (see &lt;a href="https://claimward.github.io/docs/dev/components/server/#openbsd"&gt;OpenBSD&lt;/a&gt;).
+Either is replaced atomically at start and at
 every peer or tenant change. Traffic arriving from the WireGuard interface is
 &lt;strong&gt;denied by default&lt;/strong&gt;, in both the forward chain and the input chain (the
 file server may be the gateway host itself); each peer&amp;rsquo;s address is matched
@@ -1261,8 +1263,9 @@ reach the RouteService at, with a name the certificate covers.&lt;/p&gt;
 &lt;a href="#gateway" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;ul&gt;
 &lt;li&gt;Bring up &lt;code&gt;wg0&lt;/code&gt; with &lt;code&gt;wg-quick&lt;/code&gt; or systemd-networkd at boot; Claimward only
 manages its peers. Run the server with the rights to configure the interface
-(root, or &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt;).&lt;/li&gt;
-&lt;li&gt;Enable &lt;code&gt;net.ipv4.ip_forward&lt;/code&gt;, and NAT or firewall rules, if clients route
+and the firewall: on Linux root or &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt; (nftables); on OpenBSD root,
+for &lt;code&gt;/dev/pf&lt;/code&gt; (see &lt;a href="https://claimward.github.io/docs/dev/components/server/#openbsd"&gt;OpenBSD&lt;/a&gt;).&lt;/li&gt;
+&lt;li&gt;On Linux, enable &lt;code&gt;net.ipv4.ip_forward&lt;/code&gt;, and NAT or firewall rules, if clients route
 beyond the VPN subnet.&lt;/li&gt;
 &lt;li&gt;&lt;code&gt;GET /healthz&lt;/code&gt; is the liveness probe.&lt;/li&gt;
 &lt;/ul&gt;

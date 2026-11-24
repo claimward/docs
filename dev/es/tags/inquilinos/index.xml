@@ -103,7 +103,9 @@ obligatorios. Solo IPv4.&lt;/li&gt;
 CIDR distintos): lo que un dispositivo enruta y lo que la pasarela deja pasar
 no pueden divergir. El formato de las rutas no cambia.&lt;/li&gt;
 &lt;li&gt;La pasarela posee una tabla nftables, &lt;code&gt;inet claimward&lt;/code&gt;, instalada por netlink
-(Linux, &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt;) y reemplazada atómicamente al arrancar y en cada
+(Linux, &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt;), o en OpenBSD el ancla pf &lt;code&gt;claimward&lt;/code&gt; cargada por
+&lt;code&gt;/dev/pf&lt;/code&gt; (véase &lt;a href="https://claimward.github.io/docs/dev/es/components/server/#openbsd"&gt;OpenBSD&lt;/a&gt;).
+Ambas se reemplazan atómicamente al arrancar y en cada
 cambio de par o de inquilino. El tráfico que llega de la interfaz WireGuard se
 &lt;strong&gt;deniega por defecto&lt;/strong&gt;, tanto en la cadena de reenvío como en la de entrada
 (el servidor de archivos puede ser el propio host de la pasarela); la

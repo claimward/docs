@@ -519,7 +519,7 @@ systemd laisse le fichier &lt;code&gt;root:root&lt;/code&gt;, mode &lt;code&gt;0
 en lecture seule pour l&amp;rsquo;uid du service (&lt;code&gt;src/core/exec-credential.c:338-361&lt;/code&gt;,
 &lt;code&gt;src/shared/acl-util.c:448-494&lt;/code&gt;), donc &lt;code&gt;stat&lt;/code&gt; affiche &lt;code&gt;0440&lt;/code&gt;. Le serveur lit
 &lt;code&gt;system.posix_acl_access&lt;/code&gt; depuis le descripteur ouvert et accepte exactement
-&lt;code&gt;user::r--&lt;/code&gt;, &lt;code&gt;user:&amp;lt;son uid&amp;gt;:r--&lt;/code&gt;, &lt;code&gt;group::---&lt;/code&gt;, &lt;code&gt;mask::r--&lt;/code&gt;, &lt;code&gt;other::---&lt;/code&gt; ;
+&lt;code&gt;user::&lt;/code&gt; (sans écriture ni exécution), &lt;code&gt;user:&amp;lt;son uid&amp;gt;:r--&lt;/code&gt;, &lt;code&gt;group::---&lt;/code&gt;, &lt;code&gt;mask::r--&lt;/code&gt;, &lt;code&gt;other::---&lt;/code&gt; ;
 tout autre utilisateur ou groupe nommé, tout bit d&amp;rsquo;écriture ou d&amp;rsquo;exécution, ou
 une valeur mal formée ou trop grande est refusé. L&amp;rsquo;erreur donne la correction.&lt;/p&gt;
 &lt;table&gt;
@@ -1194,7 +1194,9 @@ data-copied-label="Copié !"
 CIDR distincts) : ce qu&amp;rsquo;un appareil route et ce que la passerelle laisse
 passer ne peuvent pas diverger. Le format des routes ne change pas.&lt;/li&gt;
 &lt;li&gt;La passerelle possède une table nftables, &lt;code&gt;inet claimward&lt;/code&gt;, installée par
-netlink (Linux, &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt;) et remplacée atomiquement au démarrage et à
+netlink (Linux, &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt;), ou sous OpenBSD l&amp;rsquo;ancre pf &lt;code&gt;claimward&lt;/code&gt;
+chargée par &lt;code&gt;/dev/pf&lt;/code&gt; (voir &lt;a href="https://claimward.github.io/docs/dev/fr/components/server/#openbsd"&gt;OpenBSD&lt;/a&gt;).
+L&amp;rsquo;une comme l&amp;rsquo;autre est remplacée atomiquement au démarrage et à
 chaque changement de pair ou de locataire. Le trafic qui arrive de l&amp;rsquo;interface
 WireGuard est &lt;strong&gt;refusé par défaut&lt;/strong&gt;, dans la chaîne de transfert comme dans la
 chaîne d&amp;rsquo;entrée (le serveur de fichiers peut être l&amp;rsquo;hôte de la passerelle
@@ -1273,8 +1275,9 @@ atteignent le RouteService, avec un nom que couvre le certificat.&lt;/p&gt;
 &lt;a href="#gateway" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;ul&gt;
 &lt;li&gt;Montez &lt;code&gt;wg0&lt;/code&gt; avec &lt;code&gt;wg-quick&lt;/code&gt; ou systemd-networkd au démarrage ; Claimward ne fait que
 gérer ses pairs. Exécutez le serveur avec les droits de configurer l&amp;rsquo;interface
-(root, ou &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt;).&lt;/li&gt;
-&lt;li&gt;Activez &lt;code&gt;net.ipv4.ip_forward&lt;/code&gt;, ainsi que des règles NAT ou de pare-feu, si les clients routent
+et le pare-feu : sous Linux root ou &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt; (nftables) ; sous OpenBSD root,
+pour &lt;code&gt;/dev/pf&lt;/code&gt; (voir &lt;a href="https://claimward.github.io/docs/dev/fr/components/server/#openbsd"&gt;OpenBSD&lt;/a&gt;).&lt;/li&gt;
+&lt;li&gt;Sous Linux, activez &lt;code&gt;net.ipv4.ip_forward&lt;/code&gt;, ainsi que des règles NAT ou de pare-feu, si les clients routent
 au-delà du sous-réseau VPN.&lt;/li&gt;
 &lt;li&gt;&lt;code&gt;GET /healthz&lt;/code&gt; est la sonde de vivacité.&lt;/li&gt;
 &lt;/ul&gt;

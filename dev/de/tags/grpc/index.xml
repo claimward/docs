@@ -519,7 +519,7 @@ zweite seit v0.9.0, für systemd mit &lt;code&gt;DynamicUser=yes&lt;/code&gt;: s
 die UID des Dienstes (&lt;code&gt;src/core/exec-credential.c:338-361&lt;/code&gt;,
 &lt;code&gt;src/shared/acl-util.c:448-494&lt;/code&gt;), sodass &lt;code&gt;stat&lt;/code&gt; &lt;code&gt;0440&lt;/code&gt; zeigt. Der Server liest
 &lt;code&gt;system.posix_acl_access&lt;/code&gt; vom offenen Deskriptor und akzeptiert genau
-&lt;code&gt;user::r--&lt;/code&gt;, &lt;code&gt;user:&amp;lt;seine UID&amp;gt;:r--&lt;/code&gt;, &lt;code&gt;group::---&lt;/code&gt;, &lt;code&gt;mask::r--&lt;/code&gt;, &lt;code&gt;other::---&lt;/code&gt;;
+&lt;code&gt;user::&lt;/code&gt; (ohne Schreiben oder Ausführen), &lt;code&gt;user:&amp;lt;seine UID&amp;gt;:r--&lt;/code&gt;, &lt;code&gt;group::---&lt;/code&gt;, &lt;code&gt;mask::r--&lt;/code&gt;, &lt;code&gt;other::---&lt;/code&gt;;
 jeder andere benannte Benutzer oder jede Gruppe, jedes Schreib- oder
 Ausführungsbit und ein fehlerhafter oder zu großer Wert werden abgelehnt. Die
 Fehlermeldung nennt die Abhilfe.&lt;/p&gt;
@@ -1198,7 +1198,9 @@ abgeleitet&lt;/strong&gt; (die verschiedenen CIDRs): was ein Gerät routet und w
 Gateway durchlässt, können nicht auseinanderlaufen. Das Routenformat ändert
 sich nicht.&lt;/li&gt;
 &lt;li&gt;Das Gateway besitzt eine nftables-Tabelle, &lt;code&gt;inet claimward&lt;/code&gt;, per Netlink
-installiert (Linux, &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt;) und beim Start sowie bei jeder Änderung
+installiert (Linux, &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt;), oder unter OpenBSD der pf-Anchor &lt;code&gt;claimward&lt;/code&gt;,
+der über &lt;code&gt;/dev/pf&lt;/code&gt; geladen wird (siehe &lt;a href="https://claimward.github.io/docs/dev/de/components/server/#openbsd"&gt;OpenBSD&lt;/a&gt;).
+Beides wird beim Start sowie bei jeder Änderung
 eines Peers oder Mandanten atomar ersetzt. Verkehr von der WireGuard-Schnittstelle
 wird &lt;strong&gt;standardmäßig verworfen&lt;/strong&gt;, in der Forward- wie in der Input-Kette (der
 Dateiserver kann der Gateway-Host selbst sein); die Adresse jedes Peers wird
@@ -1276,9 +1278,10 @@ den RouteService erreichen, mit einem Namen, den das Zertifikat abdeckt.&lt;/p&g
 &lt;h2 data-hextra-search-id="gateway"&gt;Gateway&lt;span class="hx:absolute hx:-mt-20" id="gateway"&gt;&lt;/span&gt;
 &lt;a href="#gateway" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;ul&gt;
 &lt;li&gt;Bringen Sie &lt;code&gt;wg0&lt;/code&gt; beim Booten mit &lt;code&gt;wg-quick&lt;/code&gt; oder systemd-networkd hoch; Claimward
-verwaltet nur seine Peers. Starten Sie den Server mit den Rechten, die Schnittstelle zu konfigurieren
-(root oder &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt;).&lt;/li&gt;
-&lt;li&gt;Aktivieren Sie &lt;code&gt;net.ipv4.ip_forward&lt;/code&gt; sowie NAT- oder Firewall-Regeln, wenn Clients
+verwaltet nur seine Peers. Starten Sie den Server mit den Rechten, die Schnittstelle und die Firewall zu
+konfigurieren: unter Linux root oder &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt; (nftables); unter OpenBSD root,
+für &lt;code&gt;/dev/pf&lt;/code&gt; (siehe &lt;a href="https://claimward.github.io/docs/dev/de/components/server/#openbsd"&gt;OpenBSD&lt;/a&gt;).&lt;/li&gt;
+&lt;li&gt;Aktivieren Sie unter Linux &lt;code&gt;net.ipv4.ip_forward&lt;/code&gt; sowie NAT- oder Firewall-Regeln, wenn Clients
 über das VPN-Subnetz hinaus routen.&lt;/li&gt;
 &lt;li&gt;&lt;code&gt;GET /healthz&lt;/code&gt; ist die Liveness-Probe.&lt;/li&gt;
 &lt;/ul&gt;

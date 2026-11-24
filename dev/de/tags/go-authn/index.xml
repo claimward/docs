@@ -298,7 +298,7 @@ zweite seit v0.9.0, für systemd mit &lt;code&gt;DynamicUser=yes&lt;/code&gt;: s
 die UID des Dienstes (&lt;code&gt;src/core/exec-credential.c:338-361&lt;/code&gt;,
 &lt;code&gt;src/shared/acl-util.c:448-494&lt;/code&gt;), sodass &lt;code&gt;stat&lt;/code&gt; &lt;code&gt;0440&lt;/code&gt; zeigt. Der Server liest
 &lt;code&gt;system.posix_acl_access&lt;/code&gt; vom offenen Deskriptor und akzeptiert genau
-&lt;code&gt;user::r--&lt;/code&gt;, &lt;code&gt;user:&amp;lt;seine UID&amp;gt;:r--&lt;/code&gt;, &lt;code&gt;group::---&lt;/code&gt;, &lt;code&gt;mask::r--&lt;/code&gt;, &lt;code&gt;other::---&lt;/code&gt;;
+&lt;code&gt;user::&lt;/code&gt; (ohne Schreiben oder Ausführen), &lt;code&gt;user:&amp;lt;seine UID&amp;gt;:r--&lt;/code&gt;, &lt;code&gt;group::---&lt;/code&gt;, &lt;code&gt;mask::r--&lt;/code&gt;, &lt;code&gt;other::---&lt;/code&gt;;
 jeder andere benannte Benutzer oder jede Gruppe, jedes Schreib- oder
 Ausführungsbit und ein fehlerhafter oder zu großer Wert werden abgelehnt. Die
 Fehlermeldung nennt die Abhilfe.&lt;/p&gt;

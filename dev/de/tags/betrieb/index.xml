@@ -12,9 +12,10 @@ den RouteService erreichen, mit einem Namen, den das Zertifikat abdeckt.&lt;/p&g
 &lt;h2 data-hextra-search-id="gateway"&gt;Gateway&lt;span class="hx:absolute hx:-mt-20" id="gateway"&gt;&lt;/span&gt;
 &lt;a href="#gateway" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;ul&gt;
 &lt;li&gt;Bringen Sie &lt;code&gt;wg0&lt;/code&gt; beim Booten mit &lt;code&gt;wg-quick&lt;/code&gt; oder systemd-networkd hoch; Claimward
-verwaltet nur seine Peers. Starten Sie den Server mit den Rechten, die Schnittstelle zu konfigurieren
-(root oder &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt;).&lt;/li&gt;
-&lt;li&gt;Aktivieren Sie &lt;code&gt;net.ipv4.ip_forward&lt;/code&gt; sowie NAT- oder Firewall-Regeln, wenn Clients
+verwaltet nur seine Peers. Starten Sie den Server mit den Rechten, die Schnittstelle und die Firewall zu
+konfigurieren: unter Linux root oder &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt; (nftables); unter OpenBSD root,
+für &lt;code&gt;/dev/pf&lt;/code&gt; (siehe &lt;a href="https://claimward.github.io/docs/dev/de/components/server/#openbsd"&gt;OpenBSD&lt;/a&gt;).&lt;/li&gt;
+&lt;li&gt;Aktivieren Sie unter Linux &lt;code&gt;net.ipv4.ip_forward&lt;/code&gt; sowie NAT- oder Firewall-Regeln, wenn Clients
 über das VPN-Subnetz hinaus routen.&lt;/li&gt;
 &lt;li&gt;&lt;code&gt;GET /healthz&lt;/code&gt; ist die Liveness-Probe.&lt;/li&gt;
 &lt;/ul&gt;

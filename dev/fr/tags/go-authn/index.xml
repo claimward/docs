@@ -298,7 +298,7 @@ systemd laisse le fichier &lt;code&gt;root:root&lt;/code&gt;, mode &lt;code&gt;0
 en lecture seule pour l&amp;rsquo;uid du service (&lt;code&gt;src/core/exec-credential.c:338-361&lt;/code&gt;,
 &lt;code&gt;src/shared/acl-util.c:448-494&lt;/code&gt;), donc &lt;code&gt;stat&lt;/code&gt; affiche &lt;code&gt;0440&lt;/code&gt;. Le serveur lit
 &lt;code&gt;system.posix_acl_access&lt;/code&gt; depuis le descripteur ouvert et accepte exactement
-&lt;code&gt;user::r--&lt;/code&gt;, &lt;code&gt;user:&amp;lt;son uid&amp;gt;:r--&lt;/code&gt;, &lt;code&gt;group::---&lt;/code&gt;, &lt;code&gt;mask::r--&lt;/code&gt;, &lt;code&gt;other::---&lt;/code&gt; ;
+&lt;code&gt;user::&lt;/code&gt; (sans écriture ni exécution), &lt;code&gt;user:&amp;lt;son uid&amp;gt;:r--&lt;/code&gt;, &lt;code&gt;group::---&lt;/code&gt;, &lt;code&gt;mask::r--&lt;/code&gt;, &lt;code&gt;other::---&lt;/code&gt; ;
 tout autre utilisateur ou groupe nommé, tout bit d&amp;rsquo;écriture ou d&amp;rsquo;exécution, ou
 une valeur mal formée ou trop grande est refusé. L&amp;rsquo;erreur donne la correction.&lt;/p&gt;
 &lt;table&gt;

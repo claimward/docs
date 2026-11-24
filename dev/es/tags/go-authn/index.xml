@@ -297,7 +297,7 @@ para systemd con &lt;code&gt;DynamicUser=yes&lt;/code&gt;: systemd deja el archi
 &lt;code&gt;0400&lt;/code&gt;, más una entrada de ACL POSIX de solo lectura para el uid del servicio
 (&lt;code&gt;src/core/exec-credential.c:338-361&lt;/code&gt;, &lt;code&gt;src/shared/acl-util.c:448-494&lt;/code&gt;), así que
 &lt;code&gt;stat&lt;/code&gt; muestra &lt;code&gt;0440&lt;/code&gt;. El servidor lee &lt;code&gt;system.posix_acl_access&lt;/code&gt; del descriptor
-abierto y acepta exactamente &lt;code&gt;user::r--&lt;/code&gt;, &lt;code&gt;user:&amp;lt;su uid&amp;gt;:r--&lt;/code&gt;, &lt;code&gt;group::---&lt;/code&gt;,
+abierto y acepta exactamente &lt;code&gt;user::&lt;/code&gt; (sin escritura ni ejecución), &lt;code&gt;user:&amp;lt;su uid&amp;gt;:r--&lt;/code&gt;, &lt;code&gt;group::---&lt;/code&gt;,
 &lt;code&gt;mask::r--&lt;/code&gt;, &lt;code&gt;other::---&lt;/code&gt;; cualquier otro usuario o grupo con nombre, cualquier
 bit de escritura o ejecución, o un valor mal formado o demasiado grande se
 rechaza. El error indica cómo corregirlo.&lt;/p&gt;

@@ -100,7 +100,9 @@ are required. IPv4 only.&lt;/li&gt;
 (the distinct CIDRs), so what a device routes and what the gateway lets
 through cannot drift apart. The route format is unchanged.&lt;/li&gt;
 &lt;li&gt;The gateway owns one nftables table, &lt;code&gt;inet claimward&lt;/code&gt;, installed through
-netlink (Linux, &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt;) and replaced atomically at start and at
+netlink (Linux, &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt;), or on OpenBSD the pf anchor &lt;code&gt;claimward&lt;/code&gt;
+loaded through &lt;code&gt;/dev/pf&lt;/code&gt; (see &lt;a href="https://claimward.github.io/docs/dev/components/server/#openbsd"&gt;OpenBSD&lt;/a&gt;).
+Either is replaced atomically at start and at
 every peer or tenant change. Traffic arriving from the WireGuard interface is
 &lt;strong&gt;denied by default&lt;/strong&gt;, in both the forward chain and the input chain (the
 file server may be the gateway host itself); each peer&amp;rsquo;s address is matched
