@@ -622,6 +622,69 @@ um Peers auf einer vorhandenen Schnittstelle hinzuzufügen und zu entfernen, und
 die Schnittstelle existiert. Die Schnittstelle selbst (ihr privater Schlüssel und Listen-Port)
 bleibt &lt;code&gt;wg-quick&lt;/code&gt; oder systemd-networkd beim Booten überlassen, was die privilegierte
 Einrichtung der Schnittstelle aus dem dauerhaft laufenden Dienst heraushält.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="openbsd"&gt;OpenBSD (pf)&lt;span class="hx:absolute hx:-mt-20" id="openbsd"&gt;&lt;/span&gt;
+&lt;a href="#openbsd" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Ab v0.10.0 läuft der Server auch unter OpenBSD und setzt die Zugriffsrichtlinie
+dort mit pf statt mit nftables durch. Er spricht den Kernel direkt über die
+ioctls von &lt;code&gt;/dev/pf&lt;/code&gt; an; er startet nie &lt;code&gt;pfctl&lt;/code&gt;, und es gibt keinen Rückfall auf
+&lt;code&gt;pfctl&lt;/code&gt;.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Unterstützte Versionen: OpenBSD 7.9 und 8.0.&lt;/strong&gt; Sie teilen sich dasselbe
+Layout von &lt;code&gt;struct pf_rule&lt;/code&gt;, das der Server gegen die laufende Version prüft.
+Auf jeder anderen Version startet der Server nicht, statt eine Regel falsch zu
+kodieren.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;&lt;code&gt;pf.conf&lt;/code&gt; gehört Ihnen.&lt;/strong&gt; Der Server ändert den Hauptregelsatz nie. Fügen
+Sie &lt;code&gt;/etc/pf.conf&lt;/code&gt; eine Zeile hinzu und lassen Sie &lt;code&gt;pf&lt;/code&gt; aktiviert:&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;anchor &amp;#34;claimward&amp;#34;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;Der Server lädt die Richtlinie in diesen Anchor. Beim Start liest er den
+Hauptregelsatz zurück und prüft, dass er &lt;code&gt;anchor &amp;quot;claimward&amp;quot;&lt;/code&gt; aufruft.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Er startet nicht,&lt;/strong&gt; wenn &lt;code&gt;/dev/pf&lt;/code&gt; nicht lesend und schreibend geöffnet
+werden kann (er muss als root starten), wenn pf deaktiviert ist, wenn der
+Hauptregelsatz den Anchor nicht aufruft (die Richtlinie würde geladen, ohne
+etwas zu filtern) und wenn &lt;code&gt;pf.conf&lt;/code&gt; für die WireGuard-Schnittstelle (&lt;code&gt;wg0&lt;/code&gt;,
+&lt;code&gt;wg*&lt;/code&gt;) &lt;code&gt;set skip on&lt;/code&gt; enthält, weil pf den Datenverkehr der Peers dann nie
+sähe.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Dieselbe Richtlinie wie unter Linux.&lt;/strong&gt; Standardmäßig wird der auf
+&lt;code&gt;WG_INTERFACE&lt;/code&gt; eingehende Verkehr verworfen; erlaubt ist nur IPv4, IPv6
+durch den Tunnel wird verworfen. Die MSS-Begrenzung (&lt;code&gt;TUNNEL_MTU&lt;/code&gt;) gilt für
+beide Familien, als Regel &lt;code&gt;match ... scrub (max-mss N)&lt;/code&gt;.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Atomar und fail-closed.&lt;/strong&gt; Anchor und Tabellen werden in einer einzigen
+pf-Transaktion ersetzt, danach zurückgelesen und mit dem verglichen, was
+geladen werden sollte. Schlägt das fehl, wird ein vollständiges Verwerfen
+geladen. Der Anchor bleibt beim Beenden des Prozesses bestehen. Tabellennamen
+tragen ein Generationssuffix pro Ladevorgang, sodass das kurze Fenster
+zwischen dem Übernehmen der Tabellen und dem der Regeln nie die Regeln eines
+Mandanten auf die Peers eines anderen anwenden kann.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Kein &lt;code&gt;pledge(2)&lt;/code&gt;.&lt;/strong&gt; Das Versprechen &lt;code&gt;pf&lt;/code&gt; erlaubt nur zwölf der
+&lt;code&gt;DIOC*&lt;/code&gt;-ioctls (&lt;code&gt;sys/kern/kern_pledge.c&lt;/code&gt;, &lt;code&gt;pledge_ioctl&lt;/code&gt;); der Server braucht
+zusätzlich &lt;code&gt;DIOCRINADEFINE&lt;/code&gt;, &lt;code&gt;DIOCXROLLBACK&lt;/code&gt;, &lt;code&gt;DIOCGETRULES&lt;/code&gt;, &lt;code&gt;DIOCGETRULE&lt;/code&gt;,
+&lt;code&gt;DIOCXEND&lt;/code&gt; und &lt;code&gt;DIOCRGETADDRS&lt;/code&gt;. Jedes andere ioctl würde den Prozess beenden,
+und ein Pledge lässt sich später nicht erweitern. Betreiben Sie ihn als
+eigenen Dienst unter &lt;code&gt;rcctl&lt;/code&gt; und halten Sie den übrigen Host abgesichert.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
 &lt;h2 data-hextra-search-id="run-locally"&gt;Lokal ausführen&lt;span class="hx:absolute hx:-mt-20" id="run-locally"&gt;&lt;/span&gt;
 &lt;a href="#run-locally" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Mit &lt;code&gt;WG_DRYRUN=true&lt;/code&gt; wird kein WireGuard-Gerät angetastet:&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;

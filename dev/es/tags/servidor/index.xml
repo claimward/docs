@@ -621,6 +621,68 @@ para añadir y eliminar pares en una interfaz existente, y comprueba al arrancar
 la interfaz existe. La propia interfaz (su clave privada y su puerto de escucha)
 se deja a &lt;code&gt;wg-quick&lt;/code&gt; o a systemd-networkd en el arranque, lo que mantiene la configuración
 de la interfaz con privilegios fuera del servicio de larga duración.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="openbsd"&gt;OpenBSD (pf)&lt;span class="hx:absolute hx:-mt-20" id="openbsd"&gt;&lt;/span&gt;
+&lt;a href="#openbsd" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Desde la v0.10.0 el servidor también funciona en OpenBSD, donde aplica la
+política de acceso con pf en lugar de nftables. Habla directamente con el núcleo
+mediante los ioctls de &lt;code&gt;/dev/pf&lt;/code&gt;; nunca ejecuta &lt;code&gt;pfctl&lt;/code&gt;, y no hay alternativa
+con &lt;code&gt;pfctl&lt;/code&gt;.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Versiones admitidas: OpenBSD 7.9 y 8.0.&lt;/strong&gt; Comparten la misma disposición de
+&lt;code&gt;struct pf_rule&lt;/code&gt;, que el servidor comprueba contra la versión en ejecución. En
+cualquier otra versión el servidor se niega a arrancar antes que arriesgarse a
+codificar mal una regla.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;&lt;code&gt;pf.conf&lt;/code&gt; es suyo.&lt;/strong&gt; El servidor nunca modifica el conjunto de reglas
+principal. Añada una línea a &lt;code&gt;/etc/pf.conf&lt;/code&gt; y mantenga &lt;code&gt;pf&lt;/code&gt; activado:&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;anchor &amp;#34;claimward&amp;#34;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copiar código"
+aria-label="Copiar código"
+data-copied-label="¡Copiado!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;El servidor carga la política en esa ancla. Al arrancar relee el conjunto de
+reglas principal y comprueba que llama a &lt;code&gt;anchor &amp;quot;claimward&amp;quot;&lt;/code&gt;.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Se niega a arrancar&lt;/strong&gt; cuando &lt;code&gt;/dev/pf&lt;/code&gt; no puede abrirse en lectura y
+escritura (debe arrancar como root), cuando pf está desactivado, cuando el
+conjunto de reglas principal no llama a la ancla (la política se cargaría sin
+filtrar nada) y cuando &lt;code&gt;pf.conf&lt;/code&gt; tiene &lt;code&gt;set skip on&lt;/code&gt; para la interfaz
+WireGuard (&lt;code&gt;wg0&lt;/code&gt;, &lt;code&gt;wg*&lt;/code&gt;), porque entonces pf nunca vería el tráfico de los
+pares.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;La misma política que en Linux.&lt;/strong&gt; Denegación por defecto del tráfico que
+llega por &lt;code&gt;WG_INTERFACE&lt;/code&gt;; solo se permite IPv4, y el IPv6 a través del túnel
+se descarta. El ajuste del MSS (&lt;code&gt;TUNNEL_MTU&lt;/code&gt;) cubre ambas familias, como una
+regla &lt;code&gt;match ... scrub (max-mss N)&lt;/code&gt;.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Atómico y cerrado por defecto.&lt;/strong&gt; La ancla y sus tablas se sustituyen en una
+sola transacción de pf, y después se releen y se comparan con lo que se quería
+cargar. Si eso falla, se carga una denegación total. La ancla permanece al
+salir el proceso. Los nombres de tabla llevan un sufijo de generación por
+carga, de modo que la breve ventana entre la confirmación de las tablas y la
+de las reglas nunca puede aplicar las reglas de un tenant a los pares de otro.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Sin &lt;code&gt;pledge(2)&lt;/code&gt;.&lt;/strong&gt; La promesa &lt;code&gt;pf&lt;/code&gt; solo permite doce de los ioctls &lt;code&gt;DIOC*&lt;/code&gt;
+(&lt;code&gt;sys/kern/kern_pledge.c&lt;/code&gt;, &lt;code&gt;pledge_ioctl&lt;/code&gt;), y el servidor necesita además
+&lt;code&gt;DIOCRINADEFINE&lt;/code&gt;, &lt;code&gt;DIOCXROLLBACK&lt;/code&gt;, &lt;code&gt;DIOCGETRULES&lt;/code&gt;, &lt;code&gt;DIOCGETRULE&lt;/code&gt;, &lt;code&gt;DIOCXEND&lt;/code&gt; y
+&lt;code&gt;DIOCRGETADDRS&lt;/code&gt;. Cualquier otro ioctl mataría el proceso, y un pledge no puede
+ampliarse después. Ejecútelo como servicio dedicado bajo &lt;code&gt;rcctl&lt;/code&gt; y mantenga
+el resto del equipo bloqueado.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
 &lt;h2 data-hextra-search-id="run-locally"&gt;Ejecución en local&lt;span class="hx:absolute hx:-mt-20" id="run-locally"&gt;&lt;/span&gt;
 &lt;a href="#run-locally" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Con &lt;code&gt;WG_DRYRUN=true&lt;/code&gt; no se toca ningún dispositivo WireGuard:&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;

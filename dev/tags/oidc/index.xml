@@ -395,6 +395,64 @@ to add and remove peers on an existing interface, and checks at start-up that
 the interface exists. The interface itself (its private key and listen port)
 is left to &lt;code&gt;wg-quick&lt;/code&gt; or systemd-networkd at boot, which keeps the privileged
 interface setup out of the long-running service.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="openbsd"&gt;OpenBSD (pf)&lt;span class="hx:absolute hx:-mt-20" id="openbsd"&gt;&lt;/span&gt;
+&lt;a href="#openbsd" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;From v0.10.0 the server also runs on OpenBSD, where it enforces the access
+policy with pf instead of nftables. It talks to the kernel directly through the
+&lt;code&gt;/dev/pf&lt;/code&gt; ioctls; it never runs &lt;code&gt;pfctl&lt;/code&gt;, and there is no &lt;code&gt;pfctl&lt;/code&gt; fallback.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Supported releases: OpenBSD 7.9 and 8.0.&lt;/strong&gt; They share one &lt;code&gt;struct pf_rule&lt;/code&gt;
+layout, which the server checks against the running release. On any other
+release the server refuses to start rather than risk encoding a rule wrongly.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;You own &lt;code&gt;pf.conf&lt;/code&gt;.&lt;/strong&gt; The server never edits the main ruleset. Add one line to
+&lt;code&gt;/etc/pf.conf&lt;/code&gt; and keep &lt;code&gt;pf&lt;/code&gt; enabled:&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;anchor &amp;#34;claimward&amp;#34;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;The server loads the policy into that anchor. At start it reads the main
+ruleset back and verifies that it calls &lt;code&gt;anchor &amp;quot;claimward&amp;quot;&lt;/code&gt;.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;It refuses to start&lt;/strong&gt; when &lt;code&gt;/dev/pf&lt;/code&gt; cannot be opened read-write (it must
+start as root), when pf is disabled, when the main ruleset does not call the
+anchor (the policy would be loaded and filter nothing), and when &lt;code&gt;pf.conf&lt;/code&gt;
+has &lt;code&gt;set skip on&lt;/code&gt; for the WireGuard interface (&lt;code&gt;wg0&lt;/code&gt;, &lt;code&gt;wg*&lt;/code&gt;), because pf would
+then never see the peers&amp;rsquo; traffic.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Same policy as on Linux.&lt;/strong&gt; Default deny on traffic arriving on
+&lt;code&gt;WG_INTERFACE&lt;/code&gt;; only IPv4 is allowed, and IPv6 across the tunnel is dropped.
+The MSS clamp (&lt;code&gt;TUNNEL_MTU&lt;/code&gt;) covers both families, as a &lt;code&gt;match ... scrub (max-mss N)&lt;/code&gt; rule.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Atomic and fail closed.&lt;/strong&gt; The anchor and its tables are replaced in one pf
+transaction, then read back and compared with what was meant to be loaded. If
+that fails, deny-all is loaded. The anchor stays in place when the process
+exits. Table names carry a per-load generation suffix, so that the short
+window between the table commit and the rule commit can never apply one
+tenant&amp;rsquo;s rules to another tenant&amp;rsquo;s peers.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;No &lt;code&gt;pledge(2)&lt;/code&gt;.&lt;/strong&gt; The &lt;code&gt;pf&lt;/code&gt; promise lets a process issue only twelve of the
+&lt;code&gt;DIOC*&lt;/code&gt; ioctls (&lt;code&gt;sys/kern/kern_pledge.c&lt;/code&gt;, &lt;code&gt;pledge_ioctl&lt;/code&gt;), and the server also
+needs &lt;code&gt;DIOCRINADEFINE&lt;/code&gt;, &lt;code&gt;DIOCXROLLBACK&lt;/code&gt;, &lt;code&gt;DIOCGETRULES&lt;/code&gt;, &lt;code&gt;DIOCGETRULE&lt;/code&gt;,
+&lt;code&gt;DIOCXEND&lt;/code&gt; and &lt;code&gt;DIOCRGETADDRS&lt;/code&gt;. Any other ioctl would kill the process, and a
+pledge cannot be widened later. Run it as a dedicated service under &lt;code&gt;rcctl&lt;/code&gt;
+and keep the rest of the host locked down.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
 &lt;h2 data-hextra-search-id="run-locally"&gt;Run locally&lt;span class="hx:absolute hx:-mt-20" id="run-locally"&gt;&lt;/span&gt;
 &lt;a href="#run-locally" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;With &lt;code&gt;WG_DRYRUN=true&lt;/code&gt; no WireGuard device is touched:&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;

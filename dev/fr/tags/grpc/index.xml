@@ -621,6 +621,68 @@ pour ajouter et retirer des pairs sur une interface existante, et vérifie au d�
 l&amp;rsquo;interface existe. L&amp;rsquo;interface elle-même (sa clé privée et son port d&amp;rsquo;écoute)
 est laissée à &lt;code&gt;wg-quick&lt;/code&gt; ou à systemd-networkd au démarrage, ce qui tient la configuration privilégiée
 de l&amp;rsquo;interface hors du service de longue durée.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="openbsd"&gt;OpenBSD (pf)&lt;span class="hx:absolute hx:-mt-20" id="openbsd"&gt;&lt;/span&gt;
+&lt;a href="#openbsd" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Depuis la v0.10.0, le serveur fonctionne aussi sous OpenBSD, où il applique la
+politique d&amp;rsquo;accès avec pf au lieu de nftables. Il parle directement au noyau par
+les ioctls de &lt;code&gt;/dev/pf&lt;/code&gt; ; il n&amp;rsquo;exécute jamais &lt;code&gt;pfctl&lt;/code&gt;, et il n&amp;rsquo;y a pas de repli
+sur &lt;code&gt;pfctl&lt;/code&gt;.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Versions prises en charge : OpenBSD 7.9 et 8.0.&lt;/strong&gt; Elles partagent la même
+disposition de &lt;code&gt;struct pf_rule&lt;/code&gt;, que le serveur vérifie sur la version en
+cours. Sur toute autre version, le serveur refuse de démarrer plutôt que de
+risquer d&amp;rsquo;encoder une règle de travers.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;&lt;code&gt;pf.conf&lt;/code&gt; vous appartient.&lt;/strong&gt; Le serveur ne modifie jamais le jeu de règles
+principal. Ajoutez une ligne à &lt;code&gt;/etc/pf.conf&lt;/code&gt; et gardez &lt;code&gt;pf&lt;/code&gt; activé :&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;anchor &amp;#34;claimward&amp;#34;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copier le code"
+aria-label="Copier le code"
+data-copied-label="Copié !"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;Le serveur charge la politique dans cette ancre. Au démarrage, il relit le jeu
+de règles principal et vérifie qu&amp;rsquo;il appelle &lt;code&gt;anchor &amp;quot;claimward&amp;quot;&lt;/code&gt;.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Il refuse de démarrer&lt;/strong&gt; quand &lt;code&gt;/dev/pf&lt;/code&gt; ne peut pas être ouvert en
+lecture-écriture (il doit démarrer en root), quand pf est désactivé, quand le
+jeu de règles principal n&amp;rsquo;appelle pas l&amp;rsquo;ancre (la politique serait chargée
+sans rien filtrer), et quand &lt;code&gt;pf.conf&lt;/code&gt; contient &lt;code&gt;set skip on&lt;/code&gt; pour l&amp;rsquo;interface
+WireGuard (&lt;code&gt;wg0&lt;/code&gt;, &lt;code&gt;wg*&lt;/code&gt;), car pf ne verrait alors jamais le trafic des pairs.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Même politique que sous Linux.&lt;/strong&gt; Refus par défaut du trafic arrivant sur
+&lt;code&gt;WG_INTERFACE&lt;/code&gt; ; seul l&amp;rsquo;IPv4 est autorisé, et l&amp;rsquo;IPv6 à travers le tunnel est
+rejeté. Le plafonnement du MSS (&lt;code&gt;TUNNEL_MTU&lt;/code&gt;) couvre les deux familles, sous
+la forme d&amp;rsquo;une règle &lt;code&gt;match ... scrub (max-mss N)&lt;/code&gt;.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Atomique et fermé par défaut.&lt;/strong&gt; L&amp;rsquo;ancre et ses tables sont remplacées dans
+une seule transaction pf, puis relues et comparées à ce qui devait être
+chargé. En cas d&amp;rsquo;échec, un refus total est chargé. L&amp;rsquo;ancre reste en place à la
+sortie du processus. Les noms de tables portent un suffixe de génération par
+chargement, si bien que la courte fenêtre entre la validation des tables et
+celle des règles ne peut jamais appliquer les règles d&amp;rsquo;un tenant aux pairs d&amp;rsquo;un
+autre.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Pas de &lt;code&gt;pledge(2)&lt;/code&gt;.&lt;/strong&gt; La promesse &lt;code&gt;pf&lt;/code&gt; n&amp;rsquo;autorise que douze des ioctls
+&lt;code&gt;DIOC*&lt;/code&gt; (&lt;code&gt;sys/kern/kern_pledge.c&lt;/code&gt;, &lt;code&gt;pledge_ioctl&lt;/code&gt;), alors que le serveur a
+aussi besoin de &lt;code&gt;DIOCRINADEFINE&lt;/code&gt;, &lt;code&gt;DIOCXROLLBACK&lt;/code&gt;, &lt;code&gt;DIOCGETRULES&lt;/code&gt;,
+&lt;code&gt;DIOCGETRULE&lt;/code&gt;, &lt;code&gt;DIOCXEND&lt;/code&gt; et &lt;code&gt;DIOCRGETADDRS&lt;/code&gt;. Tout autre ioctl tuerait le
+processus, et un pledge ne peut pas être élargi ensuite. Lancez-le comme
+service dédié sous &lt;code&gt;rcctl&lt;/code&gt; et gardez le reste de la machine verrouillé.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
 &lt;h2 data-hextra-search-id="run-locally"&gt;Exécuter en local&lt;span class="hx:absolute hx:-mt-20" id="run-locally"&gt;&lt;/span&gt;
 &lt;a href="#run-locally" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Avec &lt;code&gt;WG_DRYRUN=true&lt;/code&gt;, aucun périphérique WireGuard n&amp;rsquo;est touché :&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
