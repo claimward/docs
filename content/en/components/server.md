@@ -170,6 +170,46 @@ the interface exists. The interface itself (its private key and listen port)
 is left to `wg-quick` or systemd-networkd at boot, which keeps the privileged
 interface setup out of the long-running service.
 
+## OpenBSD (pf) {#openbsd}
+
+From v0.10.0 the server also runs on OpenBSD, where it enforces the access
+policy with pf instead of nftables. It talks to the kernel directly through the
+`/dev/pf` ioctls; it never runs `pfctl`, and there is no `pfctl` fallback.
+
+- **Supported releases: OpenBSD 7.9 and 8.0.** They share one `struct pf_rule`
+  layout, which the server checks against the running release. On any other
+  release the server refuses to start rather than risk encoding a rule wrongly.
+- **You own `pf.conf`.** The server never edits the main ruleset. Add one line to
+  `/etc/pf.conf` and keep `pf` enabled:
+
+  ```text
+  anchor "claimward"
+  ```
+
+  The server loads the policy into that anchor. At start it reads the main
+  ruleset back and verifies that it calls `anchor "claimward"`.
+- **It refuses to start** when `/dev/pf` cannot be opened read-write (it must
+  start as root), when pf is disabled, when the main ruleset does not call the
+  anchor (the policy would be loaded and filter nothing), and when `pf.conf`
+  has `set skip on` for the WireGuard interface (`wg0`, `wg*`), because pf would
+  then never see the peers' traffic.
+- **Same policy as on Linux.** Default deny on traffic arriving on
+  `WG_INTERFACE`; only IPv4 is allowed, and IPv6 across the tunnel is dropped.
+  The MSS clamp (`TUNNEL_MTU`) covers both families, as a `match ... scrub
+  (max-mss N)` rule.
+- **Atomic and fail closed.** The anchor and its tables are replaced in one pf
+  transaction, then read back and compared with what was meant to be loaded. If
+  that fails, deny-all is loaded. The anchor stays in place when the process
+  exits. Table names carry a per-load generation suffix, so that the short
+  window between the table commit and the rule commit can never apply one
+  tenant's rules to another tenant's peers.
+- **No `pledge(2)`.** The `pf` promise lets a process issue only twelve of the
+  `DIOC*` ioctls (`sys/kern/kern_pledge.c`, `pledge_ioctl`), and the server also
+  needs `DIOCRINADEFINE`, `DIOCXROLLBACK`, `DIOCGETRULES`, `DIOCGETRULE`,
+  `DIOCXEND` and `DIOCRGETADDRS`. Any other ioctl would kill the process, and a
+  pledge cannot be widened later. Run it as a dedicated service under `rcctl`
+  and keep the rest of the host locked down.
+
 ## Run locally
 
 With `WG_DRYRUN=true` no WireGuard device is touched:

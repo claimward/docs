@@ -175,6 +175,49 @@ la interfaz existe. La propia interfaz (su clave privada y su puerto de escucha)
 se deja a `wg-quick` o a systemd-networkd en el arranque, lo que mantiene la configuración
 de la interfaz con privilegios fuera del servicio de larga duración.
 
+## OpenBSD (pf) {#openbsd}
+
+Desde la v0.10.0 el servidor también funciona en OpenBSD, donde aplica la
+política de acceso con pf en lugar de nftables. Habla directamente con el núcleo
+mediante los ioctls de `/dev/pf`; nunca ejecuta `pfctl`, y no hay alternativa
+con `pfctl`.
+
+- **Versiones admitidas: OpenBSD 7.9 y 8.0.** Comparten la misma disposición de
+  `struct pf_rule`, que el servidor comprueba contra la versión en ejecución. En
+  cualquier otra versión el servidor se niega a arrancar antes que arriesgarse a
+  codificar mal una regla.
+- **`pf.conf` es suyo.** El servidor nunca modifica el conjunto de reglas
+  principal. Añada una línea a `/etc/pf.conf` y mantenga `pf` activado:
+
+  ```text
+  anchor "claimward"
+  ```
+
+  El servidor carga la política en esa ancla. Al arrancar relee el conjunto de
+  reglas principal y comprueba que llama a `anchor "claimward"`.
+- **Se niega a arrancar** cuando `/dev/pf` no puede abrirse en lectura y
+  escritura (debe arrancar como root), cuando pf está desactivado, cuando el
+  conjunto de reglas principal no llama a la ancla (la política se cargaría sin
+  filtrar nada) y cuando `pf.conf` tiene `set skip on` para la interfaz
+  WireGuard (`wg0`, `wg*`), porque entonces pf nunca vería el tráfico de los
+  pares.
+- **La misma política que en Linux.** Denegación por defecto del tráfico que
+  llega por `WG_INTERFACE`; solo se permite IPv4, y el IPv6 a través del túnel
+  se descarta. El ajuste del MSS (`TUNNEL_MTU`) cubre ambas familias, como una
+  regla `match ... scrub (max-mss N)`.
+- **Atómico y cerrado por defecto.** La ancla y sus tablas se sustituyen en una
+  sola transacción de pf, y después se releen y se comparan con lo que se quería
+  cargar. Si eso falla, se carga una denegación total. La ancla permanece al
+  salir el proceso. Los nombres de tabla llevan un sufijo de generación por
+  carga, de modo que la breve ventana entre la confirmación de las tablas y la
+  de las reglas nunca puede aplicar las reglas de un tenant a los pares de otro.
+- **Sin `pledge(2)`.** La promesa `pf` solo permite doce de los ioctls `DIOC*`
+  (`sys/kern/kern_pledge.c`, `pledge_ioctl`), y el servidor necesita además
+  `DIOCRINADEFINE`, `DIOCXROLLBACK`, `DIOCGETRULES`, `DIOCGETRULE`, `DIOCXEND` y
+  `DIOCRGETADDRS`. Cualquier otro ioctl mataría el proceso, y un pledge no puede
+  ampliarse después. Ejecútelo como servicio dedicado bajo `rcctl` y mantenga
+  el resto del equipo bloqueado.
+
 ## Ejecución en local {#run-locally}
 
 Con `WG_DRYRUN=true` no se toca ningún dispositivo WireGuard:

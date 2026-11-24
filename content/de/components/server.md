@@ -176,6 +176,50 @@ die Schnittstelle existiert. Die Schnittstelle selbst (ihr privater Schlüssel u
 bleibt `wg-quick` oder systemd-networkd beim Booten überlassen, was die privilegierte
 Einrichtung der Schnittstelle aus dem dauerhaft laufenden Dienst heraushält.
 
+## OpenBSD (pf) {#openbsd}
+
+Ab v0.10.0 läuft der Server auch unter OpenBSD und setzt die Zugriffsrichtlinie
+dort mit pf statt mit nftables durch. Er spricht den Kernel direkt über die
+ioctls von `/dev/pf` an; er startet nie `pfctl`, und es gibt keinen Rückfall auf
+`pfctl`.
+
+- **Unterstützte Versionen: OpenBSD 7.9 und 8.0.** Sie teilen sich dasselbe
+  Layout von `struct pf_rule`, das der Server gegen die laufende Version prüft.
+  Auf jeder anderen Version startet der Server nicht, statt eine Regel falsch zu
+  kodieren.
+- **`pf.conf` gehört Ihnen.** Der Server ändert den Hauptregelsatz nie. Fügen
+  Sie `/etc/pf.conf` eine Zeile hinzu und lassen Sie `pf` aktiviert:
+
+  ```text
+  anchor "claimward"
+  ```
+
+  Der Server lädt die Richtlinie in diesen Anchor. Beim Start liest er den
+  Hauptregelsatz zurück und prüft, dass er `anchor "claimward"` aufruft.
+- **Er startet nicht,** wenn `/dev/pf` nicht lesend und schreibend geöffnet
+  werden kann (er muss als root starten), wenn pf deaktiviert ist, wenn der
+  Hauptregelsatz den Anchor nicht aufruft (die Richtlinie würde geladen, ohne
+  etwas zu filtern) und wenn `pf.conf` für die WireGuard-Schnittstelle (`wg0`,
+  `wg*`) `set skip on` enthält, weil pf den Datenverkehr der Peers dann nie
+  sähe.
+- **Dieselbe Richtlinie wie unter Linux.** Standardmäßig wird der auf
+  `WG_INTERFACE` eingehende Verkehr verworfen; erlaubt ist nur IPv4, IPv6
+  durch den Tunnel wird verworfen. Die MSS-Begrenzung (`TUNNEL_MTU`) gilt für
+  beide Familien, als Regel `match ... scrub (max-mss N)`.
+- **Atomar und fail-closed.** Anchor und Tabellen werden in einer einzigen
+  pf-Transaktion ersetzt, danach zurückgelesen und mit dem verglichen, was
+  geladen werden sollte. Schlägt das fehl, wird ein vollständiges Verwerfen
+  geladen. Der Anchor bleibt beim Beenden des Prozesses bestehen. Tabellennamen
+  tragen ein Generationssuffix pro Ladevorgang, sodass das kurze Fenster
+  zwischen dem Übernehmen der Tabellen und dem der Regeln nie die Regeln eines
+  Mandanten auf die Peers eines anderen anwenden kann.
+- **Kein `pledge(2)`.** Das Versprechen `pf` erlaubt nur zwölf der
+  `DIOC*`-ioctls (`sys/kern/kern_pledge.c`, `pledge_ioctl`); der Server braucht
+  zusätzlich `DIOCRINADEFINE`, `DIOCXROLLBACK`, `DIOCGETRULES`, `DIOCGETRULE`,
+  `DIOCXEND` und `DIOCRGETADDRS`. Jedes andere ioctl würde den Prozess beenden,
+  und ein Pledge lässt sich später nicht erweitern. Betreiben Sie ihn als
+  eigenen Dienst unter `rcctl` und halten Sie den übrigen Host abgesichert.
+
 ## Lokal ausführen {#run-locally}
 
 Mit `WG_DRYRUN=true` wird kein WireGuard-Gerät angetastet:

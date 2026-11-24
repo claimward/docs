@@ -175,6 +175,49 @@ l'interface existe. L'interface elle-même (sa clé privée et son port d'écout
 est laissée à `wg-quick` ou à systemd-networkd au démarrage, ce qui tient la configuration privilégiée
 de l'interface hors du service de longue durée.
 
+## OpenBSD (pf) {#openbsd}
+
+Depuis la v0.10.0, le serveur fonctionne aussi sous OpenBSD, où il applique la
+politique d'accès avec pf au lieu de nftables. Il parle directement au noyau par
+les ioctls de `/dev/pf` ; il n'exécute jamais `pfctl`, et il n'y a pas de repli
+sur `pfctl`.
+
+- **Versions prises en charge : OpenBSD 7.9 et 8.0.** Elles partagent la même
+  disposition de `struct pf_rule`, que le serveur vérifie sur la version en
+  cours. Sur toute autre version, le serveur refuse de démarrer plutôt que de
+  risquer d'encoder une règle de travers.
+- **`pf.conf` vous appartient.** Le serveur ne modifie jamais le jeu de règles
+  principal. Ajoutez une ligne à `/etc/pf.conf` et gardez `pf` activé :
+
+  ```text
+  anchor "claimward"
+  ```
+
+  Le serveur charge la politique dans cette ancre. Au démarrage, il relit le jeu
+  de règles principal et vérifie qu'il appelle `anchor "claimward"`.
+- **Il refuse de démarrer** quand `/dev/pf` ne peut pas être ouvert en
+  lecture-écriture (il doit démarrer en root), quand pf est désactivé, quand le
+  jeu de règles principal n'appelle pas l'ancre (la politique serait chargée
+  sans rien filtrer), et quand `pf.conf` contient `set skip on` pour l'interface
+  WireGuard (`wg0`, `wg*`), car pf ne verrait alors jamais le trafic des pairs.
+- **Même politique que sous Linux.** Refus par défaut du trafic arrivant sur
+  `WG_INTERFACE` ; seul l'IPv4 est autorisé, et l'IPv6 à travers le tunnel est
+  rejeté. Le plafonnement du MSS (`TUNNEL_MTU`) couvre les deux familles, sous
+  la forme d'une règle `match ... scrub (max-mss N)`.
+- **Atomique et fermé par défaut.** L'ancre et ses tables sont remplacées dans
+  une seule transaction pf, puis relues et comparées à ce qui devait être
+  chargé. En cas d'échec, un refus total est chargé. L'ancre reste en place à la
+  sortie du processus. Les noms de tables portent un suffixe de génération par
+  chargement, si bien que la courte fenêtre entre la validation des tables et
+  celle des règles ne peut jamais appliquer les règles d'un tenant aux pairs d'un
+  autre.
+- **Pas de `pledge(2)`.** La promesse `pf` n'autorise que douze des ioctls
+  `DIOC*` (`sys/kern/kern_pledge.c`, `pledge_ioctl`), alors que le serveur a
+  aussi besoin de `DIOCRINADEFINE`, `DIOCXROLLBACK`, `DIOCGETRULES`,
+  `DIOCGETRULE`, `DIOCXEND` et `DIOCRGETADDRS`. Tout autre ioctl tuerait le
+  processus, et un pledge ne peut pas être élargi ensuite. Lancez-le comme
+  service dédié sous `rcctl` et gardez le reste de la machine verrouillé.
+
 ## Exécuter en local {#run-locally}
 
 Avec `WG_DRYRUN=true`, aucun périphérique WireGuard n'est touché :
