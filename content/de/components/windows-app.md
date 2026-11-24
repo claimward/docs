@@ -7,7 +7,7 @@ tags: [windows, app, helper, wintun]
 ---
 
 [`claimward-vpn-app-windows`](https://github.com/claimward/claimward-vpn-app-windows)
-**v0.7.0** ist eine Desktop-App mit einem Symbol im Infobereich (Tray). Alles ist
+**v0.8.0** ist eine Desktop-App mit einem Symbol im Infobereich (Tray). Alles ist
 Go mit `CGO_ENABLED=0`: Das Fenster und der Infobereich werden von
 [go-widgets](https://github.com/go-widgets) gezeichnet (keine Webview, kein HTTP-Server in der
 App), außer den vier Texteingabefeldern der Einstellungen, die **native Win32-Edit-Steuerelemente**
@@ -36,7 +36,10 @@ den Mandanten und ob der Helper antwortet; die Aufforderung des Device Flow mit 
 Schaltfläche, die die Seite im Standardbrowser öffnet (an die Shell wird immer nur eine `https`-Seite
 übergeben); **Connect / Disconnect / Sign out**; **Choose
 tenant**; die Einstellungen, gespeichert in `%AppData%\Claimward\config.json`; und das
-Verbindungsprotokoll. Der Status wird alle 2 Sekunden abgefragt. Das Menü im Infobereich bietet
+Verbindungsprotokoll. Der Status wird alle 2 Sekunden vom gemeinsamen `pkg/appvm` des Clients (v0.7.0) abgefragt, das auch entscheidet, was jede Schaltfläche darf.
+Fällt der Tunnel aus oder läuft die Sitzung ab, sendet die App eine
+Benachrichtigung, einmal pro Änderung; ein Klick darauf öffnet das Fenster
+(Ihr eigenes Trennen wird nicht gemeldet). Das Menü im Infobereich bietet
 den Status, Connect, Disconnect, Open und Quit. Das Schließen des Fensters beendet die
 App; der Tunnel gehört dem Dienst und bleibt bis Disconnect bestehen.
 

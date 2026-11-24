@@ -7,7 +7,7 @@ tags: [windows, aplicación, helper, wintun]
 ---
 
 [`claimward-vpn-app-windows`](https://github.com/claimward/claimward-vpn-app-windows)
-**v0.7.0** es una aplicación de escritorio con un icono en el área de notificación (bandeja del sistema). Todo es
+**v0.8.0** es una aplicación de escritorio con un icono en el área de notificación (bandeja del sistema). Todo es
 Go con `CGO_ENABLED=0`: la ventana y la bandeja del sistema las dibuja
 [go-widgets](https://github.com/go-widgets) (sin webview, sin servidor HTTP en la
 aplicación), salvo los cuatro campos de texto de los ajustes, que son **controles Edit
@@ -36,7 +36,10 @@ el inquilino y si el helper responde; el aviso del flujo de dispositivo con un
 botón que abre la página en el navegador predeterminado (solo se entrega al shell
 una página `https`); **Connect / Disconnect / Sign out**; **Choose
 tenant**; los ajustes, guardados en `%AppData%\Claimward\config.json`; y el
-historial de conexiones. El estado se consulta cada 2 segundos. El menú de la bandeja del sistema ofrece
+historial de conexiones. El estado se consulta cada 2 segundos mediante el `pkg/appvm` compartido del cliente (v0.7.0), que también decide lo que puede hacer cada botón.
+Cuando el túnel se cae o la sesión caduca, la aplicación envía una
+notificación, una vez por cambio; al pulsarla se abre la ventana (su propio
+Desconectar no se anuncia). El menú de la bandeja del sistema ofrece
 el estado, Connect, Disconnect, Open y Quit. Cerrar la ventana cierra la
 aplicación; el túnel pertenece al servicio y permanece activo hasta Disconnect.
 

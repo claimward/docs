@@ -7,7 +7,7 @@ tags: [linux, application, helper, systemd]
 ---
 
 [`claimward-vpn-app-linux`](https://github.com/claimward/claimward-vpn-app-linux)
-**v0.6.0** est **une fenêtre et une icône dans la zone de notification dessinées en pur Go** avec
+**v0.7.0** est **une fenêtre et une icône dans la zone de notification dessinées en pur Go** avec
 [go-widgets](https://github.com/go-widgets) : pas de webview, pas de cgo
 (`CGO_ENABLED=0`). Les quatre champs de texte des paramètres sont des **champs GTK 4 natifs**
 (méthodes de saisie, sélection et presse-papiers du système), chargés à l'exécution sans cgo ;
@@ -41,7 +41,14 @@ interface dessinée à la main » avec [bricolint](https://github.com/go-widgets
 
 - **État** : qui est connecté, connecté au VPN ou non, l'adresse et l'interface,
   le locataire de la session, si le helper répond, le serveur. Il est interrogé
-  toutes les 2 secondes.
+  toutes les 2 secondes. Les écrans, ce que chaque bouton peut faire et
+  l'interrogation sont le `pkg/appvm` partagé du client (v0.7.0), que le modèle
+  de vue de l'application se contente d'adapter à ses observables.
+- **Notifications** : quand le tunnel tombe ou que la session expire,
+  l'application envoie une notification de bureau, une fois par changement ; un
+  clic dessus ouvre la fenêtre. Votre propre *Déconnecter* ou *Se déconnecter*
+  n'est pas annoncé, et une notification qui ne peut pas partir est journalisée
+  sans rien changer.
 - **Connexion** : pour un device flow, la fenêtre affiche le code et un bouton *Open sign-in
   page* (`xdg-open`) ; la connexion peut être annulée.
 - **Locataire** : lorsque le serveur refuse une connexion parce que la personne appartient

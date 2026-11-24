@@ -7,7 +7,7 @@ tags: [client, go, wireguard, grpc]
 ---
 
 [`claimward-vpn-client`](https://github.com/claimward/claimward-vpn-client)
-**v0.6.0** est une **bibliothèque** Go. Elle ne fournit aucun binaire : les programmes exécutables
+**v0.7.0** est une **bibliothèque** Go. Elle ne fournit aucun binaire : les programmes exécutables
 sont ceux des applications (`cmd/claimward-app` et `cmd/claimward-helper` dans le dépôt
 de chaque application). Le serveur l'importe aussi, pour les types réseau et les stubs gRPC.
 
@@ -32,6 +32,7 @@ c'est sur le module réduit à la bibliothèque que s'appuient les applications.
 | `pkg/wgtun` | tunnel WireGuard en espace utilisateur avec `wireguard-go`, plus l'adresse et les routes : `ifconfig`/`route` sur macOS, `ip` sur Linux, un adaptateur Wintun via `winipcfg` sur Windows (avec DNS et MTU) ; nécessite des privilèges |
 | `pkg/routeclient` | surveille le RouteService du serveur et signale les mises à jour de routes ; TLS sauf vers la boucle locale |
 | `pkg/appcore` | la logique des applications, commune aux trois : connexion, locataire choisi pour la session, connexion et déconnexion via le helper, état pour l'interface |
+| `pkg/appvm` | le modèle de vue des applications, sans interface : l'écran à afficher, ce que chaque commande peut faire, l'interrogation de l'état et les événements (tunnel coupé, session expirée) ; chaque application l'adapte à ses widgets |
 | `pkg/helper` | le helper privilégié, commun aux trois applications : enrôle, possède le tunnel, surveille les envois de routes |
 | `pkg/hproto`, `pkg/helperclient` | le protocole de socket du helper, et le client de l'application pour ce protocole |
 | `pkg/tokenstore` | la session (bearer, jeton de rafraîchissement, clé privée de l'appareil, locataire choisi) dans le magasin de secrets du système : Keychain macOS, DPAPI Windows, Secret Service Linux ; aucun repli en clair |

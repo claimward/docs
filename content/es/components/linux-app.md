@@ -7,7 +7,7 @@ tags: [linux, aplicación, helper, systemd]
 ---
 
 [`claimward-vpn-app-linux`](https://github.com/claimward/claimward-vpn-app-linux)
-**v0.6.0** es una **ventana y un icono en la bandeja del sistema dibujados en Go puro** con
+**v0.7.0** es una **ventana y un icono en la bandeja del sistema dibujados en Go puro** con
 [go-widgets](https://github.com/go-widgets): sin webview, sin cgo
 (`CGO_ENABLED=0`). Los cuatro campos de texto de los ajustes son **campos GTK 4 nativos**
 (métodos de entrada, selección y portapapeles del sistema), cargados en tiempo de ejecución sin cgo;
@@ -41,7 +41,13 @@ interfaz dibujada a mano" con [bricolint](https://github.com/go-widgets/bricolin
 
 - **Estado**: quién ha iniciado sesión, si está conectado o no, la dirección y la interfaz,
   el inquilino de la sesión, si el helper responde, el servidor. Se consulta
-  cada 2 segundos.
+  cada 2 segundos. Las pantallas, lo que puede hacer cada botón y la consulta
+  son el `pkg/appvm` compartido del cliente (v0.7.0), que el modelo de vista de
+  la aplicación se limita a adaptar a sus observables.
+- **Notificaciones**: cuando el túnel se cae o la sesión caduca, la aplicación
+  envía una notificación de escritorio, una vez por cambio; al pulsarla se abre
+  la ventana. Su propio *Desconectar* o *Cerrar sesión* no se anuncia, y una
+  notificación que no puede enviarse se registra sin cambiar nada.
 - **Inicio de sesión**: en un flujo de dispositivo, la ventana muestra el código y un botón *Open sign-in
   page* (`xdg-open`); el inicio de sesión se puede cancelar.
 - **Inquilino**: cuando el servidor rechaza una conexión porque la persona pertenece
