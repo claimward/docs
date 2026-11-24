@@ -7,7 +7,7 @@ tags: [linux, application, helper, systemd]
 ---
 
 [`claimward-vpn-app-linux`](https://github.com/claimward/claimward-vpn-app-linux)
-**v0.2.1** est **une fenêtre et une icône dans la zone de notification dessinées en pur Go** avec
+**v0.5.0** est **une fenêtre et une icône dans la zone de notification dessinées en pur Go** avec
 [go-widgets](https://github.com/go-widgets) : pas de webview, pas de GTK, pas de cgo
 (`CGO_ENABLED=0`). Un **helper privilégié** exécuté par systemd détient le tunnel
 WireGuard. La logique est celle de l'application macOS : toutes deux utilisent
@@ -57,7 +57,7 @@ démarrage et fermer la fenêtre la quitte.
 
 ## Installation {#install}
 
-Compilez sous votre identité (Go 1.27.1 ou ultérieur), puis installez en tant que root :
+Compilez sous votre identité (Go 1.27.4 ou ultérieur), puis installez en tant que root :
 
 ```sh
 CGO_ENABLED=0 go build -trimpath -o bin/ ./cmd/...
@@ -88,14 +88,18 @@ supprime aussi `/etc/claimward` et le groupe.
 L'application : `~/.config/Claimward/config.json`, écrit par le formulaire des paramètres,
 mode `0600`, surchargé par les variables `CLAIMWARD_*` (voir la
 [bibliothèque client]({{< relref "/components/client.md#files-on-the-device" >}})).
-La session (jetons et clé WireGuard de l'appareil) est conservée dans le trousseau
-**Secret Service** du bureau via `secret-tool`, et n'est jamais écrite en clair sur le
-disque. **Un fournisseur de Secret Service est requis** (client v0.5.0 et ultérieur) :
+La session (jetons et clé WireGuard de l'appareil) est scellée avec AES-GCM dans
+`session.enc` ; la clé est conservée dans le trousseau **Secret Service** du bureau
+via `secret-tool`. Elle n'est jamais écrite en clair sur le disque. **Un fournisseur de Secret Service est requis** (client v0.5.0 et ultérieur) :
 installez et déverrouillez-en un, tel que gnome-keyring ou KeePassXC, et installez
 `secret-tool` (`libsecret-tools`). Sans cela, la connexion échoue avec une erreur qui
 nomme ce qui manque ; il n'y a aucun repli en clair, y compris sur un serveur sans
 interface. Un `session.json` laissé par une ancienne version est déplacé dans le trousseau
 au premier démarrage, ou supprimé si le trousseau le refuse.
+
+Le MTU du tunnel est le `mtu` du serveur, abaissé pour tenir dans le chemin vers
+le serveur (le MTU de l'interface vers son point d'accès, moins 60 en IPv4 ou 80
+en IPv6) et jamais inférieur à 1280 (client v0.6.0, `pkg/pathmtu`).
 
 Le helper : `/etc/claimward/helper.json` (voir
 [Helper privilégié]({{< relref "/components/helper.md" >}})) ; après l'avoir modifié,

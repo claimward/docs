@@ -7,7 +7,7 @@ tags: [linux, app, helper, systemd]
 ---
 
 [`claimward-vpn-app-linux`](https://github.com/claimward/claimward-vpn-app-linux)
-**v0.2.1** ist ein **Fenster und ein Symbol im Infobereich, in reinem Go gezeichnet** mit
+**v0.5.0** ist ein **Fenster und ein Symbol im Infobereich, in reinem Go gezeichnet** mit
 [go-widgets](https://github.com/go-widgets): keine Webview, kein GTK, kein cgo
 (`CGO_ENABLED=0`). Ein von systemd ausgeführter **privilegierter Helper** besitzt den WireGuard-Tunnel.
 Die Logik ist die der macOS-App: Beide verwenden
@@ -57,7 +57,7 @@ Start, und das Schließen des Fensters beendet sie.
 
 ## Installation {#install}
 
-Bauen Sie als Sie selbst (Go 1.27.1 oder neuer) und installieren Sie dann als root:
+Bauen Sie als Sie selbst (Go 1.27.4 oder neuer) und installieren Sie dann als root:
 
 ```sh
 CGO_ENABLED=0 go build -trimpath -o bin/ ./cmd/...
@@ -88,8 +88,9 @@ entfernt außerdem `/etc/claimward` und die Gruppe.
 Die App: `~/.config/Claimward/config.json`, vom Einstellungsformular geschrieben,
 Modus `0600`, überschrieben durch die Variablen `CLAIMWARD_*` (siehe die
 [Client-Bibliothek]({{< relref "/components/client.md#files-on-the-device" >}})).
-Die Sitzung (Tokens und der WireGuard-Schlüssel des Geräts) liegt im
-**Secret-Service**-Schlüsselbund des Desktops, über `secret-tool`, und wird nie im
+Die Sitzung (Tokens und der WireGuard-Schlüssel des Geräts) liegt,
+mit AES-GCM versiegelt, in `session.enc`; der Schlüssel liegt im
+**Secret-Service**-Schlüsselbund des Desktops, über `secret-tool`. Sie wird nie im
 Klartext auf die Platte geschrieben. **Ein Secret-Service-Anbieter ist erforderlich**
 (Client v0.5.0 und neuer): Installieren und entsperren Sie einen, etwa gnome-keyring oder
 KeePassXC, und installieren Sie `secret-tool` (`libsecret-tools`). Ohne ihn schlägt die
@@ -97,6 +98,10 @@ Anmeldung mit einem Fehler fehl, der benennt, was fehlt; es gibt keinen Klartext
 auch nicht auf einem Server ohne Oberfläche. Eine von einer älteren Version hinterlassene
 `session.json` wird beim ersten Start in den Schlüsselbund verschoben oder gelöscht, wenn
 der Schlüsselbund sie ablehnt.
+
+Die MTU des Tunnels ist die `mtu` des Servers, so weit gesenkt, dass sie in den
+Pfad zum Server passt (die Schnittstellen-MTU zum Endpunkt, minus 60 bei IPv4
+oder 80 bei IPv6), und nie kleiner als 1280 (Client v0.6.0, `pkg/pathmtu`).
 
 Der Helper: `/etc/claimward/helper.json` (siehe
 [Privilegierter Helper]({{< relref "/components/helper.md" >}})); führen Sie nach dem Bearbeiten

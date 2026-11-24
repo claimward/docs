@@ -7,7 +7,7 @@ tags: [client, go, wireguard, grpc]
 ---
 
 [`claimward-vpn-client`](https://github.com/claimward/claimward-vpn-client)
-**v0.5.0** ist eine Go-**Bibliothek**. Sie liefert kein Binary aus: Die ausführbaren Programme sind
+**v0.6.0** ist eine Go-**Bibliothek**. Sie liefert kein Binary aus: Die ausführbaren Programme sind
 die der Apps (`cmd/claimward-app` und `cmd/claimward-helper` in jedem App-Repository).
 Auch der Server importiert sie, für die Wire-Typen und die gRPC-Stubs.
 
@@ -41,7 +41,7 @@ das reine Bibliotheksmodul ist die Grundlage der Apps.
 | Datei | Was |
 |---|---|
 | `<config dir>/Claimward/config.json` | die Konfiguration der App (`appcore.Config`), `0600`, überschrieben durch die Variablen `CLAIMWARD_*` |
-| `<config dir>/claimward/session.enc` (macOS), `session.dpapi` (Windows) | die versiegelte Sitzung; ihr Schlüssel liegt in der Keychain, oder der Blob ist durch DPAPI geschützt. Unter Linux liegt die Sitzung selbst im Secret Service. |
+| `<config dir>/claimward/session.enc` (macOS und Linux), `session.dpapi` (Windows) | die versiegelte Sitzung; ihr Schlüssel liegt in der Keychain (macOS) oder im Secret Service (Linux), oder der Blob ist durch DPAPI geschützt. Unter Linux ist der Blob mit AES-GCM versiegelt, und nur sein Schlüssel liegt im Secret Service. |
 
 `<config dir>` ist Go's `os.UserConfigDir()`: `~/Library/Application Support` unter
 macOS, `~/.config` unter Linux, `%AppData%` unter Windows.
@@ -125,7 +125,8 @@ Ein langlebiger Client erneuert seine Lease mit `c.Heartbeat` vor
   Helper API, reines Go, `CGO_ENABLED=0`).
 - **Sitzungsspeicher.** Der Geheimnisspeicher der Plattform: die Login-Keychain von macOS
   (sie hält einen AES-GCM-Schlüssel; die Sitzung ist in `session.enc` versiegelt), Windows-DPAPI
-  (`session.dpapi`), der Linux-Secret-Service über `secret-tool`. Seit
+  (`session.dpapi`) und unter Linux ebenfalls eine versiegelte `session.enc`, deren
+  AES-GCM-Schlüssel im Secret Service über `secret-tool` liegt. Seit
   **v0.5.0** gibt es keinen Klartext-Fallback, und `CLAIMWARD_ALLOW_PLAINTEXT_SESSION`
   hat keine Wirkung: ohne nutzbaren Speicher schlägt das Speichern der Sitzung fehl, und die
   Anmeldung schlägt mit einem Fehler fehl, der benennt, was fehlt (unter Linux einen Secret-Service-Anbieter

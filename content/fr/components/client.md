@@ -7,7 +7,7 @@ tags: [client, go, wireguard, grpc]
 ---
 
 [`claimward-vpn-client`](https://github.com/claimward/claimward-vpn-client)
-**v0.5.0** est une **bibliothèque** Go. Elle ne fournit aucun binaire : les programmes exécutables
+**v0.6.0** est une **bibliothèque** Go. Elle ne fournit aucun binaire : les programmes exécutables
 sont ceux des applications (`cmd/claimward-app` et `cmd/claimward-helper` dans le dépôt
 de chaque application). Le serveur l'importe aussi, pour les types réseau et les stubs gRPC.
 
@@ -41,7 +41,7 @@ c'est sur le module réduit à la bibliothèque que s'appuient les applications.
 | Fichier | Contenu |
 |---|---|
 | `<config dir>/Claimward/config.json` | la configuration de l'application (`appcore.Config`), `0600`, surchargée par les variables `CLAIMWARD_*` |
-| `<config dir>/claimward/session.enc` (macOS), `session.dpapi` (Windows) | la session scellée ; sa clé est dans le Keychain, ou le blob est protégé par DPAPI. Sous Linux, la session elle-même est dans le Secret Service. |
+| `<config dir>/claimward/session.enc` (macOS et Linux), `session.dpapi` (Windows) | la session scellée ; sa clé est dans le Keychain (macOS) ou le Secret Service (Linux), ou le blob est protégé par DPAPI. Sous Linux, le blob est scellé avec AES-GCM et seule sa clé est dans le Secret Service. |
 
 `<config dir>` est le `os.UserConfigDir()` de Go : `~/Library/Application Support` sur
 macOS, `~/.config` sur Linux, `%AppData%` sur Windows.
@@ -124,8 +124,9 @@ Un client de longue durée renouvelle son bail avec `c.Heartbeat` avant
   Windows. L'adresse, les routes, le DNS et le MTU sont configurés via `winipcfg` (l'API IP
   Helper, en Go pur, `CGO_ENABLED=0`).
 - **Stockage de la session.** Le magasin de secrets de la plateforme : le Keychain de
-  session macOS (qui détient une clé AES-GCM ; la session est scellée dans `session.enc`), DPAPI
-  sous Windows (`session.dpapi`), le Secret Service Linux via `secret-tool`. Depuis
+  connexion macOS (qui détient une clé AES-GCM ; la session est scellée dans `session.enc`), DPAPI
+  sous Windows (`session.dpapi`), et sous Linux aussi un `session.enc` scellé, dont la clé
+  AES-GCM est conservée dans le Secret Service via `secret-tool`. Depuis
   **v0.5.0**, il n'y a aucun repli en clair et `CLAIMWARD_ALLOW_PLAINTEXT_SESSION`
   est sans effet : sans magasin utilisable, l'enregistrement de la session échoue et la
   connexion échoue avec une erreur qui nomme ce qui manque (sous Linux, installez et déverrouillez

@@ -7,7 +7,7 @@ tags: [macos, app, helper, svelte]
 ---
 
 [`claimward-vpn-app-osx`](https://github.com/claimward/claimward-vpn-app-osx)
-**v0.2.0** ist eine in Go geschriebene Menüleisten-App (Tray), deren **gesamte Benutzeroberfläche
+**v0.6.0** ist eine in Go geschriebene Menüleisten-App (Tray), deren **gesamte Benutzeroberfläche
 eine in einer Webview dargestellte Svelte-Single-Page-App ist**. Ihre Logik (Anmeldung,
 Wahl des Mandanten, Verbinden) und ihr Helper sind die gemeinsamen
 [`pkg/appcore` und `pkg/helper`]({{< relref "/components/client.md" >}}).
@@ -114,6 +114,10 @@ Klartext auf die Platte geschrieben, und es gibt keinen Klartext-Fallback: Ist d
 gesperrt oder nicht verfügbar (Client v0.5.0 und neuer), schlägt die Anmeldung mit einem
 entsprechenden Fehler fehl. Eine `session.json` mit `0600` aus einer älteren Version wird
 beim ersten Start in den Speicher verschoben oder gelöscht, wenn das fehlschlägt.
+
+Die MTU des Tunnels ist die `mtu` des Servers, so weit gesenkt, dass sie in den
+Pfad zum Server passt (die Schnittstellen-MTU zum Endpunkt, minus 60 bei IPv4
+oder 80 bei IPv6), und nie kleiner als 1280 (Client v0.6.0, `pkg/pathmtu`).
 
 Der Server muss eine **https**-URL sein, und das Start-Token des Fensters wird nur in einem
 Header übertragen (nie in einer URL, in den Prozessargumenten oder in Logs); die Übergabe

@@ -39,10 +39,10 @@ webview ; les applications Linux et Windows sont en Go pur
 | Dépôt | Version | Ce que c'est |
 |------------|---------|------------|
 | [`claimward-vpn-server`](https://github.com/claimward/claimward-vpn-server) | v0.2.0 | Plan de contrôle : vérifie la connexion, alloue les adresses, programme la passerelle WireGuard, diffuse les routes des locataires en gRPC, API d'administration et métriques |
-| [`claimward-vpn-client`](https://github.com/claimward/claimward-vpn-client) | v0.3.1 | **Bibliothèque** Go partagée par les applications et le serveur : protocole réseau, fournisseurs de connexion, tunnel, helper privilégié, cœur des applications. Elle ne fournit aucun binaire |
-| [`claimward-vpn-app-osx`](https://github.com/claimward/claimward-vpn-app-osx) | v0.2.0 | Application macOS : application Go de la barre des menus, interface Svelte dans une webview, helper LaunchDaemon root |
-| [`claimward-vpn-app-linux`](https://github.com/claimward/claimward-vpn-app-linux) | v0.2.1 | Application Linux : fenêtre et zone de notification en Go pur, helper exécuté par systemd |
-| [`claimward-vpn-app-windows`](https://github.com/claimward/claimward-vpn-app-windows) | v0.3.0 | Application Windows : fenêtre et zone de notification en Go pur, helper sous forme de service Windows, tunnel Wintun |
+| [`claimward-vpn-client`](https://github.com/claimward/claimward-vpn-client) | v0.6.0 | **Bibliothèque** Go partagée par les applications et le serveur : protocole réseau, fournisseurs de connexion, tunnel, helper privilégié, cœur des applications. Elle ne fournit aucun binaire |
+| [`claimward-vpn-app-osx`](https://github.com/claimward/claimward-vpn-app-osx) | v0.6.0 | Application macOS : application Go de la barre des menus, interface Svelte dans une webview, helper LaunchDaemon root |
+| [`claimward-vpn-app-linux`](https://github.com/claimward/claimward-vpn-app-linux) | v0.5.0 | Application Linux : fenêtre et zone de notification en Go pur, helper exécuté par systemd |
+| [`claimward-vpn-app-windows`](https://github.com/claimward/claimward-vpn-app-windows) | v0.6.0 | Application Windows : fenêtre et zone de notification en Go pur, helper sous forme de service Windows, tunnel Wintun |
 
 {{< callout type="info" >}}
 **État d'avancement.** Ce sont des premières versions. Restent à venir, selon chaque

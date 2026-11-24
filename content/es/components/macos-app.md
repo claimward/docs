@@ -7,7 +7,7 @@ tags: [macos, aplicación, helper, svelte]
 ---
 
 [`claimward-vpn-app-osx`](https://github.com/claimward/claimward-vpn-app-osx)
-**v0.2.0** es una aplicación de la barra de menús (bandeja del sistema) escrita en Go cuya **interfaz de usuario
+**v0.6.0** es una aplicación de la barra de menús (bandeja del sistema) escrita en Go cuya **interfaz de usuario
 completa es una aplicación de página única Svelte representada en un webview**. Su lógica (inicio de sesión,
 elección del inquilino, conexión) y su helper son los compartidos
 [`pkg/appcore` y `pkg/helper`]({{< relref "/components/client.md" >}}).
@@ -114,6 +114,10 @@ en claro en el disco y no hay alternativa en texto claro: si el Keychain está b
 no disponible (cliente v0.5.0 y posteriores), el inicio de sesión falla con un error que
 lo indica. Un `session.json` `0600` de una versión anterior se traslada al almacén en el
 primer arranque, o se elimina si eso falla.
+
+La MTU del túnel es la `mtu` del servidor, reducida para caber en la ruta hacia
+el servidor (la MTU de la interfaz hacia su endpoint, menos 60 en IPv4 u 80 en
+IPv6) y nunca inferior a 1280 (cliente v0.6.0, `pkg/pathmtu`).
 
 El servidor debe ser una URL **https**, y el token de lanzamiento de la ventana viaja solo
 en una cabecera (nunca en una URL, en los argumentos del proceso ni en los registros); el

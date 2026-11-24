@@ -7,7 +7,7 @@ tags: [client, go, wireguard, grpc]
 ---
 
 [`claimward-vpn-client`](https://github.com/claimward/claimward-vpn-client)
-**v0.5.0** es una **biblioteca** Go. No incluye ningún binario: los programas ejecutables
+**v0.6.0** es una **biblioteca** Go. No incluye ningún binario: los programas ejecutables
 son los de las aplicaciones (`cmd/claimward-app` y `cmd/claimward-helper` en el repositorio
 de cada aplicación). El servidor también la importa, por los tipos de red y los stubs gRPC.
 
@@ -41,7 +41,7 @@ el módulo que solo contiene la biblioteca es la base sobre la que se construyen
 | Archivo | Qué |
 |---|---|
 | `<config dir>/Claimward/config.json` | la configuración de la aplicación (`appcore.Config`), `0600`, sustituida por las variables `CLAIMWARD_*` |
-| `<config dir>/claimward/session.enc` (macOS), `session.dpapi` (Windows) | la sesión sellada; su clave está en el Keychain, o el blob está protegido por DPAPI. En Linux, la propia sesión está en el Secret Service. |
+| `<config dir>/claimward/session.enc` (macOS y Linux), `session.dpapi` (Windows) | la sesión sellada; su clave está en el Keychain (macOS) o en el Secret Service (Linux), o el blob está protegido por DPAPI. En Linux, el blob se sella con AES-GCM y solo su clave está en el Secret Service. |
 
 `<config dir>` es `os.UserConfigDir()` de Go: `~/Library/Application Support` en
 macOS, `~/.config` en Linux, `%AppData%` en Windows.
@@ -125,7 +125,8 @@ Un cliente de larga duración renueva su concesión con `c.Heartbeat` antes de
   Helper, Go puro, `CGO_ENABLED=0`).
 - **Almacén de la sesión.** El almacén de secretos de la plataforma: el Keychain de inicio de
   sesión de macOS (guarda una clave AES-GCM; la sesión se sella en `session.enc`), DPAPI de
-  Windows (`session.dpapi`), el Secret Service de Linux mediante `secret-tool`. Desde
+  Windows (`session.dpapi`) y, en Linux, también un `session.enc` sellado, cuya clave
+  AES-GCM se guarda en el Secret Service mediante `secret-tool`. Desde
   **v0.5.0** no hay alternativa en texto claro y `CLAIMWARD_ALLOW_PLAINTEXT_SESSION`
   no tiene efecto: sin un almacén utilizable, guardar la sesión falla y el inicio de
   sesión falla con un error que nombra lo que falta (en Linux, instale y desbloquee un proveedor

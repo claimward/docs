@@ -7,7 +7,7 @@ tags: [client, go, wireguard, grpc]
 ---
 
 [`claimward-vpn-client`](https://github.com/claimward/claimward-vpn-client)
-**v0.5.0** is a Go **library**. It ships no binary: the runnable programs are
+**v0.6.0** is a Go **library**. It ships no binary: the runnable programs are
 the apps' (`cmd/claimward-app` and `cmd/claimward-helper` in each app
 repository). The server imports it too, for the wire types and the gRPC stubs.
 
@@ -41,7 +41,7 @@ the library-only module is what the apps build on.
 | File | What |
 |---|---|
 | `<config dir>/Claimward/config.json` | the app's configuration (`appcore.Config`), `0600`, overridden by `CLAIMWARD_*` variables |
-| `<config dir>/claimward/session.enc` (macOS), `session.dpapi` (Windows) | the sealed session; its key is in the Keychain, or the blob is DPAPI-protected. On Linux the session itself is in the Secret Service. |
+| `<config dir>/claimward/session.enc` (macOS and Linux), `session.dpapi` (Windows) | the sealed session; its key is in the Keychain (macOS) or the Secret Service (Linux), or the blob is DPAPI-protected. On Linux the blob is sealed with AES-GCM and only its key is in the Secret Service. |
 
 `<config dir>` is Go's `os.UserConfigDir()`: `~/Library/Application Support` on
 macOS, `~/.config` on Linux, `%AppData%` on Windows.
@@ -125,7 +125,8 @@ A long-lived client renews its lease with `c.Heartbeat` before
   Helper API, pure Go, `CGO_ENABLED=0`).
 - **Session store.** The platform's secret store: the macOS login Keychain
   (holding an AES-GCM key; the session is sealed in `session.enc`), Windows
-  DPAPI (`session.dpapi`), the Linux Secret Service through `secret-tool`. Since
+  DPAPI (`session.dpapi`), and on Linux a sealed `session.enc` too, whose
+  AES-GCM key is kept in the Secret Service through `secret-tool`. Since
   **v0.5.0** there is no plaintext fallback and `CLAIMWARD_ALLOW_PLAINTEXT_SESSION`
   has no effect: with no usable store, saving the session fails and sign-in
   fails with an error naming what is missing (on Linux, install and unlock a

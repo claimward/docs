@@ -7,7 +7,7 @@ tags: [windows, application, helper, wintun]
 ---
 
 [`claimward-vpn-app-windows`](https://github.com/claimward/claimward-vpn-app-windows)
-**v0.3.0** est une application de bureau avec une icône dans la zone de notification. Tout est
+**v0.6.0** est une application de bureau avec une icône dans la zone de notification. Tout est
 en Go avec `CGO_ENABLED=0` : la fenêtre et la zone de notification sont dessinées par
 [go-widgets](https://github.com/go-widgets) (pas de webview, pas de serveur HTTP dans
 l'application), et le tunnel est [wireguard-go](https://git.zx2c4.com/wireguard-go) sur un
@@ -95,6 +95,10 @@ La session est scellée avec **DPAPI** dans un fichier par utilisateur, `session
 clair : si DPAPI échoue (client v0.5.0 et ultérieur), la connexion échoue avec une erreur
 qui le dit. Un `session.json` d'une ancienne version est déplacé dans DPAPI au premier
 démarrage, ou supprimé en cas d'échec.
+
+Le MTU du tunnel est le `mtu` du serveur, abaissé pour tenir dans le chemin vers
+le serveur (le MTU de l'interface vers son point d'accès, moins 60 en IPv4 ou 80
+en IPv6) et jamais inférieur à 1280 (client v0.6.0, `pkg/pathmtu`).
 
 Le helper lit `C:\ProgramData\Claimward\helper.json` :
 

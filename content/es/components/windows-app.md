@@ -7,7 +7,7 @@ tags: [windows, aplicación, helper, wintun]
 ---
 
 [`claimward-vpn-app-windows`](https://github.com/claimward/claimward-vpn-app-windows)
-**v0.3.0** es una aplicación de escritorio con un icono en el área de notificación (bandeja del sistema). Todo es
+**v0.6.0** es una aplicación de escritorio con un icono en el área de notificación (bandeja del sistema). Todo es
 Go con `CGO_ENABLED=0`: la ventana y la bandeja del sistema las dibuja
 [go-widgets](https://github.com/go-widgets) (sin webview, sin servidor HTTP en la
 aplicación), y el túnel es [wireguard-go](https://git.zx2c4.com/wireguard-go) sobre un
@@ -95,6 +95,10 @@ La sesión se sella con **DPAPI** en un archivo por usuario, `session.dpapi`, ba
 DPAPI falla (cliente v0.5.0 y posteriores), el inicio de sesión falla con un error que lo
 indica. Un `session.json` de una versión anterior se traslada a DPAPI en el primer
 arranque, o se elimina si eso falla.
+
+La MTU del túnel es la `mtu` del servidor, reducida para caber en la ruta hacia
+el servidor (la MTU de la interfaz hacia su endpoint, menos 60 en IPv4 u 80 en
+IPv6) y nunca inferior a 1280 (cliente v0.6.0, `pkg/pathmtu`).
 
 El helper lee `C:\ProgramData\Claimward\helper.json`:
 
