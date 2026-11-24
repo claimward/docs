@@ -89,7 +89,10 @@ A missing required file stops the start and names the file. Before reading, the
 server checks each file through its open descriptor (`O_NOFOLLOW`, then
 `fstat`) and **refuses** a symbolic link, anything but a regular file, a file
 readable by group or other, a file not owned by the server's uid, an empty file
-and one over 64 KiB. The error gives the fix.
+and one over 64 KiB. One exception since v0.7.1: a file owned by uid 0 with mode
+exactly `0440` is accepted when its group is the server's gid or one of its
+supplementary groups (what a Kubernetes Secret volume with `fsGroup` produces).
+The error gives the fix.
 
 | Platform | `CREDENTIALS_DIRECTORY` | Owner and mode |
 |----------|-------------------------|----------------|
@@ -97,7 +100,7 @@ and one over 64 KiB. The error gives the fix.
 | Docker Swarm | `/run/secrets`, set by hand | `mode: 0400` on the secret |
 | Docker Compose | `/run/secrets`, set by hand | the host file's: `chown` and `chmod 0400` it, and set `user:` to match |
 | Podman | `/run/secrets`, set by hand | `--secret ...,mode=0400` (Quadlet: `Secret=...,mode=0400`) |
-| Kubernetes | the Secret volume's mount path, set by hand | `defaultMode: 0400`; the files belong to root, so the pod runs as uid 0 with every capability dropped but `NET_ADMIN` |
+| Kubernetes | the Secret volume's mount path, set by hand | `defaultMode: 0440` and `fsGroup`: the files are `root:<fsGroup>`, accepted by the group rule above, so the pod runs as a non-root uid with every capability dropped but `NET_ADMIN`. `add: [NET_ADMIN]` alone does not give a non-root uid the capability (no ambient set): the image's binary needs `setcap cap_net_admin=+ep` (per capabilities(7), not measured on a cluster) |
 | otherwise | any directory | `chmod 0400`, owned by the service user |
 
 Ready-made units for systemd, Compose, Podman and Kubernetes are in the

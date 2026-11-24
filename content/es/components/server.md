@@ -91,7 +91,10 @@ el servidor comprueba cada archivo a través de su descriptor abierto
 (`O_NOFOLLOW`, luego `fstat`) y **rechaza** un enlace simbólico, cualquier cosa
 que no sea un archivo regular, un archivo legible por grupo u otros, un archivo
 que no pertenece al uid del servidor, un archivo vacío y uno de más de 64 KiB.
-El error indica cómo corregirlo.
+Una excepción desde la v0.7.1: se acepta un archivo del uid 0 con modo exactamente
+`0440` si su grupo es el gid del servidor o uno de sus grupos suplementarios (lo
+que produce un volumen Secret de Kubernetes con `fsGroup`). El error indica cómo
+corregirlo.
 
 | Plataforma | `CREDENTIALS_DIRECTORY` | Propietario y modo |
 |----------|-------------------------|----------------|
@@ -99,7 +102,7 @@ El error indica cómo corregirlo.
 | Docker Swarm | `/run/secrets`, definido a mano | `mode: 0400` en el secreto |
 | Docker Compose | `/run/secrets`, definido a mano | los del archivo del host: `chown` y `chmod 0400`, y ajuste `user:` |
 | Podman | `/run/secrets`, definido a mano | `--secret ...,mode=0400` (Quadlet: `Secret=...,mode=0400`) |
-| Kubernetes | la ruta de montaje del volumen Secret, definida a mano | `defaultMode: 0400`; los archivos son de root, así que el pod se ejecuta con uid 0 y sin ninguna capability salvo `NET_ADMIN` |
+| Kubernetes | la ruta de montaje del volumen Secret, definida a mano | `defaultMode: 0440` y `fsGroup`: los archivos son `root:<fsGroup>`, aceptados por la regla de grupo anterior, así que el pod se ejecuta con un uid no root y sin ninguna capability salvo `NET_ADMIN`. `add: [NET_ADMIN]` solo no da la capability a un uid no root (sin conjunto ambiente): el binario de la imagen necesita `setcap cap_net_admin=+ep` (según capabilities(7), no medido en un clúster) |
 | otras | cualquier directorio | `chmod 0400`, propiedad del usuario del servicio |
 
 Hay unidades listas para systemd, Compose, Podman y Kubernetes en el directorio
