@@ -1,8 +1,11 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Claimward – Systemd</title><link>https://claimward.github.io/docs/dev/de/tags/systemd/</link><description>Recent content in Systemd on Claimward</description><generator>Hugo -- gohugo.io</generator><language>de</language><atom:link href="https://claimward.github.io/docs/dev/de/tags/systemd/index.xml" rel="self" type="application/rss+xml"/><item><title>Linux-App</title><link>https://claimward.github.io/docs/dev/de/components/linux-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/de/components/linux-app/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-linux" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-linux&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.5.0&lt;/strong&gt; ist ein &lt;strong&gt;Fenster und ein Symbol im Infobereich, in reinem Go gezeichnet&lt;/strong&gt; mit
-&lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt;: keine Webview, kein GTK, kein cgo
-(&lt;code&gt;CGO_ENABLED=0&lt;/code&gt;). Ein von systemd ausgeführter &lt;strong&gt;privilegierter Helper&lt;/strong&gt; besitzt den WireGuard-Tunnel.
+&lt;strong&gt;v0.6.0&lt;/strong&gt; ist ein &lt;strong&gt;Fenster und ein Symbol im Infobereich, in reinem Go gezeichnet&lt;/strong&gt; mit
+&lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt;: keine Webview, kein cgo
+(&lt;code&gt;CGO_ENABLED=0&lt;/code&gt;). Die vier Texteingabefelder der Einstellungen sind &lt;strong&gt;native GTK-4-Eingabefelder&lt;/strong&gt;
+(Eingabemethoden, Auswahl und Zwischenablage des Systems), zur Laufzeit ohne cgo geladen; der
+Desktop-Eintrag startet die App mit &lt;code&gt;GO_WIDGETS_GTK=1&lt;/code&gt;. Ohne &lt;code&gt;libgtk-4&lt;/code&gt; fällt die App
+auf gezeichnete Felder zurück. Die nativen Felder zeigen keinen Platzhaltertext. Ein von systemd ausgeführter &lt;strong&gt;privilegierter Helper&lt;/strong&gt; besitzt den WireGuard-Tunnel.
 Die Logik ist die der macOS-App: Beide verwenden
 &lt;a href="https://claimward.github.io/docs/dev/de/components/client/"&gt;&lt;code&gt;pkg/appcore&lt;/code&gt; und &lt;code&gt;pkg/helper&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="design"&gt;Aufbau&lt;span class="hx:absolute hx:-mt-20" id="design"&gt;&lt;/span&gt;

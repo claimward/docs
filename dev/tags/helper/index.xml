@@ -293,9 +293,12 @@ never below 1280 (client v0.6.0, &lt;code&gt;pkg/pathmtu&lt;/code&gt;).&lt;/p&gt
 a header only (never in a URL, in the process arguments or in logs); the
 handoff to a running instance goes through a file.&lt;/p&gt;</description></item><item><title>Linux app</title><link>https://claimward.github.io/docs/dev/components/linux-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/components/linux-app/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-linux" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-linux&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.5.0&lt;/strong&gt; is a &lt;strong&gt;window and a tray icon drawn in pure Go&lt;/strong&gt; with
-&lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt;: no webview, no GTK, no cgo
-(&lt;code&gt;CGO_ENABLED=0&lt;/code&gt;). A &lt;strong&gt;privileged helper&lt;/strong&gt; run by systemd owns the WireGuard
+&lt;strong&gt;v0.6.0&lt;/strong&gt; is a &lt;strong&gt;window and a tray icon drawn in pure Go&lt;/strong&gt; with
+&lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt;: no webview, no cgo
+(&lt;code&gt;CGO_ENABLED=0&lt;/code&gt;). The four settings text fields are &lt;strong&gt;native GTK 4 entries&lt;/strong&gt;
+(system input methods, selection, clipboard), loaded at run time without cgo; the
+desktop entry starts the app with &lt;code&gt;GO_WIDGETS_GTK=1&lt;/code&gt;. Without &lt;code&gt;libgtk-4&lt;/code&gt; the app
+falls back to painted fields. The native fields show no placeholder text. A &lt;strong&gt;privileged helper&lt;/strong&gt; run by systemd owns the WireGuard
 tunnel. The logic is the macOS app&amp;rsquo;s: both use
 &lt;a href="https://claimward.github.io/docs/dev/components/client/"&gt;&lt;code&gt;pkg/appcore&lt;/code&gt; and &lt;code&gt;pkg/helper&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="design"&gt;Design&lt;span class="hx:absolute hx:-mt-20" id="design"&gt;&lt;/span&gt;
@@ -414,10 +417,12 @@ real claimward-vpn-server.&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;</description></item><item><title>Windows app</title><link>https://claimward.github.io/docs/dev/components/windows-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/components/windows-app/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-windows" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-windows&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.6.0&lt;/strong&gt; is a desktop app with a notification-area (tray) icon. Everything is
+&lt;strong&gt;v0.7.0&lt;/strong&gt; is a desktop app with a notification-area (tray) icon. Everything is
 Go with &lt;code&gt;CGO_ENABLED=0&lt;/code&gt;: the window and the tray are drawn by
 &lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt; (no webview, no HTTP server in the
-app), and the tunnel is &lt;a href="https://git.zx2c4.com/wireguard-go" target="_blank" rel="noopener"&gt;wireguard-go&lt;/a&gt; on a
+app), except the four settings text fields, which are &lt;strong&gt;native Win32 Edit
+controls&lt;/strong&gt; (system input method editors, selection, clipboard; they show no
+placeholder text), and the tunnel is &lt;a href="https://git.zx2c4.com/wireguard-go" target="_blank" rel="noopener"&gt;wireguard-go&lt;/a&gt; on a
 &lt;a href="https://www.wintun.net" target="_blank" rel="noopener"&gt;Wintun&lt;/a&gt; adapter, configured through the IP Helper API.
 Its logic and helper are the shared
 &lt;a href="https://claimward.github.io/docs/dev/components/client/"&gt;&lt;code&gt;pkg/appcore&lt;/code&gt; and &lt;code&gt;pkg/helper&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;

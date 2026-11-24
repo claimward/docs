@@ -148,9 +148,12 @@ Face à un serveur dont le RouteService n&amp;rsquo;est pas en TLS, la négociat
 jeton, et le tunnel reste monté sans mises à jour des routes en direct.&lt;/p&gt;
 &lt;p&gt;L&amp;rsquo;arrêt du helper démonte le tunnel.&lt;/p&gt;</description></item><item><title>Application Linux</title><link>https://claimward.github.io/docs/dev/fr/components/linux-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/fr/components/linux-app/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-linux" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-linux&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.5.0&lt;/strong&gt; est &lt;strong&gt;une fenêtre et une icône dans la zone de notification dessinées en pur Go&lt;/strong&gt; avec
-&lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt; : pas de webview, pas de GTK, pas de cgo
-(&lt;code&gt;CGO_ENABLED=0&lt;/code&gt;). Un &lt;strong&gt;helper privilégié&lt;/strong&gt; exécuté par systemd détient le tunnel
+&lt;strong&gt;v0.6.0&lt;/strong&gt; est &lt;strong&gt;une fenêtre et une icône dans la zone de notification dessinées en pur Go&lt;/strong&gt; avec
+&lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt; : pas de webview, pas de cgo
+(&lt;code&gt;CGO_ENABLED=0&lt;/code&gt;). Les quatre champs de texte des paramètres sont des &lt;strong&gt;champs GTK 4 natifs&lt;/strong&gt;
+(méthodes de saisie, sélection et presse-papiers du système), chargés à l&amp;rsquo;exécution sans cgo ;
+l&amp;rsquo;entrée de bureau lance l&amp;rsquo;application avec &lt;code&gt;GO_WIDGETS_GTK=1&lt;/code&gt;. Sans &lt;code&gt;libgtk-4&lt;/code&gt;, l&amp;rsquo;application
+revient à des champs dessinés. Les champs natifs n&amp;rsquo;affichent pas de texte indicatif. Un &lt;strong&gt;helper privilégié&lt;/strong&gt; exécuté par systemd détient le tunnel
 WireGuard. La logique est celle de l&amp;rsquo;application macOS : toutes deux utilisent
 &lt;a href="https://claimward.github.io/docs/dev/fr/components/client/"&gt;&lt;code&gt;pkg/appcore&lt;/code&gt; et &lt;code&gt;pkg/helper&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="design"&gt;Conception&lt;span class="hx:absolute hx:-mt-20" id="design"&gt;&lt;/span&gt;

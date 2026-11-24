@@ -148,9 +148,12 @@ Frente a un servidor cuyo RouteService no usa TLS, el handshake falla antes de q
 se envíe el token, y el túnel sigue activo sin actualizaciones de rutas en vivo.&lt;/p&gt;
 &lt;p&gt;Detener el helper baja el túnel.&lt;/p&gt;</description></item><item><title>Aplicación Linux</title><link>https://claimward.github.io/docs/dev/es/components/linux-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/es/components/linux-app/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-linux" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-linux&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.5.0&lt;/strong&gt; es una &lt;strong&gt;ventana y un icono en la bandeja del sistema dibujados en Go puro&lt;/strong&gt; con
-&lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt;: sin webview, sin GTK, sin cgo
-(&lt;code&gt;CGO_ENABLED=0&lt;/code&gt;). Un &lt;strong&gt;helper con privilegios&lt;/strong&gt; ejecutado por systemd gestiona el túnel
+&lt;strong&gt;v0.6.0&lt;/strong&gt; es una &lt;strong&gt;ventana y un icono en la bandeja del sistema dibujados en Go puro&lt;/strong&gt; con
+&lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt;: sin webview, sin cgo
+(&lt;code&gt;CGO_ENABLED=0&lt;/code&gt;). Los cuatro campos de texto de los ajustes son &lt;strong&gt;campos GTK 4 nativos&lt;/strong&gt;
+(métodos de entrada, selección y portapapeles del sistema), cargados en tiempo de ejecución sin cgo;
+la entrada de escritorio inicia la aplicación con &lt;code&gt;GO_WIDGETS_GTK=1&lt;/code&gt;. Sin &lt;code&gt;libgtk-4&lt;/code&gt;, la aplicación
+recurre a campos dibujados. Los campos nativos no muestran texto de ejemplo. Un &lt;strong&gt;helper con privilegios&lt;/strong&gt; ejecutado por systemd gestiona el túnel
 WireGuard. La lógica es la de la aplicación macOS: ambas usan
 &lt;a href="https://claimward.github.io/docs/dev/es/components/client/"&gt;&lt;code&gt;pkg/appcore&lt;/code&gt; y &lt;code&gt;pkg/helper&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="design"&gt;Diseño&lt;span class="hx:absolute hx:-mt-20" id="design"&gt;&lt;/span&gt;

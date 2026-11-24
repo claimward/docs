@@ -293,9 +293,12 @@ oder 80 bei IPv6), und nie kleiner als 1280 (Client v0.6.0, &lt;code&gt;pkg/path
 Header übertragen (nie in einer URL, in den Prozessargumenten oder in Logs); die Übergabe
 an eine laufende Instanz erfolgt über eine Datei.&lt;/p&gt;</description></item><item><title>Linux-App</title><link>https://claimward.github.io/docs/dev/de/components/linux-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/de/components/linux-app/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-linux" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-linux&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.5.0&lt;/strong&gt; ist ein &lt;strong&gt;Fenster und ein Symbol im Infobereich, in reinem Go gezeichnet&lt;/strong&gt; mit
-&lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt;: keine Webview, kein GTK, kein cgo
-(&lt;code&gt;CGO_ENABLED=0&lt;/code&gt;). Ein von systemd ausgeführter &lt;strong&gt;privilegierter Helper&lt;/strong&gt; besitzt den WireGuard-Tunnel.
+&lt;strong&gt;v0.6.0&lt;/strong&gt; ist ein &lt;strong&gt;Fenster und ein Symbol im Infobereich, in reinem Go gezeichnet&lt;/strong&gt; mit
+&lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt;: keine Webview, kein cgo
+(&lt;code&gt;CGO_ENABLED=0&lt;/code&gt;). Die vier Texteingabefelder der Einstellungen sind &lt;strong&gt;native GTK-4-Eingabefelder&lt;/strong&gt;
+(Eingabemethoden, Auswahl und Zwischenablage des Systems), zur Laufzeit ohne cgo geladen; der
+Desktop-Eintrag startet die App mit &lt;code&gt;GO_WIDGETS_GTK=1&lt;/code&gt;. Ohne &lt;code&gt;libgtk-4&lt;/code&gt; fällt die App
+auf gezeichnete Felder zurück. Die nativen Felder zeigen keinen Platzhaltertext. Ein von systemd ausgeführter &lt;strong&gt;privilegierter Helper&lt;/strong&gt; besitzt den WireGuard-Tunnel.
 Die Logik ist die der macOS-App: Beide verwenden
 &lt;a href="https://claimward.github.io/docs/dev/de/components/client/"&gt;&lt;code&gt;pkg/appcore&lt;/code&gt; und &lt;code&gt;pkg/helper&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="design"&gt;Aufbau&lt;span class="hx:absolute hx:-mt-20" id="design"&gt;&lt;/span&gt;
@@ -416,10 +419,11 @@ echter claimward-vpn-server.&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;</description></item><item><title>Windows-App</title><link>https://claimward.github.io/docs/dev/de/components/windows-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/de/components/windows-app/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-windows" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-windows&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.6.0&lt;/strong&gt; ist eine Desktop-App mit einem Symbol im Infobereich (Tray). Alles ist
+&lt;strong&gt;v0.7.0&lt;/strong&gt; ist eine Desktop-App mit einem Symbol im Infobereich (Tray). Alles ist
 Go mit &lt;code&gt;CGO_ENABLED=0&lt;/code&gt;: Das Fenster und der Infobereich werden von
 &lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt; gezeichnet (keine Webview, kein HTTP-Server in der
-App), und der Tunnel ist &lt;a href="https://git.zx2c4.com/wireguard-go" target="_blank" rel="noopener"&gt;wireguard-go&lt;/a&gt; auf einem
+App), außer den vier Texteingabefeldern der Einstellungen, die &lt;strong&gt;native Win32-Edit-Steuerelemente&lt;/strong&gt;
+sind (IME des Systems, Auswahl, Zwischenablage; sie zeigen keinen Platzhaltertext), und der Tunnel ist &lt;a href="https://git.zx2c4.com/wireguard-go" target="_blank" rel="noopener"&gt;wireguard-go&lt;/a&gt; auf einem
 &lt;a href="https://www.wintun.net" target="_blank" rel="noopener"&gt;Wintun&lt;/a&gt;-Adapter, konfiguriert über die IP Helper API.
 Ihre Logik und ihr Helper sind die gemeinsamen
 &lt;a href="https://claimward.github.io/docs/dev/de/components/client/"&gt;&lt;code&gt;pkg/appcore&lt;/code&gt; und &lt;code&gt;pkg/helper&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;

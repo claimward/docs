@@ -148,10 +148,11 @@ Frente a un servidor cuyo RouteService no usa TLS, el handshake falla antes de q
 se envíe el token, y el túnel sigue activo sin actualizaciones de rutas en vivo.&lt;/p&gt;
 &lt;p&gt;Detener el helper baja el túnel.&lt;/p&gt;</description></item><item><title>Aplicación Windows</title><link>https://claimward.github.io/docs/dev/es/components/windows-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/es/components/windows-app/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-windows" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-windows&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.6.0&lt;/strong&gt; es una aplicación de escritorio con un icono en el área de notificación (bandeja del sistema). Todo es
+&lt;strong&gt;v0.7.0&lt;/strong&gt; es una aplicación de escritorio con un icono en el área de notificación (bandeja del sistema). Todo es
 Go con &lt;code&gt;CGO_ENABLED=0&lt;/code&gt;: la ventana y la bandeja del sistema las dibuja
 &lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt; (sin webview, sin servidor HTTP en la
-aplicación), y el túnel es &lt;a href="https://git.zx2c4.com/wireguard-go" target="_blank" rel="noopener"&gt;wireguard-go&lt;/a&gt; sobre un
+aplicación), salvo los cuatro campos de texto de los ajustes, que son &lt;strong&gt;controles Edit
+de Win32 nativos&lt;/strong&gt; (IME del sistema, selección, portapapeles; sin texto de ejemplo), y el túnel es &lt;a href="https://git.zx2c4.com/wireguard-go" target="_blank" rel="noopener"&gt;wireguard-go&lt;/a&gt; sobre un
 adaptador &lt;a href="https://www.wintun.net" target="_blank" rel="noopener"&gt;Wintun&lt;/a&gt;, configurado mediante la IP Helper API.
 Su lógica y su helper son los compartidos
 &lt;a href="https://claimward.github.io/docs/dev/es/components/client/"&gt;&lt;code&gt;pkg/appcore&lt;/code&gt; y &lt;code&gt;pkg/helper&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;
