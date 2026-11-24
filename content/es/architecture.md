@@ -46,7 +46,7 @@ servidor y es dueño del túnel. La aplicación nunca habla con el servidor por 
    registra primero en el proveedor, y el bearer es el token que devuelve ese
    registro.
 2. La aplicación genera el par de claves WireGuard del dispositivo en el primer inicio de sesión y
-   lo conserva en su archivo de sesión hasta que la persona cierra la sesión, de modo que el dispositivo
+   lo conserva en su sesión, guardada en el almacén de secretos de la plataforma, hasta que la persona cierra la sesión, de modo que el dispositivo
    conserva su clave pública entre conexiones (y su dirección mientras está registrado). Para conectarse, entrega al helper la URL del servidor, el bearer, la
    clave privada y el inquilino elegido para la sesión, a través del socket del helper.
 3. El helper comprueba que el servidor es **uno de los que nombra su propia configuración**,
