@@ -2,36 +2,39 @@
 title: "Application macOS"
 linkTitle: "Application macOS"
 weight: 4
-description: "claimward-vpn-app-osx : une application Go de la barre des menus dont la fenêtre est une application monopage Svelte dans une webview, avec un helper LaunchDaemon root."
-tags: [macos, application, helper, svelte]
+description: "claimward-vpn-app-osx : une application Go native (une fenêtre et une icône de la barre des menus, dessinées par go-widgets avec les champs de texte et menus locaux du système), avec un helper LaunchDaemon root."
+tags: [macos, application, helper, go-widgets]
 ---
 
 [`claimward-vpn-app-osx`](https://github.com/claimward/claimward-vpn-app-osx)
-**v0.6.0** est une application de la barre des menus (zone de notification) écrite en Go dont **toute l'interface
-utilisateur est une application monopage Svelte rendue dans une webview**. Sa logique (connexion,
-choix du locataire, connexion au VPN) et son helper sont les composants partagés
-[`pkg/appcore` et `pkg/helper`]({{< relref "/components/client.md" >}}).
+**v0.7.0** est une application native écrite en Go : une fenêtre et une icône de la
+barre des menus, dessinées par [go-widgets](https://github.com/go-widgets), avec les
+`NSTextField` et `NSPopUpButton` du système pour les saisies. Il n'y a ni webview, ni
+serveur web local, ni JavaScript (avant v0.7.0, la fenêtre était une page Svelte dans
+une webview). Sa logique (connexion, choix du locataire, connexion au VPN) et son helper
+sont les composants partagés
+[`pkg/appcore` et `pkg/helper`]({{< relref "/components/client.md" >}}) ; le modèle de
+vue est `pkg/appvm`, le même que celui des applications Linux et Windows.
 
 ## Conception {#design}
 
 ```text
- claimward-app (tray process, as you)
- ├─ systray     menu: status / Open Claimward… / Configuration… / Connect / Disconnect / Quit
- ├─ uiserver    loopback HTTP: embedded Svelte SPA + token-guarded JSON API
- └─ appcore     sign-in, tenant choice, session; drives the helper
-        │ spawns "claimward-app ui <url>"     │ Unix socket (JSON), 0660 root:admin
-        ▼                                     ▼
-   webview (WKWebView)                   claimward-helper (root LaunchDaemon)
-   renders the Svelte UI                 enrolls with the server, wireguard-go: utunN,
-                                         route pushes
+ claimward-app (one process, as you)
+ ├─ window         go-widgets, with NSTextField / NSPopUpButton embedded
+ ├─ status item    NSStatusItem: status / Open Claimward… / Connect / Disconnect / Quit
+ ├─ notifications  when the tunnel drops or the session expires (from the app bundle)
+ └─ view model     pkg/appvm over appcore: sign-in, tenant choice, session
+        │ Unix socket (JSON), 0660 root:admin
+        ▼
+   claimward-helper (root LaunchDaemon)
+   enrolls with the server, wireguard-go: utunN, route pushes
 ```
 
-Le processus de la zone de notification détient tout l'état et sert à la fois l'interface et une petite API JSON sur
-`127.0.0.1`, protégée par un jeton propre à chaque lancement, comparé en temps constant. La
-webview est une fenêtre minimale pointée sur cette URL de bouclage, dans un processus distinct,
-car une seule boucle d'exécution Cocoa peut posséder le fil principal. Le
-[helper]({{< relref "/components/helper.md" >}}) s'enrôle auprès du serveur et
-détient le tunnel ; l'application n'est pas privilégiée.
+L'application est un seul processus non privilégié qui détient tout l'état. Les saisies
+(URL du serveur, identifiants client) sont les champs de texte du système, avec sa méthode
+de saisie et sa correction orthographique ; les choix du fournisseur et du locataire sont
+des menus locaux. Le [helper]({{< relref "/components/helper.md" >}}) s'enrôle auprès du
+serveur et détient le tunnel. Fermer la fenêtre quitte l'application, comme sous Linux et Windows.
 
 ## Compilation {#build}
 
@@ -43,19 +46,19 @@ task install-helper SERVER=https://vpn.example.org # build and install the helpe
 task start:bundle                                  # build Claimward.app and open it
 ```
 
-Lancez le bundle plutôt que le binaire nu : un binaire nu démarré depuis un
-agent de la barre des menus ne peut pas amener sa fenêtre au premier plan. À la main :
+Lancez le bundle plutôt que le binaire nu : les notifications sont refusées à un
+processus qui n'est pas dans un bundle d'application, si bien qu'avec un binaire nu une
+coupure du tunnel n'arrive que dans le journal. À la main (plus de chaîne Node) :
 
 ```sh
-cd frontend && npm install && npm run build && cd ..   # the Svelte UI, embedded with go:embed
 CGO_ENABLED=1 go build -o bin/claimward-app    ./cmd/claimward-app
 CGO_ENABLED=0 go build -o bin/claimward-helper ./cmd/claimward-helper
 ```
 
 ## Configuration {#configure}
 
-`~/Library/Application Support/Claimward/config.json`, également modifiable depuis
-**Configuration…** (GitHub est la valeur par défaut) :
+`~/Library/Application Support/Claimward/config.json`, également modifiable depuis la
+page **Settings** de la fenêtre (GitHub est la valeur par défaut) :
 
 ```json
 {
@@ -119,6 +122,5 @@ Le MTU du tunnel est le `mtu` du serveur, abaissé pour tenir dans le chemin ver
 le serveur (le MTU de l'interface vers son point d'accès, moins 60 en IPv4 ou 80
 en IPv6) et jamais inférieur à 1280 (client v0.6.0, `pkg/pathmtu`).
 
-Le serveur doit être une URL **https**, et le jeton de lancement de la fenêtre ne transite que
-dans un en-tête (jamais dans une URL, dans les arguments du processus ni dans les journaux) ;
-le passage de relais vers une instance en cours d'exécution se fait par un fichier.
+Le serveur doit être une URL **https**. Depuis v0.7.0, il n'y a plus d'API d'interface en
+bouclage ni de jeton de lancement : la fenêtre et la logique partagent un seul processus.
