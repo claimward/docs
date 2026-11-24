@@ -107,7 +107,10 @@ shared secret.
 
 ## Metrics
 
-`GET /metrics` serves Prometheus metrics, without authentication:
+`GET /metrics` serves Prometheus metrics, without authentication, on its own
+listener: `METRICS_ADDR`, which has no default, so there are no metrics unless
+you set it (never on the enrollment port). They name every tenant: keep that
+listener on loopback or a private network.
 
 | Metric | |
 |---|---|

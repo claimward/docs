@@ -107,7 +107,10 @@ gemeinsames Geheimnis.
 
 ## Metriken {#metrics}
 
-`GET /metrics` liefert Prometheus-Metriken aus, ohne Authentifizierung:
+`GET /metrics` liefert Prometheus-Metriken aus, ohne Authentifizierung, auf einem
+eigenen Listener: `METRICS_ADDR`, die keinen Standardwert hat, es gibt also keine
+Metriken, solange sie nicht gesetzt ist (nie auf dem Registrierungsport). Sie nennen
+jeden Mandanten: halten Sie diesen Listener auf Loopback oder in einem privaten Netz.
 
 | Metrik | |
 |---|---|

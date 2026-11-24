@@ -7,9 +7,10 @@ tags: [servidor, wireguard, grpc, github, oidc, go-authn]
 ---
 
 [`claimward-vpn-server`](https://github.com/claimward/claimward-vpn-server)
-**v0.2.0** es el plano de control. Verifica el bearer que presenta un dispositivo,
+**v0.10.0** es el plano de control. Verifica el bearer que presenta un dispositivo,
 asigna direcciones VPN y programa la pasarela WireGuard con un par por cada
-dispositivo registrado. Se ejecuta en el host Linux de la pasarela, junto a un `wg0` existente.
+dispositivo registrado. Se ejecuta en el host de la pasarela, junto a un `wg0` existente: Linux
+(nftables) o, desde la v0.10.0, OpenBSD (pf, véase [OpenBSD](#openbsd)).
 
 ## Lo que sirve {#what-it-serves}
 
@@ -20,9 +21,9 @@ dispositivo registrado. Se ejecuta en el host Linux de la pasarela, junto a un `
 | | `POST /api/v1/heartbeat` | renovar la concesión del dispositivo |
 | | `POST /api/v1/deregister` | eliminar el par |
 | | `GET /healthz` | estado de actividad (liveness) |
-| | `GET /metrics` | métricas Prometheus |
 | | `/admin/` | API de administración y WebUI, cuando existe la credencial `admin-token` |
 | `GRPC_ADDR` (`:8444`) | `claimward.routes.v1.RouteService/Watch` | transmite las rutas del inquilino y sus actualizaciones |
+| `METRICS_ADDR` (sin valor por defecto: desactivado si no se define) | `GET /metrics` | métricas Prometheus, en un listener propio, nunca en `LISTEN_ADDR` |
 
 Las solicitudes a la API llevan `Authorization: Bearer <token>`: un token de acceso de GitHub,
 un ID token OIDC o un token de acceso de go-authn, según `AUTH_PROVIDER`.

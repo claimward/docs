@@ -107,7 +107,10 @@ compartido estático.
 
 ## Métricas {#metrics}
 
-`GET /metrics` sirve métricas de Prometheus, sin autenticación:
+`GET /metrics` sirve métricas de Prometheus, sin autenticación, en su propio
+listener: `METRICS_ADDR`, que no tiene valor por defecto, así que no hay métricas
+mientras no se defina (nunca en el puerto de registro). Nombran cada inquilino:
+mantenga ese listener en loopback o en una red privada.
 
 | Métrica | |
 |---|---|

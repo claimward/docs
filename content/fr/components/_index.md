@@ -5,7 +5,7 @@ description: "Le serveur, la bibliothèque client partagée, le helper privilég
 ---
 
 {{< cards >}}
-  {{< card link="server/" title="Serveur" icon="server" subtitle="claimward-vpn-server v0.2.0 : le plan de contrôle sur l'hôte de la passerelle." >}}
+  {{< card link="server/" title="Serveur" icon="server" subtitle="claimward-vpn-server v0.10.0 : le plan de contrôle sur l'hôte de la passerelle." >}}
   {{< card link="client/" title="Bibliothèque client" icon="collection" subtitle="claimward-vpn-client v0.6.0 : ce que partagent les applications et le serveur." >}}
   {{< card link="helper/" title="Helper privilégié" icon="shield-check" subtitle="Le processus root ou SYSTEM qui enrôle l'appareil et possède le tunnel." >}}
   {{< card link="macos-app/" title="Application macOS" icon="desktop-computer" subtitle="claimward-vpn-app-osx v0.6.0 : application de la barre des menus, interface Svelte dans une webview." >}}
