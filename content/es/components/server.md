@@ -111,13 +111,13 @@ rechaza. El error indica cómo corregirlo.
 | Docker Compose | `/run/secrets`, definido a mano | los del archivo del host: `chown` y `chmod 0400`, y ajuste `user:` |
 | Podman | `/run/secrets`, definido a mano | `--secret ...,mode=0400` (Quadlet: `Secret=...,mode=0400`) |
 | Kubernetes | la ruta de montaje del volumen Secret, definida a mano | `defaultMode: 0440` y `fsGroup`: los archivos son `root:<fsGroup>`, aceptados por la regla de grupo anterior, así que el pod se ejecuta con un uid no root y sin ninguna capability salvo `NET_ADMIN`. `add: [NET_ADMIN]` solo no da la capability a un uid no root (sin conjunto ambiente): el binario de la imagen necesita `setcap cap_net_admin=+ep` (según capabilities(7), no medido en un clúster) |
+| s6 (sin systemd) | `/run/sdcreds/claimward-server`, definida por `sdcreds s6-run` | el usuario del servicio, `0400`, en un tmpfs privado (véase [s6](#s6-deploy)) |
 | otras | cualquier directorio | `chmod 0400`, propiedad del usuario del servicio |
 
-Hay unidades listas para systemd, Compose, Podman y Kubernetes en el directorio
-`deploy/` del repositorio, con los pasos de `systemd-creds encrypt`. Los hosts
-sin systemd podrán obtener el mismo directorio de `go-authn/sdcreds`
-(`sdcreds s6-run`) cuando se etiquete su primera versión; nada depende aún de
-ello.
+Hay unidades listas para systemd, Compose, Podman, Kubernetes y s6 en el
+directorio `deploy/` del repositorio, con los pasos de `systemd-creds encrypt`.
+Los hosts sin systemd obtienen el mismo directorio de `go-authn/sdcreds`
+(véase [s6](#s6-deploy)); el servidor no depende de ello.
 
 La comprobación de organización del proveedor `github` no usa `github-token`:
 se hace con el token de la *persona*, así que una pertenencia privada solo es
@@ -255,6 +255,42 @@ El registro va a syslog (`/var/log/daemon`). La CI ejecuta este script en
 máquinas virtuales OpenBSD 7.9 y 8.0 reales: `rcctl start`, la línea de
 arranque, `rcctl check` y `rcctl stop`, y después un arranque sin el ancla en
 `pf.conf`, que debe fallar.
+
+## Despliegue con s6 (sdcreds) {#s6-deploy}
+
+Desde la v0.10.2 el repositorio incluye `deploy/s6/claimward-server/` (`run` y
+`finish`) para hosts sin systemd. `sdcreds s6-run` (go-authn/sdcreds v0.2.0 o
+posterior) descifra cada archivo de su directorio `--source` en un tmpfs
+privado, escribe cada uno con modo `0400` y propietario `--user`, define
+`CREDENTIALS_DIRECTORY` e inicia el servidor con ese usuario. Un archivo cuyo
+propietario es el uid del proceso, sin acceso para el grupo ni para otros, es la
+primera forma que acepta el cargador, de modo que este no cambia. Ningún secreto
+pasa por el entorno, por argv ni por una URL.
+
+- **Una capability, conservada a propósito.** El servidor necesita
+  `CAP_NET_ADMIN` (wgctrl, nftables, MTU de la interfaz). Por defecto `s6-run`
+  vacía todos los conjuntos de capabilities del servicio y mantiene
+  `no_new_privs`; el ejemplo pasa `--keep-cap=CAP_NET_ADMIN`, así que el
+  servidor se ejecuta con esa sola capability (`CapEff` `0x1000`). Actúa sobre
+  el espacio de nombres de red en el que corre el árbol de supervisión: el del
+  host, salvo que inicie `s6-svscan` dentro de uno propio (`ip netns exec`).
+- **Nombres.** Cada archivo de `--source` se llama como su credencial
+  (`wg-private-key`, `github-token`, `admin-token`, `goauthn-gateway-secret`) y
+  se cifra con `sdcreds encrypt --name=<ese nombre>`; cualquier otro nombre
+  detiene el arranque. `s6-run` necesita root y `CAP_SYS_ADMIN` (monta un
+  sistema de archivos).
+- **La configuración** que no es secreta va en `/etc/claimward/env`, que lee el
+  script `run`.
+- **Los contenedores** no lo necesitan: Compose, Podman y Kubernetes ya montan
+  los secretos como archivos (tabla anterior).
+
+La CI ejecuta este directorio con un `s6-svscan` real, en un espacio de nombres
+de red, con una interfaz WireGuard real y nftables (no una simulación).
+Comprueba que el registro contiene la clave pública derivada de la credencial
+cifrada (y no una clave de control), que el servidor corre con el usuario del
+servicio con `CapEff` `0x1000` y `no_new_privs`, que ningún secreto está en su
+entorno, que un archivo de credencial con modo `0644` se rechaza, y que al
+detener el servicio desaparece el montaje.
 
 ## Ejecución en local {#run-locally}
 

@@ -112,13 +112,13 @@ Fehlermeldung nennt die Abhilfe.
 | Docker Compose | `/run/secrets`, von Hand gesetzt | die der Host-Datei: `chown` und `chmod 0400`, und `user:` passend setzen |
 | Podman | `/run/secrets`, von Hand gesetzt | `--secret ...,mode=0400` (Quadlet: `Secret=...,mode=0400`) |
 | Kubernetes | der Mount-Pfad des Secret-Volumes, von Hand gesetzt | `defaultMode: 0440` und `fsGroup`: die Dateien sind `root:<fsGroup>`, von der Gruppenregel oben akzeptiert, daher läuft der Pod als Nicht-root-UID mit allen Capabilities außer `NET_ADMIN` entfernt. `add: [NET_ADMIN]` allein gibt einer Nicht-root-UID die Capability nicht (keine Ambient-Menge): Die Binärdatei im Image braucht `setcap cap_net_admin=+ep` (nach capabilities(7), nicht auf einem Cluster gemessen) |
+| s6 (ohne systemd) | `/run/sdcreds/claimward-server`, von `sdcreds s6-run` gesetzt | der Dienstbenutzer, `0400`, in einem privaten tmpfs (siehe [s6](#s6-deploy)) |
 | sonst | ein beliebiges Verzeichnis | `chmod 0400`, Eigentümer: der Dienstbenutzer |
 
-Fertige Units für systemd, Compose, Podman und Kubernetes liegen im Verzeichnis
-`deploy/` des Repositorys, mit den Schritten für `systemd-creds encrypt`. Hosts
-ohne systemd können dasselbe Verzeichnis künftig von `go-authn/sdcreds`
-(`sdcreds s6-run`) erhalten, sobald dessen erste Version getaggt ist; nichts
-hängt bisher davon ab.
+Fertige Units für systemd, Compose, Podman, Kubernetes und s6 liegen im
+Verzeichnis `deploy/` des Repositorys, mit den Schritten für `systemd-creds
+encrypt`. Hosts ohne systemd erhalten dasselbe Verzeichnis von
+`go-authn/sdcreds` (siehe [s6](#s6-deploy)); der Server hängt nicht davon ab.
 
 Die Organisationsprüfung des Anbieters `github` verwendet `github-token` nicht:
 Sie läuft mit dem Token der *Person*, ein privates Mitglied ist also nur
@@ -257,6 +257,42 @@ Das Protokoll geht an syslog (`/var/log/daemon`). Die CI führt dieses Skript in
 echten OpenBSD-7.9- und -8.0-VMs aus: `rcctl start`, die Startzeile,
 `rcctl check` und `rcctl stop`, danach einen Start ohne den Anchor in
 `pf.conf`, der fehlschlagen muss.
+
+## Bereitstellung unter s6 (sdcreds) {#s6-deploy}
+
+Ab v0.10.2 liefert das Repository `deploy/s6/claimward-server/` (`run` und
+`finish`) für Hosts ohne systemd mit. `sdcreds s6-run` (go-authn/sdcreds v0.2.0
+oder neuer) entschlüsselt jede Datei seines `--source`-Verzeichnisses in ein
+privates tmpfs, schreibt jede mit Modus `0400` und `--user` als Eigentümer,
+setzt `CREDENTIALS_DIRECTORY` und startet den Server unter diesem Benutzer. Eine
+Datei, die der UID des Prozesses gehört und für Gruppe und andere nicht
+zugänglich ist, ist die erste Form, die der Lader akzeptiert; er bleibt also
+unverändert. Kein Geheimnis geht durch die Umgebung, durch argv oder eine URL.
+
+- **Eine Capability, absichtlich behalten.** Der Server braucht `CAP_NET_ADMIN`
+  (wgctrl, nftables, MTU der Schnittstelle). Standardmäßig leert `s6-run` alle
+  Capability-Mengen des Dienstes und lässt `no_new_privs` aktiv; das Beispiel
+  übergibt `--keep-cap=CAP_NET_ADMIN`, sodass der Server mit genau dieser einen
+  Capability läuft (`CapEff` `0x1000`). Sie wirkt auf den Netzwerk-Namespace, in
+  dem der Supervisionsbaum läuft: den des Hosts, außer Sie starten `s6-svscan`
+  in einem eigenen (`ip netns exec`).
+- **Namen.** Jede Datei von `--source` heißt wie ihr Geheimnis
+  (`wg-private-key`, `github-token`, `admin-token`, `goauthn-gateway-secret`) und
+  wird mit `sdcreds encrypt --name=<dieser Name>` verschlüsselt; jeder andere
+  Name stoppt den Start. `s6-run` braucht root und `CAP_SYS_ADMIN` (es mountet
+  ein Dateisystem).
+- **Nicht geheime Konfiguration** steht in `/etc/claimward/env`, das das
+  `run`-Skript liest.
+- **Container** brauchen es nicht: Compose, Podman und Kubernetes mounten
+  Geheimnisse bereits als Dateien (Tabelle oben).
+
+Die CI führt dieses Verzeichnis unter einem echten `s6-svscan` aus, in einem
+Netzwerk-Namespace, mit einer echten WireGuard-Schnittstelle und nftables (kein
+Trockenlauf). Sie prüft, dass das Log den aus dem verschlüsselten Geheimnis
+abgeleiteten öffentlichen Schlüssel enthält (und keinen Kontrollschlüssel), dass
+der Server als Dienstbenutzer mit `CapEff` `0x1000` und `no_new_privs` läuft,
+dass kein Geheimnis in seiner Umgebung steht, dass eine Geheimnisdatei mit Modus
+`0644` abgelehnt wird und dass das Stoppen des Dienstes den Mount entfernt.
 
 ## Lokal ausführen {#run-locally}
 

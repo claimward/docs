@@ -108,12 +108,13 @@ bit, or a malformed or oversized value is refused. The error gives the fix.
 | Docker Compose | `/run/secrets`, set by hand | the host file's: `chown` and `chmod 0400` it, and set `user:` to match |
 | Podman | `/run/secrets`, set by hand | `--secret ...,mode=0400` (Quadlet: `Secret=...,mode=0400`) |
 | Kubernetes | the Secret volume's mount path, set by hand | `defaultMode: 0440` and `fsGroup`: the files are `root:<fsGroup>`, accepted by the group rule above, so the pod runs as a non-root uid with every capability dropped but `NET_ADMIN`. `add: [NET_ADMIN]` alone does not give a non-root uid the capability (no ambient set): the image's binary needs `setcap cap_net_admin=+ep` (per capabilities(7), not measured on a cluster) |
+| s6 (no systemd) | `/run/sdcreds/claimward-server`, set by `sdcreds s6-run` | the service user, `0400`, in a private tmpfs (see [s6](#s6-deploy)) |
 | otherwise | any directory | `chmod 0400`, owned by the service user |
 
-Ready-made units for systemd, Compose, Podman and Kubernetes are in the
+Ready-made units for systemd, Compose, Podman, Kubernetes and s6 are in the
 repository's `deploy/` directory, with the `systemd-creds encrypt` steps. Hosts
-without systemd will be able to get the same directory from `go-authn/sdcreds`
-(`sdcreds s6-run`) once its first release is tagged; nothing depends on it yet.
+without systemd get the same directory from `go-authn/sdcreds` (see
+[s6](#s6-deploy)); the server does not depend on it.
 
 The organisation check of the `github` provider does not use `github-token`: it
 runs with the *person's* token, so a private membership is visible only if that
@@ -246,6 +247,39 @@ The log goes to syslog (`/var/log/daemon`). The CI runs this script in real
 OpenBSD 7.9 and 8.0 virtual machines: `rcctl start`, the startup line,
 `rcctl check` and `rcctl stop`, then a start without the anchor in `pf.conf`,
 which must fail.
+
+## Deploying under s6 (sdcreds) {#s6-deploy}
+
+From v0.10.2 the repository ships `deploy/s6/claimward-server/` (`run` and
+`finish`) for hosts without systemd. `sdcreds s6-run` (go-authn/sdcreds v0.2.0
+or later) decrypts every file of its `--source` directory into a private tmpfs,
+writes each one `0400` and owned by `--user`, sets `CREDENTIALS_DIRECTORY`, and
+starts the server as that user. A file owned by the process's own uid with no
+group or other access is the first shape the loader accepts, so the loader is
+unchanged. Nothing secret goes in the environment, in argv or in a URL.
+
+- **One capability, kept on purpose.** The server needs `CAP_NET_ADMIN` (wgctrl,
+  nftables, the interface MTU). `s6-run` empties every capability set of the
+  service by default and keeps `no_new_privs`; the example passes
+  `--keep-cap=CAP_NET_ADMIN`, so the server runs with exactly that one
+  (`CapEff` `0x1000`). The capability acts on the network namespace the
+  supervision tree runs in: the host's, unless you start `s6-svscan` inside one
+  of its own (`ip netns exec`).
+- **Names.** Each file of `--source` is named like its credential
+  (`wg-private-key`, `github-token`, `admin-token`, `goauthn-gateway-secret`) and
+  encrypted with `sdcreds encrypt --name=<that name>`; any other name stops the
+  start. `s6-run` needs root and `CAP_SYS_ADMIN` (it mounts).
+- **Configuration** that is not secret goes in `/etc/claimward/env`, read by the
+  `run` script.
+- **Containers** do not need it: Compose, Podman and Kubernetes mount secrets as
+  files already (table above).
+
+The CI runs this directory under a real `s6-svscan`, in a network namespace
+with a real WireGuard link and nftables (not a dry run). It checks that the log
+holds the public key derived from the encrypted credential (and not a control
+key), that the server runs as the service user with `CapEff` `0x1000` and
+`no_new_privs`, that no secret is in its environment, that a credential file
+with mode `0644` is refused, and that stopping the service removes the mount.
 
 ## Run locally
 

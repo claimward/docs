@@ -41,7 +41,8 @@ Cut a new version whenever a component's release changes what its pages say,
 so that `latest/` (where the landing page's "Get started" leads) does not lag
 behind: `v0.5.0` is the first to document claimward-vpn-server v0.10.0 and
 claimward-vpn-client v0.6.0; `v0.6.0` adds the OpenBSD rc.d deployment of
-claimward-vpn-server v0.10.1.
+claimward-vpn-server v0.10.1; `v0.7.0` adds the s6 deployment (`sdcreds`) of
+claimward-vpn-server v0.10.2.
 
 ## Languages
 
