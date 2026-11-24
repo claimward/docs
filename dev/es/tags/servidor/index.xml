@@ -221,9 +221,10 @@ que debe estar registrada por quien hace la llamada (&lt;code&gt;NOT_FOUND&lt;/c
 (&lt;code&gt;pkg/routeclient&lt;/code&gt;) se comunican con él por TLS, verificado con las raíces del sistema,
 salvo hacia una dirección de loopback, y rechazan uno sin cifrar.&lt;/p&gt;</description></item><item><title>Servidor</title><link>https://claimward.github.io/docs/dev/es/components/server/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/es/components/server/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-server" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-server&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.2.0&lt;/strong&gt; es el plano de control. Verifica el bearer que presenta un dispositivo,
+&lt;strong&gt;v0.10.0&lt;/strong&gt; es el plano de control. Verifica el bearer que presenta un dispositivo,
 asigna direcciones VPN y programa la pasarela WireGuard con un par por cada
-dispositivo registrado. Se ejecuta en el host Linux de la pasarela, junto a un &lt;code&gt;wg0&lt;/code&gt; existente.&lt;/p&gt;
+dispositivo registrado. Se ejecuta en el host de la pasarela, junto a un &lt;code&gt;wg0&lt;/code&gt; existente: Linux
+(nftables) o, desde la v0.10.0, OpenBSD (pf, véase &lt;a href="#openbsd"&gt;OpenBSD&lt;/a&gt;).&lt;/p&gt;
 &lt;h2 data-hextra-search-id="what-it-serves"&gt;Lo que sirve&lt;span class="hx:absolute hx:-mt-20" id="what-it-serves"&gt;&lt;/span&gt;
 &lt;a href="#what-it-serves" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;table&gt;
 &lt;thead&gt;
@@ -261,11 +262,6 @@ dispositivo registrado. Se ejecuta en el host Linux de la pasarela, junto a un &
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;GET /metrics&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;métricas Prometheus&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;&lt;/td&gt;
 &lt;td&gt;&lt;code&gt;/admin/&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;API de administración y WebUI, cuando existe la credencial &lt;code&gt;admin-token&lt;/code&gt;&lt;/td&gt;
 &lt;/tr&gt;
@@ -273,6 +269,11 @@ dispositivo registrado. Se ejecuta en el host Linux de la pasarela, junto a un &
 &lt;td&gt;&lt;code&gt;GRPC_ADDR&lt;/code&gt; (&lt;code&gt;:8444&lt;/code&gt;)&lt;/td&gt;
 &lt;td&gt;&lt;code&gt;claimward.routes.v1.RouteService/Watch&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;transmite las rutas del inquilino y sus actualizaciones&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;METRICS_ADDR&lt;/code&gt; (sin valor por defecto: desactivado si no se define)&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;GET /metrics&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;métricas Prometheus, en un listener propio, nunca en &lt;code&gt;LISTEN_ADDR&lt;/code&gt;&lt;/td&gt;
 &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
@@ -757,7 +758,7 @@ data-copied-label="¡Copiado!"
 &lt;/div&gt;
 &lt;h2 data-hextra-search-id="2-run-the-control-plane"&gt;2. Ejecutar el plano de control&lt;span class="hx:absolute hx:-mt-20" id="2-run-the-control-plane"&gt;&lt;/span&gt;
 &lt;a href="#2-run-the-control-plane" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
-&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;go install github.com/claimward/claimward-vpn-server/cmd/claimward-server@v0.2.0
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;go install github.com/claimward/claimward-vpn-server/cmd/claimward-server@v0.10.0
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;AUTH_PROVIDER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;github &lt;span class="c1"&gt;# the default&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;GITHUB_ALLOWED_ORGS&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;claimward &lt;span class="c1"&gt;# an org allowlist, or name tenant `members` instead (the server refuses to start with neither)&lt;/span&gt;
@@ -1493,7 +1494,10 @@ esta pide el token y lo envía con cada llamada.&lt;/p&gt;
 &lt;p&gt;Sirva &lt;code&gt;/admin/&lt;/code&gt; solo donde lleguen los administradores: el token es un secreto
 compartido estático.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="metrics"&gt;Métricas&lt;span class="hx:absolute hx:-mt-20" id="metrics"&gt;&lt;/span&gt;
-&lt;a href="#metrics" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;GET /metrics&lt;/code&gt; sirve métricas de Prometheus, sin autenticación:&lt;/p&gt;
+&lt;a href="#metrics" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;GET /metrics&lt;/code&gt; sirve métricas de Prometheus, sin autenticación, en su propio
+listener: &lt;code&gt;METRICS_ADDR&lt;/code&gt;, que no tiene valor por defecto, así que no hay métricas
+mientras no se defina (nunca en el puerto de registro). Nombran cada inquilino:
+mantenga ese listener en loopback o en una red privada.&lt;/p&gt;
 &lt;table&gt;
 &lt;thead&gt;
 &lt;tr&gt;

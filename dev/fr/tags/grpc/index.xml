@@ -221,9 +221,10 @@ qui doit être enrôlée par l&amp;rsquo;appelant (&lt;code&gt;NOT_FOUND&lt;/cod
 (&lt;code&gt;pkg/routeclient&lt;/code&gt;) lui parlent en TLS, vérifié par rapport aux autorités racines du système,
 sauf vers une adresse de boucle locale, et refusent un service en clair.&lt;/p&gt;</description></item><item><title>Serveur</title><link>https://claimward.github.io/docs/dev/fr/components/server/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/fr/components/server/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-server" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-server&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.2.0&lt;/strong&gt; est le plan de contrôle. Il vérifie le jeton porteur (bearer) que présente un appareil,
+&lt;strong&gt;v0.10.0&lt;/strong&gt; est le plan de contrôle. Il vérifie le jeton porteur (bearer) que présente un appareil,
 attribue les adresses VPN, et programme la passerelle WireGuard avec un pair par
-appareil enrôlé. Il s&amp;rsquo;exécute sur l&amp;rsquo;hôte de passerelle Linux, à côté d&amp;rsquo;un &lt;code&gt;wg0&lt;/code&gt; existant.&lt;/p&gt;
+appareil enrôlé. Il s&amp;rsquo;exécute sur l&amp;rsquo;hôte de passerelle, à côté d&amp;rsquo;un &lt;code&gt;wg0&lt;/code&gt; existant : Linux
+(nftables) ou, depuis la v0.10.0, OpenBSD (pf, voir &lt;a href="#openbsd"&gt;OpenBSD&lt;/a&gt;).&lt;/p&gt;
 &lt;h2 data-hextra-search-id="what-it-serves"&gt;Ce qu&amp;rsquo;il sert&lt;span class="hx:absolute hx:-mt-20" id="what-it-serves"&gt;&lt;/span&gt;
 &lt;a href="#what-it-serves" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;table&gt;
 &lt;thead&gt;
@@ -261,11 +262,6 @@ appareil enrôlé. Il s&amp;rsquo;exécute sur l&amp;rsquo;hôte de passerelle L
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;GET /metrics&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;métriques Prometheus&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;&lt;/td&gt;
 &lt;td&gt;&lt;code&gt;/admin/&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;API d&amp;rsquo;administration et WebUI, lorsque l&amp;rsquo;identifiant &lt;code&gt;admin-token&lt;/code&gt; existe&lt;/td&gt;
 &lt;/tr&gt;
@@ -273,6 +269,11 @@ appareil enrôlé. Il s&amp;rsquo;exécute sur l&amp;rsquo;hôte de passerelle L
 &lt;td&gt;&lt;code&gt;GRPC_ADDR&lt;/code&gt; (&lt;code&gt;:8444&lt;/code&gt;)&lt;/td&gt;
 &lt;td&gt;&lt;code&gt;claimward.routes.v1.RouteService/Watch&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;diffuse les routes du locataire et leurs mises à jour&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;METRICS_ADDR&lt;/code&gt; (pas de défaut : désactivé si non défini)&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;GET /metrics&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;métriques Prometheus, sur une écoute à part, jamais sur &lt;code&gt;LISTEN_ADDR&lt;/code&gt;&lt;/td&gt;
 &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
@@ -1370,7 +1371,10 @@ elle demande le jeton et l&amp;rsquo;envoie avec chaque appel.&lt;/p&gt;
 &lt;p&gt;Ne servez &lt;code&gt;/admin/&lt;/code&gt; que là où les administrateurs y accèdent : le jeton est un secret
 partagé statique.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="metrics"&gt;Métriques&lt;span class="hx:absolute hx:-mt-20" id="metrics"&gt;&lt;/span&gt;
-&lt;a href="#metrics" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;GET /metrics&lt;/code&gt; sert des métriques Prometheus, sans authentification :&lt;/p&gt;
+&lt;a href="#metrics" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;GET /metrics&lt;/code&gt; sert des métriques Prometheus, sans authentification, sur sa
+propre écoute : &lt;code&gt;METRICS_ADDR&lt;/code&gt;, qui n&amp;rsquo;a pas de défaut, donc il n&amp;rsquo;y a pas de
+métriques tant qu&amp;rsquo;on ne la définit pas (jamais sur le port d&amp;rsquo;enrôlement). Elles
+nomment chaque locataire : gardez cette écoute en boucle locale ou sur un réseau privé.&lt;/p&gt;
 &lt;table&gt;
 &lt;thead&gt;
 &lt;tr&gt;

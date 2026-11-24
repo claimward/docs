@@ -111,7 +111,10 @@ it asks for the token and sends it with each call.&lt;/p&gt;
 &lt;p&gt;Serve &lt;code&gt;/admin/&lt;/code&gt; only where administrators reach it: the token is a static
 shared secret.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="metrics"&gt;Metrics&lt;span class="hx:absolute hx:-mt-20" id="metrics"&gt;&lt;/span&gt;
-&lt;a href="#metrics" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;GET /metrics&lt;/code&gt; serves Prometheus metrics, without authentication:&lt;/p&gt;
+&lt;a href="#metrics" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;GET /metrics&lt;/code&gt; serves Prometheus metrics, without authentication, on its own
+listener: &lt;code&gt;METRICS_ADDR&lt;/code&gt;, which has no default, so there are no metrics unless
+you set it (never on the enrollment port). They name every tenant: keep that
+listener on loopback or a private network.&lt;/p&gt;
 &lt;table&gt;
 &lt;thead&gt;
 &lt;tr&gt;

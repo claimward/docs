@@ -111,7 +111,10 @@ esta pide el token y lo envía con cada llamada.&lt;/p&gt;
 &lt;p&gt;Sirva &lt;code&gt;/admin/&lt;/code&gt; solo donde lleguen los administradores: el token es un secreto
 compartido estático.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="metrics"&gt;Métricas&lt;span class="hx:absolute hx:-mt-20" id="metrics"&gt;&lt;/span&gt;
-&lt;a href="#metrics" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;GET /metrics&lt;/code&gt; sirve métricas de Prometheus, sin autenticación:&lt;/p&gt;
+&lt;a href="#metrics" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;GET /metrics&lt;/code&gt; sirve métricas de Prometheus, sin autenticación, en su propio
+listener: &lt;code&gt;METRICS_ADDR&lt;/code&gt;, que no tiene valor por defecto, así que no hay métricas
+mientras no se defina (nunca en el puerto de registro). Nombran cada inquilino:
+mantenga ese listener en loopback o en una red privada.&lt;/p&gt;
 &lt;table&gt;
 &lt;thead&gt;
 &lt;tr&gt;

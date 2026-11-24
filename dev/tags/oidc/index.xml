@@ -1,8 +1,9 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Claimward – Oidc</title><link>https://claimward.github.io/docs/dev/tags/oidc/</link><description>Recent content in Oidc on Claimward</description><generator>Hugo -- gohugo.io</generator><language>en</language><atom:link href="https://claimward.github.io/docs/dev/tags/oidc/index.xml" rel="self" type="application/rss+xml"/><item><title>Server</title><link>https://claimward.github.io/docs/dev/components/server/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/components/server/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-server" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-server&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.2.0&lt;/strong&gt; is the control plane. It verifies the bearer a device presents,
+&lt;strong&gt;v0.10.0&lt;/strong&gt; is the control plane. It verifies the bearer a device presents,
 allocates VPN addresses, and programs the WireGuard gateway with one peer per
-enrolled device. It runs on the Linux gateway host, beside an existing &lt;code&gt;wg0&lt;/code&gt;.&lt;/p&gt;
+enrolled device. It runs on the gateway host, beside an existing &lt;code&gt;wg0&lt;/code&gt;: Linux
+(nftables) or, from v0.10.0, OpenBSD (pf, see &lt;a href="#openbsd"&gt;OpenBSD&lt;/a&gt;).&lt;/p&gt;
 &lt;h2 data-hextra-search-id="what-it-serves"&gt;What it serves&lt;span class="hx:absolute hx:-mt-20" id="what-it-serves"&gt;&lt;/span&gt;
 &lt;a href="#what-it-serves" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;table&gt;
 &lt;thead&gt;
@@ -40,11 +41,6 @@ enrolled device. It runs on the Linux gateway host, beside an existing &lt;code&
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;GET /metrics&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;Prometheus metrics&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;&lt;/td&gt;
 &lt;td&gt;&lt;code&gt;/admin/&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;admin API and WebUI, when the &lt;code&gt;admin-token&lt;/code&gt; credential exists&lt;/td&gt;
 &lt;/tr&gt;
@@ -52,6 +48,11 @@ enrolled device. It runs on the Linux gateway host, beside an existing &lt;code&
 &lt;td&gt;&lt;code&gt;GRPC_ADDR&lt;/code&gt; (&lt;code&gt;:8444&lt;/code&gt;)&lt;/td&gt;
 &lt;td&gt;&lt;code&gt;claimward.routes.v1.RouteService/Watch&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;streams the tenant&amp;rsquo;s routes and their updates&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;METRICS_ADDR&lt;/code&gt; (no default: off unless set)&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;GET /metrics&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Prometheus metrics, on a listener of their own, never on &lt;code&gt;LISTEN_ADDR&lt;/code&gt;&lt;/td&gt;
 &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
@@ -527,7 +528,7 @@ data-copied-label="Copied!"
 &lt;/div&gt;
 &lt;h2 data-hextra-search-id="2-run-the-control-plane"&gt;2. Run the control plane&lt;span class="hx:absolute hx:-mt-20" id="2-run-the-control-plane"&gt;&lt;/span&gt;
 &lt;a href="#2-run-the-control-plane" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
-&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;go install github.com/claimward/claimward-vpn-server/cmd/claimward-server@v0.2.0
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;go install github.com/claimward/claimward-vpn-server/cmd/claimward-server@v0.10.0
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;AUTH_PROVIDER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;github &lt;span class="c1"&gt;# the default&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;GITHUB_ALLOWED_ORGS&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;claimward &lt;span class="c1"&gt;# an org allowlist, or name tenant `members` instead (the server refuses to start with neither)&lt;/span&gt;
