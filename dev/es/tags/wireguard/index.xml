@@ -217,8 +217,8 @@ archivos de un directorio de credenciales, véase &lt;a href="#credentials"&gt;C
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;METRICS_ADDR&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;127.0.0.1:9090&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;escucha separada para &lt;code&gt;/metrics&lt;/code&gt; (loopback por defecto; ya no se sirve en &lt;code&gt;LISTEN_ADDR&lt;/code&gt;)&lt;/td&gt;
+&lt;td&gt;— (desactivado)&lt;/td&gt;
+&lt;td&gt;escucha separada para &lt;code&gt;/metrics&lt;/code&gt;, servida &lt;strong&gt;solo si se define&lt;/strong&gt; (desde la v0.9.0 no hay puerto por defecto: el antiguo &lt;code&gt;127.0.0.1:9090&lt;/code&gt; chocaba con Prometheus); nunca en &lt;code&gt;LISTEN_ADDR&lt;/code&gt;. Nombra cada tenant: manténgala en loopback o en una red privada&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;MAX_DEVICES_PER_SUBJECT&lt;/code&gt;&lt;/td&gt;
@@ -291,8 +291,15 @@ que no sea un archivo regular, un archivo legible por grupo u otros, un archivo
 que no pertenece al uid del servidor, un archivo vacío y uno de más de 64 KiB.
 Una excepción desde la v0.7.1: se acepta un archivo del uid 0 con modo exactamente
 &lt;code&gt;0440&lt;/code&gt; si su grupo es el gid del servidor o uno de sus grupos suplementarios (lo
-que produce un volumen Secret de Kubernetes con &lt;code&gt;fsGroup&lt;/code&gt;). El error indica cómo
-corregirlo.&lt;/p&gt;
+que produce un volumen Secret de Kubernetes con &lt;code&gt;fsGroup&lt;/code&gt;). Otra desde la v0.9.0,
+para systemd con &lt;code&gt;DynamicUser=yes&lt;/code&gt;: systemd deja el archivo &lt;code&gt;root:root&lt;/code&gt;, modo
+&lt;code&gt;0400&lt;/code&gt;, más una entrada de ACL POSIX de solo lectura para el uid del servicio
+(&lt;code&gt;src/core/exec-credential.c:338-361&lt;/code&gt;, &lt;code&gt;src/shared/acl-util.c:448-494&lt;/code&gt;), así que
+&lt;code&gt;stat&lt;/code&gt; muestra &lt;code&gt;0440&lt;/code&gt;. El servidor lee &lt;code&gt;system.posix_acl_access&lt;/code&gt; del descriptor
+abierto y acepta exactamente &lt;code&gt;user::r--&lt;/code&gt;, &lt;code&gt;user:&amp;lt;su uid&amp;gt;:r--&lt;/code&gt;, &lt;code&gt;group::---&lt;/code&gt;,
+&lt;code&gt;mask::r--&lt;/code&gt;, &lt;code&gt;other::---&lt;/code&gt;; cualquier otro usuario o grupo con nombre, cualquier
+bit de escritura o ejecución, o un valor mal formado o demasiado grande se
+rechaza. El error indica cómo corregirlo.&lt;/p&gt;
 &lt;table&gt;
 &lt;thead&gt;
 &lt;tr&gt;
@@ -305,7 +312,7 @@ corregirlo.&lt;/p&gt;
 &lt;tr&gt;
 &lt;td&gt;systemd&lt;/td&gt;
 &lt;td&gt;definido por &lt;code&gt;LoadCredentialEncrypted=&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;el usuario del servicio, &lt;code&gt;0400&lt;/code&gt;, en un tmpfs privado&lt;/td&gt;
+&lt;td&gt;con &lt;code&gt;DynamicUser=yes&lt;/code&gt; (como se entrega): propiedad de root con una ACL de solo lectura para el uid del servicio, aceptada; con un &lt;code&gt;User=&lt;/code&gt; fijo en un sistema de archivos sin ACL: el usuario del servicio, &lt;code&gt;0400&lt;/code&gt;. tmpfs privado&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;Docker Swarm&lt;/td&gt;

@@ -217,8 +217,8 @@ files in a credentials directory, see &lt;a href="#credentials"&gt;Credentials&l
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;METRICS_ADDR&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;127.0.0.1:9090&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;separate listener for &lt;code&gt;/metrics&lt;/code&gt; (loopback by default; it is no longer served on &lt;code&gt;LISTEN_ADDR&lt;/code&gt;)&lt;/td&gt;
+&lt;td&gt;— (off)&lt;/td&gt;
+&lt;td&gt;separate listener for &lt;code&gt;/metrics&lt;/code&gt;, served &lt;strong&gt;only when set&lt;/strong&gt; (since v0.9.0 there is no default port: the old &lt;code&gt;127.0.0.1:9090&lt;/code&gt; clashed with Prometheus); never on &lt;code&gt;LISTEN_ADDR&lt;/code&gt;. It names every tenant: keep it on loopback or a private network&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;MAX_DEVICES_PER_SUBJECT&lt;/code&gt;&lt;/td&gt;
@@ -290,7 +290,13 @@ readable by group or other, a file not owned by the server&amp;rsquo;s uid, an e
 and one over 64 KiB. One exception since v0.7.1: a file owned by uid 0 with mode
 exactly &lt;code&gt;0440&lt;/code&gt; is accepted when its group is the server&amp;rsquo;s gid or one of its
 supplementary groups (what a Kubernetes Secret volume with &lt;code&gt;fsGroup&lt;/code&gt; produces).
-The error gives the fix.&lt;/p&gt;
+A second one since v0.9.0, for systemd with &lt;code&gt;DynamicUser=yes&lt;/code&gt;: systemd leaves
+the file &lt;code&gt;root:root&lt;/code&gt;, mode &lt;code&gt;0400&lt;/code&gt;, plus a read-only POSIX ACL entry for the
+service&amp;rsquo;s uid (&lt;code&gt;src/core/exec-credential.c:338-361&lt;/code&gt;, &lt;code&gt;src/shared/acl-util.c:448-494&lt;/code&gt;),
+so &lt;code&gt;stat&lt;/code&gt; shows &lt;code&gt;0440&lt;/code&gt;. The server reads &lt;code&gt;system.posix_acl_access&lt;/code&gt; from the open
+descriptor and accepts exactly &lt;code&gt;user::r--&lt;/code&gt;, &lt;code&gt;user:&amp;lt;its uid&amp;gt;:r--&lt;/code&gt;, &lt;code&gt;group::---&lt;/code&gt;,
+&lt;code&gt;mask::r--&lt;/code&gt;, &lt;code&gt;other::---&lt;/code&gt;; any other named user or group, any write or execute
+bit, or a malformed or oversized value is refused. The error gives the fix.&lt;/p&gt;
 &lt;table&gt;
 &lt;thead&gt;
 &lt;tr&gt;
@@ -303,7 +309,7 @@ The error gives the fix.&lt;/p&gt;
 &lt;tr&gt;
 &lt;td&gt;systemd&lt;/td&gt;
 &lt;td&gt;set by &lt;code&gt;LoadCredentialEncrypted=&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;the service user, &lt;code&gt;0400&lt;/code&gt;, on a private tmpfs&lt;/td&gt;
+&lt;td&gt;with &lt;code&gt;DynamicUser=yes&lt;/code&gt; (as shipped): root-owned with a read-only ACL for the service&amp;rsquo;s uid, accepted; with a fixed &lt;code&gt;User=&lt;/code&gt; on a filesystem without ACLs: the service user, &lt;code&gt;0400&lt;/code&gt;. Private tmpfs&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;Docker Swarm&lt;/td&gt;

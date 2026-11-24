@@ -218,8 +218,8 @@ sie Dateien in einem Credentials-Verzeichnis, siehe &lt;a href="#credentials"&gt
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;METRICS_ADDR&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;127.0.0.1:9090&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;eigener Listener für &lt;code&gt;/metrics&lt;/code&gt; (standardmäßig Loopback; nicht mehr auf &lt;code&gt;LISTEN_ADDR&lt;/code&gt;)&lt;/td&gt;
+&lt;td&gt;— (aus)&lt;/td&gt;
+&lt;td&gt;eigener Listener für &lt;code&gt;/metrics&lt;/code&gt;, &lt;strong&gt;nur wenn gesetzt&lt;/strong&gt; (seit v0.9.0 gibt es keinen Standardport: der frühere &lt;code&gt;127.0.0.1:9090&lt;/code&gt; kollidierte mit Prometheus); nie auf &lt;code&gt;LISTEN_ADDR&lt;/code&gt;. Er nennt jeden Tenant: auf Loopback oder in einem privaten Netz halten&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;MAX_DEVICES_PER_SUBJECT&lt;/code&gt;&lt;/td&gt;
@@ -291,7 +291,15 @@ regulären Datei, eine für Gruppe oder andere lesbare Datei, eine Datei, die
 nicht der UID des Servers gehört, eine leere Datei und eine über 64 KiB. Eine
 Ausnahme seit v0.7.1: Eine Datei der UID 0 mit genau dem Modus &lt;code&gt;0440&lt;/code&gt; wird
 akzeptiert, wenn ihre Gruppe die GID des Servers oder eine seiner
-Zusatzgruppen ist (so ein Kubernetes-Secret-Volume mit &lt;code&gt;fsGroup&lt;/code&gt;). Die
+Zusatzgruppen ist (so ein Kubernetes-Secret-Volume mit &lt;code&gt;fsGroup&lt;/code&gt;). Eine
+zweite seit v0.9.0, für systemd mit &lt;code&gt;DynamicUser=yes&lt;/code&gt;: systemd lässt die Datei
+&lt;code&gt;root:root&lt;/code&gt;, Modus &lt;code&gt;0400&lt;/code&gt;, plus einen schreibgeschützten POSIX-ACL-Eintrag für
+die UID des Dienstes (&lt;code&gt;src/core/exec-credential.c:338-361&lt;/code&gt;,
+&lt;code&gt;src/shared/acl-util.c:448-494&lt;/code&gt;), sodass &lt;code&gt;stat&lt;/code&gt; &lt;code&gt;0440&lt;/code&gt; zeigt. Der Server liest
+&lt;code&gt;system.posix_acl_access&lt;/code&gt; vom offenen Deskriptor und akzeptiert genau
+&lt;code&gt;user::r--&lt;/code&gt;, &lt;code&gt;user:&amp;lt;seine UID&amp;gt;:r--&lt;/code&gt;, &lt;code&gt;group::---&lt;/code&gt;, &lt;code&gt;mask::r--&lt;/code&gt;, &lt;code&gt;other::---&lt;/code&gt;;
+jeder andere benannte Benutzer oder jede Gruppe, jedes Schreib- oder
+Ausführungsbit und ein fehlerhafter oder zu großer Wert werden abgelehnt. Die
 Fehlermeldung nennt die Abhilfe.&lt;/p&gt;
 &lt;table&gt;
 &lt;thead&gt;
@@ -305,7 +313,7 @@ Fehlermeldung nennt die Abhilfe.&lt;/p&gt;
 &lt;tr&gt;
 &lt;td&gt;systemd&lt;/td&gt;
 &lt;td&gt;von &lt;code&gt;LoadCredentialEncrypted=&lt;/code&gt; gesetzt&lt;/td&gt;
-&lt;td&gt;der Dienstbenutzer, &lt;code&gt;0400&lt;/code&gt;, auf einem privaten tmpfs&lt;/td&gt;
+&lt;td&gt;mit &lt;code&gt;DynamicUser=yes&lt;/code&gt; (wie ausgeliefert): Eigentum von root mit schreibgeschützter ACL für die UID des Dienstes, akzeptiert; mit festem &lt;code&gt;User=&lt;/code&gt; auf einem Dateisystem ohne ACL: der Dienstbenutzer, &lt;code&gt;0400&lt;/code&gt;. Privates tmpfs&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;Docker Swarm&lt;/td&gt;

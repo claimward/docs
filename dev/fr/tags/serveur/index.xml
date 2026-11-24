@@ -438,8 +438,8 @@ sont des fichiers d&amp;rsquo;un répertoire d&amp;rsquo;identifiants, voir &lt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;METRICS_ADDR&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;127.0.0.1:9090&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;écouteur séparé pour &lt;code&gt;/metrics&lt;/code&gt; (boucle locale par défaut ; plus servi sur &lt;code&gt;LISTEN_ADDR&lt;/code&gt;)&lt;/td&gt;
+&lt;td&gt;— (désactivé)&lt;/td&gt;
+&lt;td&gt;écouteur séparé pour &lt;code&gt;/metrics&lt;/code&gt;, servi &lt;strong&gt;seulement si défini&lt;/strong&gt; (depuis la v0.9.0 il n&amp;rsquo;y a plus de port par défaut : l&amp;rsquo;ancien &lt;code&gt;127.0.0.1:9090&lt;/code&gt; entrait en conflit avec Prometheus) ; jamais sur &lt;code&gt;LISTEN_ADDR&lt;/code&gt;. Il nomme chaque tenant : gardez-le en boucle locale ou sur un réseau privé&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;MAX_DEVICES_PER_SUBJECT&lt;/code&gt;&lt;/td&gt;
@@ -513,7 +513,14 @@ n&amp;rsquo;appartient pas à l&amp;rsquo;uid du serveur, un fichier vide et un 
 64 Kio. Une exception depuis la v0.7.1 : un fichier appartenant à l&amp;rsquo;uid 0, de
 mode exactement &lt;code&gt;0440&lt;/code&gt;, est accepté si son groupe est le gid du serveur ou l&amp;rsquo;un
 de ses groupes supplémentaires (ce que produit un volume Secret Kubernetes avec
-&lt;code&gt;fsGroup&lt;/code&gt;). L&amp;rsquo;erreur donne la correction.&lt;/p&gt;
+&lt;code&gt;fsGroup&lt;/code&gt;). Une seconde depuis la v0.9.0, pour systemd avec &lt;code&gt;DynamicUser=yes&lt;/code&gt; :
+systemd laisse le fichier &lt;code&gt;root:root&lt;/code&gt;, mode &lt;code&gt;0400&lt;/code&gt;, plus une entrée d&amp;rsquo;ACL POSIX
+en lecture seule pour l&amp;rsquo;uid du service (&lt;code&gt;src/core/exec-credential.c:338-361&lt;/code&gt;,
+&lt;code&gt;src/shared/acl-util.c:448-494&lt;/code&gt;), donc &lt;code&gt;stat&lt;/code&gt; affiche &lt;code&gt;0440&lt;/code&gt;. Le serveur lit
+&lt;code&gt;system.posix_acl_access&lt;/code&gt; depuis le descripteur ouvert et accepte exactement
+&lt;code&gt;user::r--&lt;/code&gt;, &lt;code&gt;user:&amp;lt;son uid&amp;gt;:r--&lt;/code&gt;, &lt;code&gt;group::---&lt;/code&gt;, &lt;code&gt;mask::r--&lt;/code&gt;, &lt;code&gt;other::---&lt;/code&gt; ;
+tout autre utilisateur ou groupe nommé, tout bit d&amp;rsquo;écriture ou d&amp;rsquo;exécution, ou
+une valeur mal formée ou trop grande est refusé. L&amp;rsquo;erreur donne la correction.&lt;/p&gt;
 &lt;table&gt;
 &lt;thead&gt;
 &lt;tr&gt;
@@ -526,7 +533,7 @@ de ses groupes supplémentaires (ce que produit un volume Secret Kubernetes avec
 &lt;tr&gt;
 &lt;td&gt;systemd&lt;/td&gt;
 &lt;td&gt;défini par &lt;code&gt;LoadCredentialEncrypted=&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;l&amp;rsquo;utilisateur du service, &lt;code&gt;0400&lt;/code&gt;, sur un tmpfs privé&lt;/td&gt;
+&lt;td&gt;avec &lt;code&gt;DynamicUser=yes&lt;/code&gt; (comme livré) : propriété de root avec une ACL en lecture seule pour l&amp;rsquo;uid du service, acceptée ; avec un &lt;code&gt;User=&lt;/code&gt; fixe sur un système de fichiers sans ACL : l&amp;rsquo;utilisateur du service, &lt;code&gt;0400&lt;/code&gt;. tmpfs privé&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;Docker Swarm&lt;/td&gt;
