@@ -535,6 +535,9 @@ data-copied-label="Kopiert!"
 &lt;/button&gt;
 &lt;/div&gt;
 &lt;/div&gt;
+&lt;p&gt;&lt;code&gt;rcctl start&lt;/code&gt; meldet &lt;code&gt;(ok)&lt;/code&gt; erst, wenn der Server auf &lt;code&gt;LISTEN_ADDR&lt;/code&gt; Verbindungen
+annimmt; ein Daemon, der vorher endet, etwa an einem Geheimnis, das dem Konto
+&lt;code&gt;_claimward&lt;/code&gt; nicht gehört, ergibt &lt;code&gt;(failed)&lt;/code&gt;.&lt;/p&gt;
 &lt;p&gt;Das Protokoll geht an syslog (&lt;code&gt;/var/log/daemon&lt;/code&gt;). Die CI führt dieses Skript in
 echten OpenBSD-7.9- und -8.0-VMs aus: &lt;code&gt;rcctl start&lt;/code&gt;, die Startzeile,
 &lt;code&gt;rcctl check&lt;/code&gt;, ein Eltern-Prozess als root mit einem Kind &lt;code&gt;_claimward&lt;/code&gt;, eine

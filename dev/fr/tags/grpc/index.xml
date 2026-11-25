@@ -754,6 +754,9 @@ data-copied-label="Copié !"
 &lt;/button&gt;
 &lt;/div&gt;
 &lt;/div&gt;
+&lt;p&gt;&lt;code&gt;rcctl start&lt;/code&gt; ne répond &lt;code&gt;(ok)&lt;/code&gt; que lorsque le serveur accepte des connexions
+sur &lt;code&gt;LISTEN_ADDR&lt;/code&gt; ; un démon qui se termine avant, par exemple sur un secret que
+le compte &lt;code&gt;_claimward&lt;/code&gt; ne possède pas, donne &lt;code&gt;(failed)&lt;/code&gt;.&lt;/p&gt;
 &lt;p&gt;Le journal va dans syslog (&lt;code&gt;/var/log/daemon&lt;/code&gt;). La CI exécute ce script dans de
 vraies machines virtuelles OpenBSD 7.9 et 8.0 : &lt;code&gt;rcctl start&lt;/code&gt;, la ligne de
 démarrage, &lt;code&gt;rcctl check&lt;/code&gt;, un parent root avec un enfant &lt;code&gt;_claimward&lt;/code&gt;, une

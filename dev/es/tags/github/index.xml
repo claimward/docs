@@ -533,6 +533,9 @@ data-copied-label="¡Copiado!"
 &lt;/button&gt;
 &lt;/div&gt;
 &lt;/div&gt;
+&lt;p&gt;&lt;code&gt;rcctl start&lt;/code&gt; responde &lt;code&gt;(ok)&lt;/code&gt; solo cuando el servidor acepta conexiones en
+&lt;code&gt;LISTEN_ADDR&lt;/code&gt;; un demonio que termina antes, por ejemplo por un secreto que la
+cuenta &lt;code&gt;_claimward&lt;/code&gt; no posee, da &lt;code&gt;(failed)&lt;/code&gt;.&lt;/p&gt;
 &lt;p&gt;El registro va a syslog (&lt;code&gt;/var/log/daemon&lt;/code&gt;). La CI ejecuta este script en
 máquinas virtuales OpenBSD 7.9 y 8.0 reales: &lt;code&gt;rcctl start&lt;/code&gt;, la línea de
 arranque, &lt;code&gt;rcctl check&lt;/code&gt;, un padre root con un hijo &lt;code&gt;_claimward&lt;/code&gt;, un alta a
