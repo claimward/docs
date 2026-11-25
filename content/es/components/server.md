@@ -275,6 +275,10 @@ rcctl enable claimward_server
 rcctl start claimward_server && rcctl check claimward_server
 ```
 
+`rcctl start` responde `(ok)` solo cuando el servidor acepta conexiones en
+`LISTEN_ADDR`; un demonio que termina antes, por ejemplo por un secreto que la
+cuenta `_claimward` no posee, da `(failed)`.
+
 El registro va a syslog (`/var/log/daemon`). La CI ejecuta este script en
 máquinas virtuales OpenBSD 7.9 y 8.0 reales: `rcctl start`, la línea de
 arranque, `rcctl check`, un padre root con un hijo `_claimward`, un alta a
