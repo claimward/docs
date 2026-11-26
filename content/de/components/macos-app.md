@@ -7,7 +7,7 @@ tags: [macos, app, helper, go-widgets]
 ---
 
 [`claimward-vpn-app-osx`](https://github.com/claimward/claimward-vpn-app-osx)
-**v0.7.0** ist eine native, in Go geschriebene App: ein Fenster und ein Menüleisten-Symbol,
+**v0.8.0** ist eine native, in Go geschriebene App: ein Fenster und ein Menüleisten-Symbol,
 mit [go-widgets](https://github.com/go-widgets) gezeichnet, mit den `NSTextField` und
 `NSPopUpButton` des Systems für die Eingaben. Es gibt keine Webview, keinen lokalen
 Webserver und kein JavaScript (vor v0.7.0 war das Fenster eine Svelte-Seite in einer
