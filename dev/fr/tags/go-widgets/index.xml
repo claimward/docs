@@ -35,6 +35,12 @@ data-copied-label="Copié !"
 de saisie et sa correction orthographique ; les choix du fournisseur et du locataire sont
 des menus locaux. Le &lt;a href="https://claimward.github.io/docs/dev/fr/components/helper/"&gt;helper&lt;/a&gt; s&amp;rsquo;enrôle auprès du
 serveur et détient le tunnel. Fermer la fenêtre quitte l&amp;rsquo;application, comme sous Linux et Windows.&lt;/p&gt;
+&lt;p&gt;La fenêtre a un en-tête (le logo Claimward, le titre et &lt;strong&gt;Settings&lt;/strong&gt;), une barre latérale
+&lt;strong&gt;Servers&lt;/strong&gt; à gauche avec &lt;strong&gt;+&lt;/strong&gt; et &lt;strong&gt;−&lt;/strong&gt; sous la liste, et à droite le panneau de détail du
+serveur sélectionné : son nom, le menu local &lt;strong&gt;Tenant&lt;/strong&gt; avec &lt;strong&gt;Refresh&lt;/strong&gt;, l&amp;rsquo;état de la
+session, la connexion, Connect et Disconnect, et le journal de connexion. Le formulaire de
+réglages s&amp;rsquo;ouvre dans une fenêtre à part, pour que l&amp;rsquo;état reste visible ; il s&amp;rsquo;affiche dans
+la fenêtre principale là où une seconde fenêtre ne peut pas s&amp;rsquo;ouvrir.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="build"&gt;Compilation&lt;span class="hx:absolute hx:-mt-20" id="build"&gt;&lt;/span&gt;
 &lt;a href="#build" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Avec &lt;a href="https://taskfile.dev" target="_blank" rel="noopener"&gt;go-task&lt;/a&gt; :&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
@@ -71,7 +77,7 @@ data-copied-label="Copié !"
 &lt;/div&gt;
 &lt;h2 data-hextra-search-id="configure"&gt;Configuration&lt;span class="hx:absolute hx:-mt-20" id="configure"&gt;&lt;/span&gt;
 &lt;a href="#configure" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;~/Library/Application Support/Claimward/config.json&lt;/code&gt;, également modifiable depuis la
-page &lt;strong&gt;Settings&lt;/strong&gt; de la fenêtre (GitHub est la valeur par défaut) :&lt;/p&gt;
+fenêtre &lt;strong&gt;Settings&lt;/strong&gt; (GitHub est la valeur par défaut) :&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;server_url&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;https://vpn.example.com&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
@@ -115,8 +121,8 @@ Le socket du helper est &lt;code&gt;/var/run/claimward-helper.sock&lt;/code&gt;,
 &lt;code&gt;root:admin&lt;/code&gt; ; il journalise dans &lt;code&gt;/var/log/claimward-helper.log&lt;/code&gt;.
 &lt;code&gt;sudo ./scripts/uninstall-helper.sh&lt;/code&gt; le supprime.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="tenants"&gt;Locataires&lt;span class="hx:absolute hx:-mt-20" id="tenants"&gt;&lt;/span&gt;
-&lt;a href="#tenants" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Une personne appartenant à plusieurs locataires en choisit un dans la fenêtre (« Choose a tenant… »),
-qui les propose dès que le serveur indique qu&amp;rsquo;un choix est possible, ou sur demande. Le
+&lt;a href="#tenants" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Une personne appartenant à plusieurs locataires en choisit un dans le menu local &lt;strong&gt;Tenant&lt;/strong&gt; du panneau de détail,
+qui les liste dès que le serveur les a proposés ; &lt;strong&gt;Refresh&lt;/strong&gt; les redemande. Le
 choix vaut pour la session ; une nouvelle connexion l&amp;rsquo;oublie. Un &lt;strong&gt;Connect&lt;/strong&gt; depuis la
 barre des menus que le serveur refuse faute de choix ouvre la fenêtre.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="release"&gt;Publication&lt;span class="hx:absolute hx:-mt-20" id="release"&gt;&lt;/span&gt;

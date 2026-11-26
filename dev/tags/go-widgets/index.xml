@@ -34,6 +34,12 @@ URL, client IDs) are the system&amp;rsquo;s text fields, with its input method a
 checking; the provider and tenant choices are pop-up buttons. The
 &lt;a href="https://claimward.github.io/docs/dev/components/helper/"&gt;helper&lt;/a&gt; enrolls with the server and
 owns the tunnel. Closing the window quits the app, as on Linux and Windows.&lt;/p&gt;
+&lt;p&gt;The window has a header (the Claimward mark, the title and &lt;strong&gt;Settings&lt;/strong&gt;), a
+&lt;strong&gt;Servers&lt;/strong&gt; sidebar on the left with &lt;strong&gt;+&lt;/strong&gt; and &lt;strong&gt;−&lt;/strong&gt; under the list, and the
+selected server&amp;rsquo;s detail panel on the right: its name, the &lt;strong&gt;Tenant&lt;/strong&gt; pop-up
+with &lt;strong&gt;Refresh&lt;/strong&gt;, the session state, sign-in, Connect and Disconnect, and the
+connection log. The settings form opens in a window of its own, so the status
+stays visible; it shows in the main window where a second window cannot open.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="build"&gt;Build&lt;span class="hx:absolute hx:-mt-20" id="build"&gt;&lt;/span&gt;
 &lt;a href="#build" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;With &lt;a href="https://taskfile.dev" target="_blank" rel="noopener"&gt;go-task&lt;/a&gt;:&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
@@ -70,7 +76,7 @@ data-copied-label="Copied!"
 &lt;/div&gt;
 &lt;h2 data-hextra-search-id="configure"&gt;Configure&lt;span class="hx:absolute hx:-mt-20" id="configure"&gt;&lt;/span&gt;
 &lt;a href="#configure" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;~/Library/Application Support/Claimward/config.json&lt;/code&gt;, also editable from the
-window&amp;rsquo;s &lt;strong&gt;Settings&lt;/strong&gt; page (GitHub is the default):&lt;/p&gt;
+&lt;strong&gt;Settings&lt;/strong&gt; window (GitHub is the default):&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;server_url&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;https://vpn.example.com&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
@@ -114,8 +120,8 @@ The helper&amp;rsquo;s socket is &lt;code&gt;/var/run/claimward-helper.sock&lt;/
 &lt;code&gt;root:admin&lt;/code&gt;; it logs to &lt;code&gt;/var/log/claimward-helper.log&lt;/code&gt;.
 &lt;code&gt;sudo ./scripts/uninstall-helper.sh&lt;/code&gt; removes it.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="tenants"&gt;Tenants&lt;span class="hx:absolute hx:-mt-20" id="tenants"&gt;&lt;/span&gt;
-&lt;a href="#tenants" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;A person in several tenants chooses one in the window (&amp;ldquo;Choose a tenant…&amp;rdquo;),
-which offers them once the server says there is a choice, or on request. The
+&lt;a href="#tenants" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;A person in several tenants chooses one in the detail panel&amp;rsquo;s &lt;strong&gt;Tenant&lt;/strong&gt; pop-up,
+which lists them once the server has offered them; &lt;strong&gt;Refresh&lt;/strong&gt; asks again. The
 choice holds for the session; a new sign-in forgets it. A &lt;strong&gt;Connect&lt;/strong&gt; from the
 menu bar that the server refuses for want of a choice opens the window.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="release"&gt;Release&lt;span class="hx:absolute hx:-mt-20" id="release"&gt;&lt;/span&gt;

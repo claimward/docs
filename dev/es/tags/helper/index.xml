@@ -183,6 +183,12 @@ data-copied-label="¡Copiado!"
 método de entrada y su corrector ortográfico; las elecciones de proveedor e inquilino son
 menús emergentes. El &lt;a href="https://claimward.github.io/docs/dev/es/components/helper/"&gt;helper&lt;/a&gt; se registra en el
 servidor y gestiona el túnel. Cerrar la ventana cierra la aplicación, como en Linux y Windows.&lt;/p&gt;
+&lt;p&gt;La ventana tiene una cabecera (la marca Claimward, el título y &lt;strong&gt;Settings&lt;/strong&gt;), una barra
+lateral &lt;strong&gt;Servers&lt;/strong&gt; a la izquierda con &lt;strong&gt;+&lt;/strong&gt; y &lt;strong&gt;−&lt;/strong&gt; bajo la lista, y a la derecha el panel
+de detalle del servidor seleccionado: su nombre, el menú emergente &lt;strong&gt;Tenant&lt;/strong&gt; con
+&lt;strong&gt;Refresh&lt;/strong&gt;, el estado de la sesión, el inicio de sesión, Connect y Disconnect, y el
+registro de conexión. El formulario de ajustes se abre en una ventana propia, para que el
+estado siga visible; se muestra en la ventana principal donde no se puede abrir una segunda.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="build"&gt;Compilación&lt;span class="hx:absolute hx:-mt-20" id="build"&gt;&lt;/span&gt;
 &lt;a href="#build" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Con &lt;a href="https://taskfile.dev" target="_blank" rel="noopener"&gt;go-task&lt;/a&gt;:&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
@@ -219,7 +225,7 @@ data-copied-label="¡Copiado!"
 &lt;/div&gt;
 &lt;h2 data-hextra-search-id="configure"&gt;Configuración&lt;span class="hx:absolute hx:-mt-20" id="configure"&gt;&lt;/span&gt;
 &lt;a href="#configure" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;~/Library/Application Support/Claimward/config.json&lt;/code&gt;, también editable desde la
-página &lt;strong&gt;Settings&lt;/strong&gt; de la ventana (GitHub es el valor predeterminado):&lt;/p&gt;
+ventana &lt;strong&gt;Settings&lt;/strong&gt; (GitHub es el valor predeterminado):&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;server_url&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;https://vpn.example.com&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
@@ -263,8 +269,8 @@ El socket del helper es &lt;code&gt;/var/run/claimward-helper.sock&lt;/code&gt;,
 &lt;code&gt;root:admin&lt;/code&gt;; registra en &lt;code&gt;/var/log/claimward-helper.log&lt;/code&gt;.
 &lt;code&gt;sudo ./scripts/uninstall-helper.sh&lt;/code&gt; lo elimina.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="tenants"&gt;Inquilinos&lt;span class="hx:absolute hx:-mt-20" id="tenants"&gt;&lt;/span&gt;
-&lt;a href="#tenants" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Una persona que pertenece a varios inquilinos elige uno en la ventana (&amp;ldquo;Choose a tenant…&amp;rdquo;),
-que los ofrece en cuanto el servidor indica que hay que elegir, o a petición. La
+&lt;a href="#tenants" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Una persona que pertenece a varios inquilinos elige uno en el menú emergente &lt;strong&gt;Tenant&lt;/strong&gt; del panel de detalle,
+que los lista en cuanto el servidor los ha ofrecido; &lt;strong&gt;Refresh&lt;/strong&gt; vuelve a pedirlos. La
 elección se mantiene durante la sesión; un nuevo inicio de sesión la olvida. Un &lt;strong&gt;Connect&lt;/strong&gt; desde la
 barra de menús que el servidor rechaza a falta de elección abre la ventana.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="release"&gt;Publicación&lt;span class="hx:absolute hx:-mt-20" id="release"&gt;&lt;/span&gt;

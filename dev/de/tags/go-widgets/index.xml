@@ -35,6 +35,12 @@ Eingabemethode und Rechtschreibprüfung; die Wahl von Anbieter und Mandant sind
 Popup-Menüs. Der &lt;a href="https://claimward.github.io/docs/dev/de/components/helper/"&gt;Helper&lt;/a&gt; registriert sich beim
 Server und besitzt den Tunnel. Das Schließen des Fensters beendet die App, wie unter Linux
 und Windows.&lt;/p&gt;
+&lt;p&gt;Das Fenster hat eine Kopfzeile (das Claimward-Zeichen, den Titel und &lt;strong&gt;Settings&lt;/strong&gt;), links
+eine Seitenleiste &lt;strong&gt;Servers&lt;/strong&gt; mit &lt;strong&gt;+&lt;/strong&gt; und &lt;strong&gt;−&lt;/strong&gt; unter der Liste und rechts den
+Detailbereich des gewählten Servers: Name, das Popup-Menü &lt;strong&gt;Tenant&lt;/strong&gt; mit &lt;strong&gt;Refresh&lt;/strong&gt;, den
+Sitzungsstatus, Anmeldung, Connect und Disconnect sowie das Verbindungsprotokoll. Das
+Einstellungsformular öffnet sich in einem eigenen Fenster, damit der Status sichtbar bleibt;
+wo kein zweites Fenster geöffnet werden kann, erscheint es im Hauptfenster.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="build"&gt;Build&lt;span class="hx:absolute hx:-mt-20" id="build"&gt;&lt;/span&gt;
 &lt;a href="#build" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Mit &lt;a href="https://taskfile.dev" target="_blank" rel="noopener"&gt;go-task&lt;/a&gt;:&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
@@ -71,7 +77,7 @@ data-copied-label="Kopiert!"
 &lt;/div&gt;
 &lt;h2 data-hextra-search-id="configure"&gt;Konfiguration&lt;span class="hx:absolute hx:-mt-20" id="configure"&gt;&lt;/span&gt;
 &lt;a href="#configure" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;~/Library/Application Support/Claimward/config.json&lt;/code&gt;, auch bearbeitbar über die
-Seite &lt;strong&gt;Settings&lt;/strong&gt; des Fensters (GitHub ist der Standard):&lt;/p&gt;
+Fenster &lt;strong&gt;Settings&lt;/strong&gt; (GitHub ist der Standard):&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;server_url&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;https://vpn.example.com&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
@@ -115,8 +121,8 @@ Der Socket des Helpers ist &lt;code&gt;/var/run/claimward-helper.sock&lt;/code&g
 &lt;code&gt;root:admin&lt;/code&gt;; er protokolliert nach &lt;code&gt;/var/log/claimward-helper.log&lt;/code&gt;.
 &lt;code&gt;sudo ./scripts/uninstall-helper.sh&lt;/code&gt; entfernt ihn.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="tenants"&gt;Mandanten&lt;span class="hx:absolute hx:-mt-20" id="tenants"&gt;&lt;/span&gt;
-&lt;a href="#tenants" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Eine Person in mehreren Mandanten wählt einen im Fenster aus („Choose a tenant…“),
-das sie anbietet, sobald der Server meldet, dass eine Wahl besteht, oder auf Anfrage. Die
+&lt;a href="#tenants" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Eine Person in mehreren Mandanten wählt einen im Popup-Menü &lt;strong&gt;Tenant&lt;/strong&gt; des Detailbereichs aus,
+das sie auflistet, sobald der Server sie angeboten hat; &lt;strong&gt;Refresh&lt;/strong&gt; fragt erneut. Die
 Wahl gilt für die Sitzung; eine neue Anmeldung vergisst sie. Ein &lt;strong&gt;Connect&lt;/strong&gt; aus der
 Menüleiste, das der Server mangels Auswahl ablehnt, öffnet das Fenster.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="release"&gt;Release&lt;span class="hx:absolute hx:-mt-20" id="release"&gt;&lt;/span&gt;
