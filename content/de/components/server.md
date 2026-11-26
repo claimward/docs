@@ -7,7 +7,7 @@ tags: [server, wireguard, grpc, github, oidc, go-authn]
 ---
 
 [`claimward-vpn-server`](https://github.com/claimward/claimward-vpn-server)
-**v0.10.0** ist die Steuerungsebene. Er prüft das Bearer-Token, das ein Gerät vorlegt,
+**v0.13.0** ist die Steuerungsebene. Er prüft das Bearer-Token, das ein Gerät vorlegt,
 vergibt VPN-Adressen und programmiert das WireGuard-Gateway mit einem Peer pro
 registriertem Gerät. Er läuft auf dem Gateway-Host, neben einem vorhandenen `wg0`: Linux
 (nftables) oder, ab v0.10.0, OpenBSD (pf, siehe [OpenBSD](#openbsd)).

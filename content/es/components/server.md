@@ -7,7 +7,7 @@ tags: [servidor, wireguard, grpc, github, oidc, go-authn]
 ---
 
 [`claimward-vpn-server`](https://github.com/claimward/claimward-vpn-server)
-**v0.10.0** es el plano de control. Verifica el bearer que presenta un dispositivo,
+**v0.13.0** es el plano de control. Verifica el bearer que presenta un dispositivo,
 asigna direcciones VPN y programa la pasarela WireGuard con un par por cada
 dispositivo registrado. Se ejecuta en el host de la pasarela, junto a un `wg0` existente: Linux
 (nftables) o, desde la v0.10.0, OpenBSD (pf, véase [OpenBSD](#openbsd)).
