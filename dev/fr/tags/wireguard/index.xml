@@ -785,7 +785,7 @@ c&amp;rsquo;est sur le module réduit à la bibliothèque que s&amp;rsquo;appuie
 &lt;tbody&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;&amp;lt;config dir&amp;gt;/Claimward/config.json&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;la configuration de l&amp;rsquo;application (&lt;code&gt;appcore.Config&lt;/code&gt;), &lt;code&gt;0600&lt;/code&gt;, surchargée par les variables &lt;code&gt;CLAIMWARD_*&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;la configuration de l&amp;rsquo;application (&lt;code&gt;appcore.Config&lt;/code&gt;), &lt;code&gt;0600&lt;/code&gt;, sa socket peut être surchargée par &lt;code&gt;CLAIMWARD_HELPER_SOCKET&lt;/code&gt;&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;&amp;lt;config dir&amp;gt;/claimward/session.enc&lt;/code&gt; (macOS et Linux), &lt;code&gt;session.dpapi&lt;/code&gt; (Windows)&lt;/td&gt;
@@ -795,47 +795,63 @@ c&amp;rsquo;est sur le module réduit à la bibliothèque que s&amp;rsquo;appuie
 &lt;/table&gt;
 &lt;p&gt;&lt;code&gt;&amp;lt;config dir&amp;gt;&lt;/code&gt; est le &lt;code&gt;os.UserConfigDir()&lt;/code&gt; de Go : &lt;code&gt;~/Library/Application Support&lt;/code&gt; sur
 macOS, &lt;code&gt;~/.config&lt;/code&gt; sur Linux, &lt;code&gt;%AppData%&lt;/code&gt; sur Windows.&lt;/p&gt;
+&lt;p&gt;Voici le format du &lt;strong&gt;client v0.10.0 et ultérieur&lt;/strong&gt;, qui se connecte à plusieurs
+serveurs à la fois. La personne ne saisit que l&amp;rsquo;URL d&amp;rsquo;un serveur ; le nom, les
+fournisseurs, l&amp;rsquo;exclusivité et le logo sont lus dans le
+&lt;code&gt;/.well-known/claimward-configuration&lt;/code&gt; du serveur.&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;version&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;servers&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;url&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;https://vpn.example.com&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;provider&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;campus&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;},&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;url&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;https://lab.example.org&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="p"&gt;],&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;socket_path&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;/var/run/claimward-helper.sock&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copier le code"
+aria-label="Copier le code"
+data-copied-label="Copié !"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
 &lt;table&gt;
 &lt;thead&gt;
 &lt;tr&gt;
 &lt;th&gt;Clé de &lt;code&gt;config.json&lt;/code&gt;&lt;/th&gt;
-&lt;th&gt;Variable&lt;/th&gt;
 &lt;th&gt;&lt;/th&gt;
 &lt;/tr&gt;
 &lt;/thead&gt;
 &lt;tbody&gt;
 &lt;tr&gt;
-&lt;td&gt;&lt;code&gt;server_url&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;CLAIMWARD_SERVER&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;l&amp;rsquo;URL de base du serveur ; doit faire partie de celles pour lesquelles le helper est configuré&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;version&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;2&lt;/code&gt;&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
-&lt;td&gt;&lt;code&gt;provider&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;CLAIMWARD_AUTH_PROVIDER&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;github&lt;/code&gt; (par défaut), &lt;code&gt;oidc&lt;/code&gt; ou &lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;servers[].url&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;l&amp;rsquo;URL de base du serveur (&lt;code&gt;https://&lt;/code&gt; ; &lt;code&gt;http://&lt;/code&gt; seulement en boucle locale) ; doit faire partie de celles pour lesquelles le helper est configuré&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
-&lt;td&gt;&lt;code&gt;github_client_id&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;CLAIMWARD_GITHUB_CLIENT_ID&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;l&amp;rsquo;identifiant client de l&amp;rsquo;application OAuth GitHub&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;&lt;code&gt;oidc_issuer&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;CLAIMWARD_OIDC_ISSUER&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;oidc&lt;/code&gt; et &lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;&lt;code&gt;oidc_client_id&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;CLAIMWARD_OIDC_CLIENT_ID&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;oidc&lt;/code&gt; et &lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;servers[].provider&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;facultatif : l&amp;rsquo;&lt;code&gt;id&lt;/code&gt; du fournisseur choisi dans le document du serveur&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;socket_path&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;CLAIMWARD_HELPER_SOCKET&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;la socket du helper, si ce n&amp;rsquo;est pas celle par défaut&lt;/td&gt;
+&lt;td&gt;facultatif : la socket du helper, si ce n&amp;rsquo;est pas celle par défaut. Peut être surchargée par &lt;code&gt;CLAIMWARD_HELPER_SOCKET&lt;/code&gt;, la seule variable restante&lt;/td&gt;
 &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
+&lt;p&gt;Un fichier de la v0.9.0 ou antérieure (&lt;code&gt;server_url&lt;/code&gt;, &lt;code&gt;provider&lt;/code&gt;, &lt;code&gt;github_client_id&lt;/code&gt;,
+&lt;code&gt;oidc_issuer&lt;/code&gt;, &lt;code&gt;oidc_client_id&lt;/code&gt;, et les variables &lt;code&gt;CLAIMWARD_SERVER&lt;/code&gt;,
+&lt;code&gt;CLAIMWARD_AUTH_PROVIDER&lt;/code&gt;, &lt;code&gt;CLAIMWARD_GITHUB_CLIENT_ID&lt;/code&gt;, &lt;code&gt;CLAIMWARD_OIDC_*&lt;/code&gt;) est
+migré une fois au premier chargement. Un serveur &lt;strong&gt;exclusif&lt;/strong&gt; est refusé tant qu&amp;rsquo;un
+autre est connecté, et tout autre est refusé tant qu&amp;rsquo;un serveur exclusif l&amp;rsquo;est ; le
+refus nomme le serveur bloquant. Linux et Windows ne tiennent pour l&amp;rsquo;instant qu&amp;rsquo;un
+tunnel à la fois ; macOS en tient un par serveur.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="use-in-your-own-tooling"&gt;Utilisation dans vos propres outils&lt;span class="hx:absolute hx:-mt-20" id="use-in-your-own-tooling"&gt;&lt;/span&gt;
 &lt;a href="#use-in-your-own-tooling" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-go" data-lang="go"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nx"&gt;ctx&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;context&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Background&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="w"&gt;

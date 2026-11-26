@@ -150,7 +150,7 @@ fields of version 1 by the list &lt;code&gt;providers&lt;/code&gt;, one entry pe
 &lt;code&gt;PROVIDERS_FILE&lt;/code&gt;, in file order: &lt;code&gt;id&lt;/code&gt; (what the client sends in
 &lt;code&gt;Claimward-Provider&lt;/code&gt;), &lt;code&gt;kind&lt;/code&gt; (&lt;code&gt;github&lt;/code&gt;, &lt;code&gt;oidc&lt;/code&gt; or &lt;code&gt;go-authn&lt;/code&gt;), &lt;code&gt;name&lt;/code&gt; (shown
 to the person), then &lt;code&gt;github_client_id&lt;/code&gt; for &lt;code&gt;github&lt;/code&gt;, &lt;code&gt;oidc_issuer&lt;/code&gt; and
-&lt;code&gt;oidc_client_id&lt;/code&gt; for &lt;code&gt;oidc&lt;/code&gt; and &lt;code&gt;go-authn&lt;/code&gt;. A client of version 0.9.0 or later
+&lt;code&gt;oidc_client_id&lt;/code&gt; for &lt;code&gt;oidc&lt;/code&gt; and &lt;code&gt;go-authn&lt;/code&gt;. A client of version 0.10.0 or later
 reads it; it refuses a document of a version it does not know.
 &lt;code&gt;server_name&lt;/code&gt; appears only when &lt;code&gt;SERVER_NAME&lt;/code&gt; is set, &lt;code&gt;logo&lt;/code&gt; only when
 &lt;code&gt;SERVER_LOGO_FILE&lt;/code&gt; is. &lt;code&gt;exclusive&lt;/code&gt; is &lt;code&gt;SERVER_EXCLUSIVE&lt;/code&gt;: this server refuses

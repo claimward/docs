@@ -152,7 +152,7 @@ seine Felder aus Version 1 durch die Liste &lt;code&gt;providers&lt;/code&gt;, e
 aus &lt;code&gt;PROVIDERS_FILE&lt;/code&gt;, in Dateireihenfolge: &lt;code&gt;id&lt;/code&gt; (was der Client in
 &lt;code&gt;Claimward-Provider&lt;/code&gt; sendet), &lt;code&gt;kind&lt;/code&gt; (&lt;code&gt;github&lt;/code&gt;, &lt;code&gt;oidc&lt;/code&gt; oder &lt;code&gt;go-authn&lt;/code&gt;), &lt;code&gt;name&lt;/code&gt;
 (der Person angezeigt), dann &lt;code&gt;github_client_id&lt;/code&gt; für &lt;code&gt;github&lt;/code&gt;, &lt;code&gt;oidc_issuer&lt;/code&gt; und
-&lt;code&gt;oidc_client_id&lt;/code&gt; für &lt;code&gt;oidc&lt;/code&gt; und &lt;code&gt;go-authn&lt;/code&gt;. Ein Client ab Version 0.9.0
+&lt;code&gt;oidc_client_id&lt;/code&gt; für &lt;code&gt;oidc&lt;/code&gt; und &lt;code&gt;go-authn&lt;/code&gt;. Ein Client ab Version 0.10.0
 liest es; ein Dokument einer ihm unbekannten Version lehnt er ab.
 &lt;code&gt;server_name&lt;/code&gt; erscheint nur, wenn &lt;code&gt;SERVER_NAME&lt;/code&gt; gesetzt ist, &lt;code&gt;logo&lt;/code&gt; nur, wenn
 &lt;code&gt;SERVER_LOGO_FILE&lt;/code&gt; es ist. &lt;code&gt;exclusive&lt;/code&gt; ist &lt;code&gt;SERVER_EXCLUSIVE&lt;/code&gt;: Dieser Server
@@ -1542,12 +1542,15 @@ data-copied-label="Kopiert!"
 &lt;/button&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;p&gt;Die App (ab v0.9.0) liest die Anbieter aus dem Discovery-Dokument des Servers; ihre
-&lt;code&gt;config.json&lt;/code&gt; braucht daher nur die URL des Servers, und sie sendet die &lt;code&gt;id&lt;/code&gt; des gewählten
+&lt;p&gt;Der Client (ab v0.10.0) liest die Anbieter aus dem Discovery-Dokument des Servers; seine
+&lt;code&gt;config.json&lt;/code&gt; braucht daher nur die URL des Servers, und er sendet die &lt;code&gt;id&lt;/code&gt; des gewählten
 Anbieters im Header &lt;code&gt;Claimward-Provider&lt;/code&gt;:&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;server_url&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;https://vpn.example.com&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;version&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;servers&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;url&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;https://vpn.example.com&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="p"&gt;]&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
 &lt;button
 class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
@@ -1560,6 +1563,7 @@ data-copied-label="Kopiert!"
 &lt;/button&gt;
 &lt;/div&gt;
 &lt;/div&gt;
+&lt;p&gt;(Ein Eintrag kann &lt;code&gt;provider&lt;/code&gt; erhalten, um die &lt;code&gt;id&lt;/code&gt; des gewählten Anbieters zu merken.)&lt;/p&gt;
 &lt;h2 data-hextra-search-id="adding-a-provider"&gt;Einen Anbieter hinzufügen&lt;span class="hx:absolute hx:-mt-20" id="adding-a-provider"&gt;&lt;/span&gt;
 &lt;a href="#adding-a-provider" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Implementieren Sie auf dem Server &lt;code&gt;Verifier&lt;/code&gt; (&lt;code&gt;internal/auth&lt;/code&gt;) und registrieren Sie ihn in
 &lt;code&gt;auth.New&lt;/code&gt;. Implementieren Sie auf dem Client &lt;code&gt;Provider&lt;/code&gt; (&lt;code&gt;pkg/auth&lt;/code&gt;) und registrieren Sie ihn in

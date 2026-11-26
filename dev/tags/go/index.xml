@@ -93,7 +93,7 @@ the library-only module is what the apps build on.&lt;/div&gt;
 &lt;tbody&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;&amp;lt;config dir&amp;gt;/Claimward/config.json&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;the app&amp;rsquo;s configuration (&lt;code&gt;appcore.Config&lt;/code&gt;), &lt;code&gt;0600&lt;/code&gt;, overridden by &lt;code&gt;CLAIMWARD_*&lt;/code&gt; variables&lt;/td&gt;
+&lt;td&gt;the app&amp;rsquo;s configuration (&lt;code&gt;appcore.Config&lt;/code&gt;), &lt;code&gt;0600&lt;/code&gt;, its socket may be overridden by &lt;code&gt;CLAIMWARD_HELPER_SOCKET&lt;/code&gt;&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;&amp;lt;config dir&amp;gt;/claimward/session.enc&lt;/code&gt; (macOS and Linux), &lt;code&gt;session.dpapi&lt;/code&gt; (Windows)&lt;/td&gt;
@@ -103,47 +103,63 @@ the library-only module is what the apps build on.&lt;/div&gt;
 &lt;/table&gt;
 &lt;p&gt;&lt;code&gt;&amp;lt;config dir&amp;gt;&lt;/code&gt; is Go&amp;rsquo;s &lt;code&gt;os.UserConfigDir()&lt;/code&gt;: &lt;code&gt;~/Library/Application Support&lt;/code&gt; on
 macOS, &lt;code&gt;~/.config&lt;/code&gt; on Linux, &lt;code&gt;%AppData%&lt;/code&gt; on Windows.&lt;/p&gt;
+&lt;p&gt;This is the format of &lt;strong&gt;client v0.10.0 and later&lt;/strong&gt;, which connects to several
+servers at once. The person types only a server URL; the name, providers,
+exclusivity and logo are read from the server&amp;rsquo;s
+&lt;code&gt;/.well-known/claimward-configuration&lt;/code&gt;.&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;version&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;servers&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;url&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;https://vpn.example.com&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;provider&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;campus&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;},&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;url&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;https://lab.example.org&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="p"&gt;],&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;socket_path&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;/var/run/claimward-helper.sock&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
 &lt;table&gt;
 &lt;thead&gt;
 &lt;tr&gt;
 &lt;th&gt;&lt;code&gt;config.json&lt;/code&gt; key&lt;/th&gt;
-&lt;th&gt;Variable&lt;/th&gt;
 &lt;th&gt;&lt;/th&gt;
 &lt;/tr&gt;
 &lt;/thead&gt;
 &lt;tbody&gt;
 &lt;tr&gt;
-&lt;td&gt;&lt;code&gt;server_url&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;CLAIMWARD_SERVER&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;the server&amp;rsquo;s base URL; must be one the helper is configured for&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;version&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;2&lt;/code&gt;&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
-&lt;td&gt;&lt;code&gt;provider&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;CLAIMWARD_AUTH_PROVIDER&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;github&lt;/code&gt; (default), &lt;code&gt;oidc&lt;/code&gt; or &lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;servers[].url&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;the server&amp;rsquo;s base URL (&lt;code&gt;https://&lt;/code&gt;; &lt;code&gt;http://&lt;/code&gt; only for loopback); must be one the helper is configured for&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
-&lt;td&gt;&lt;code&gt;github_client_id&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;CLAIMWARD_GITHUB_CLIENT_ID&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;the GitHub OAuth app&amp;rsquo;s client ID&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;&lt;code&gt;oidc_issuer&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;CLAIMWARD_OIDC_ISSUER&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;oidc&lt;/code&gt; and &lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;&lt;code&gt;oidc_client_id&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;CLAIMWARD_OIDC_CLIENT_ID&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;oidc&lt;/code&gt; and &lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;servers[].provider&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;optional: the &lt;code&gt;id&lt;/code&gt; of the provider chosen from the server&amp;rsquo;s document&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;socket_path&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;CLAIMWARD_HELPER_SOCKET&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;the helper&amp;rsquo;s socket, if not the default&lt;/td&gt;
+&lt;td&gt;optional: the helper&amp;rsquo;s socket, if not the default. May be overridden by &lt;code&gt;CLAIMWARD_HELPER_SOCKET&lt;/code&gt;, the only variable left&lt;/td&gt;
 &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
+&lt;p&gt;A file of v0.9.0 or earlier (&lt;code&gt;server_url&lt;/code&gt;, &lt;code&gt;provider&lt;/code&gt;, &lt;code&gt;github_client_id&lt;/code&gt;,
+&lt;code&gt;oidc_issuer&lt;/code&gt;, &lt;code&gt;oidc_client_id&lt;/code&gt;, and the &lt;code&gt;CLAIMWARD_SERVER&lt;/code&gt;,
+&lt;code&gt;CLAIMWARD_AUTH_PROVIDER&lt;/code&gt;, &lt;code&gt;CLAIMWARD_GITHUB_CLIENT_ID&lt;/code&gt;, &lt;code&gt;CLAIMWARD_OIDC_*&lt;/code&gt;
+variables) is migrated once on first load. An &lt;strong&gt;exclusive&lt;/strong&gt; server is refused
+while any other is connected, and any other is refused while an exclusive one is;
+the refusal names the blocking server. Linux and Windows hold one tunnel at a
+time for now; macOS holds one per server.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="use-in-your-own-tooling"&gt;Use in your own tooling&lt;span class="hx:absolute hx:-mt-20" id="use-in-your-own-tooling"&gt;&lt;/span&gt;
 &lt;a href="#use-in-your-own-tooling" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-go" data-lang="go"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nx"&gt;ctx&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;context&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Background&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="w"&gt;

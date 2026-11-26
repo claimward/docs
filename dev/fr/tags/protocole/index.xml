@@ -152,7 +152,7 @@ champs de la version 1 par la liste &lt;code&gt;providers&lt;/code&gt;, une entr
 &lt;code&gt;PROVIDERS_FILE&lt;/code&gt;, dans l&amp;rsquo;ordre du fichier : &lt;code&gt;id&lt;/code&gt; (ce que le client envoie dans
 &lt;code&gt;Claimward-Provider&lt;/code&gt;), &lt;code&gt;kind&lt;/code&gt; (&lt;code&gt;github&lt;/code&gt;, &lt;code&gt;oidc&lt;/code&gt; ou &lt;code&gt;go-authn&lt;/code&gt;), &lt;code&gt;name&lt;/code&gt; (montré
 à la personne), puis &lt;code&gt;github_client_id&lt;/code&gt; pour &lt;code&gt;github&lt;/code&gt;, &lt;code&gt;oidc_issuer&lt;/code&gt; et
-&lt;code&gt;oidc_client_id&lt;/code&gt; pour &lt;code&gt;oidc&lt;/code&gt; et &lt;code&gt;go-authn&lt;/code&gt;. Un client en version 0.9.0 ou plus récente
+&lt;code&gt;oidc_client_id&lt;/code&gt; pour &lt;code&gt;oidc&lt;/code&gt; et &lt;code&gt;go-authn&lt;/code&gt;. Un client en version 0.10.0 ou plus récente
 le lit ; il refuse un document d&amp;rsquo;une version qu&amp;rsquo;il ne connaît pas.
 &lt;code&gt;server_name&lt;/code&gt; n&amp;rsquo;apparaît que si &lt;code&gt;SERVER_NAME&lt;/code&gt; est défini, &lt;code&gt;logo&lt;/code&gt; que si
 &lt;code&gt;SERVER_LOGO_FILE&lt;/code&gt; l&amp;rsquo;est. &lt;code&gt;exclusive&lt;/code&gt; est &lt;code&gt;SERVER_EXCLUSIVE&lt;/code&gt; : ce serveur refuse de
