@@ -12,8 +12,13 @@ El contrato de comunicación entre los clientes y el servidor. Se define una sol
 
 Cada petición autenticada envía el token bearer de la persona como
 `Authorization: Bearer <token>`, nunca en el cuerpo: un **token de acceso OAuth
-de GitHub** (`AUTH_PROVIDER=github`), un **token de ID OIDC** (`oidc`), o un
-**token de acceso de go-authn** (`go-authn`). Los cuerpos de las peticiones son JSON, como máximo
+de GitHub** (un proveedor `github`), un **token de ID OIDC** (`oidc`), o un
+**token de acceso de go-authn** (`go-authn`). Desde el servidor v0.14.0 la petición
+nombra además el proveedor que lo emitió, en la cabecera **`Claimward-Provider: <id>`**
+(gRPC: el metadato `claimward-provider`), un `id` de los `providers` del documento
+de descubrimiento. El token lo juzga ese proveedor en exclusiva. Sin cabecera es
+`401 missing_provider`; un id que el servidor no enumera, o varios ids, es
+`401 unknown_provider`. Los cuerpos de las peticiones son JSON, como máximo
 64 KiB, y los campos desconocidos se rechazan.
 
 ## `POST /api/v1/enroll`
@@ -101,19 +106,42 @@ nunca un secreto. Respuesta `200`, `application/json`,
 
 ```json
 {
-  "version": 1,
+  "version": 2,
   "server_name": "Lab",
-  "provider": "github",
-  "github_client_id": "Iv1.0123456789abcdef",
-  "exclusive": false
+  "providers": [
+    { "id": "hub", "kind": "github", "name": "GitHub", "github_client_id": "Iv1.0123456789abcdef" },
+    { "id": "campus", "kind": "oidc", "name": "Campus", "oidc_issuer": "https://idp.example.org", "oidc_client_id": "claimward" }
+  ],
+  "exclusive": false,
+  "logo": { "path": "/.well-known/claimward-logo.svg", "sha256": "<hex>" }
 }
 ```
 
-`server_name` aparece solo si `SERVER_NAME` está definido. `github_client_id` se
-da para el proveedor `github`, `oidc_issuer` y `oidc_client_id` para `oidc` y
-`go-authn`. `exclusive` es `SERVER_EXCLUSIVE`: este servidor se niega a
+La versión 2 (servidor v0.14.0, **incompatible**) sustituye el `provider` único y
+sus campos de la versión 1 por la lista `providers`, una entrada por proveedor de
+`PROVIDERS_FILE`, en el orden del archivo: `id` (lo que el cliente envía en
+`Claimward-Provider`), `kind` (`github`, `oidc` o `go-authn`), `name` (se muestra
+a la persona), y después `github_client_id` para `github`, `oidc_issuer` y
+`oidc_client_id` para `oidc` y `go-authn`. Un cliente de la versión 0.9.0 o posterior
+lo lee; rechaza un documento de una versión que no conoce.
+`server_name` aparece solo si `SERVER_NAME` está definido, `logo` solo si lo está
+`SERVER_LOGO_FILE`. `exclusive` es `SERVER_EXCLUSIVE`: este servidor se niega a
 compartir la máquina con otros túneles de Claimward; los clientes no lo
 conectan junto a otros y rechazan a los demás mientras esté conectado.
+
+## `GET /.well-known/claimward-logo.svg` {#logo}
+
+El logotipo del servidor (desde el servidor v0.14.0), sin autenticación, presente
+solo cuando `SERVER_LOGO_FILE` está definido; en caso contrario `404`. El `logo` del
+documento de descubrimiento da su `path` y el `sha256` (hex) de sus bytes, de modo
+que un cliente puede guardarlo en caché y notar un cambio. Respuesta `200`:
+`Content-Type: image/svg+xml`, `X-Content-Type-Options: nosniff`,
+`Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; sandbox`,
+y `ETag` igual al mismo hash; una petición con un `If-None-Match` coincidente
+recibe `304`. El servidor valida el archivo al arrancar (64 KiB como máximo, sin
+script, sin referencia externa, sin DOCTYPE) y se niega a arrancar con uno no válido.
+Un cliente debe tratarlo igualmente como no fiable y mostrarlo como imagen, nunca
+en línea.
 
 ## Errores {#errors}
 
@@ -126,6 +154,8 @@ Las respuestas que no son 2xx contienen:
 | Código | Estado | Significado |
 |------|--------|---------|
 | `missing_token` / `invalid_token` | 401 | sin token bearer, o la verificación del proveedor ha fallado (incluida una lista de organizaciones o dominios permitidos) |
+| `missing_provider` | 401 | sin cabecera `Claimward-Provider` (desde v0.14.0) |
+| `unknown_provider` | 401 | la cabecera nombra un proveedor que el servidor no enumera, o varios (desde v0.14.0) |
 | `bad_public_key` / `bad_request` | 400 | entrada mal formada |
 | `key_not_registered` | 403 | go-authn: esta persona no ha registrado la clave en el proveedor |
 | `not_a_member` | 403 | el inquilino solicitado no es uno de los de quien hace la llamada, o ha dejado de serlo |
@@ -154,7 +184,8 @@ message RouteUpdate {
 
 El servidor escucha en `GRPC_ADDR` y anuncia `GRPC_ENDPOINT` en la
 respuesta de registro. El token bearer viaja en los metadatos,
-`authorization: Bearer <token>`, y se verifica igual que en la API HTTP. `Watch`
+`authorization: Bearer <token>`, con el proveedor en `claimward-provider`, y se
+verifica igual que en la API HTTP (`UNAUTHENTICATED` si uno de los dos es erróneo). `Watch`
 envía el conjunto actual de inmediato y después uno nuevo cada vez que cambian las rutas
 del inquilino, para el inquilino **en el que se registró el dispositivo**, determinado por `public_key`,
 que debe estar registrada por quien hace la llamada (`NOT_FOUND` en caso contrario,

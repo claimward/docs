@@ -12,8 +12,13 @@ The wire contract between the clients and the server. It is defined once in
 
 Every authenticated request sends the person's bearer as
 `Authorization: Bearer <token>`, never in the body: a **GitHub OAuth access
-token** (`AUTH_PROVIDER=github`), an **OIDC ID token** (`oidc`), or a
-**go-authn access token** (`go-authn`). Request bodies are JSON, at most
+token** (a `github` provider), an **OIDC ID token** (`oidc`), or a
+**go-authn access token** (`go-authn`). Since server v0.14.0 the request also
+names the provider that issued it, in the header **`Claimward-Provider: <id>`**
+(gRPC: the metadata `claimward-provider`), an `id` from the discovery
+document's `providers`. The token is judged by that provider alone. No header
+is `401 missing_provider`; an id the server does not list, or several ids, is
+`401 unknown_provider`. Request bodies are JSON, at most
 64 KiB, and unknown fields are refused.
 
 ## `POST /api/v1/enroll`
@@ -99,19 +104,41 @@ refused with `405`.
 
 ```json
 {
-  "version": 1,
+  "version": 2,
   "server_name": "Lab",
-  "provider": "github",
-  "github_client_id": "Iv1.0123456789abcdef",
-  "exclusive": false
+  "providers": [
+    { "id": "hub", "kind": "github", "name": "GitHub", "github_client_id": "Iv1.0123456789abcdef" },
+    { "id": "campus", "kind": "oidc", "name": "Campus", "oidc_issuer": "https://idp.example.org", "oidc_client_id": "claimward" }
+  ],
+  "exclusive": false,
+  "logo": { "path": "/.well-known/claimward-logo.svg", "sha256": "<hex>" }
 }
 ```
 
-`server_name` appears only when `SERVER_NAME` is set. `github_client_id` is
-given for the `github` provider, `oidc_issuer` and `oidc_client_id` for `oidc`
-and `go-authn`. `exclusive` is `SERVER_EXCLUSIVE`: this server refuses to share
-the machine with other Claimward tunnels, clients refuse to connect it
+Version 2 (server v0.14.0, **breaking**) replaces the single `provider` and its
+fields of version 1 by the list `providers`, one entry per provider of
+`PROVIDERS_FILE`, in file order: `id` (what the client sends in
+`Claimward-Provider`), `kind` (`github`, `oidc` or `go-authn`), `name` (shown
+to the person), then `github_client_id` for `github`, `oidc_issuer` and
+`oidc_client_id` for `oidc` and `go-authn`. A client of version 0.9.0 or later
+reads it; it refuses a document of a version it does not know.
+`server_name` appears only when `SERVER_NAME` is set, `logo` only when
+`SERVER_LOGO_FILE` is. `exclusive` is `SERVER_EXCLUSIVE`: this server refuses
+to share the machine with other Claimward tunnels, clients refuse to connect it
 alongside others, and refuse others while it is connected.
+
+## `GET /.well-known/claimward-logo.svg` {#logo}
+
+The server's logo (since server v0.14.0), unauthenticated, present only when
+`SERVER_LOGO_FILE` is set; otherwise `404`. The discovery document's `logo`
+gives its `path` and the `sha256` (hex) of its bytes, so a client can cache it
+and notice a change. Response `200`: `Content-Type: image/svg+xml`,
+`X-Content-Type-Options: nosniff`,
+`Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; sandbox`,
+and `ETag` set to the same hash; a request with a matching `If-None-Match` gets
+`304`. The server validates the file at start (at most 64 KiB, no script, no
+external reference, no DOCTYPE) and refuses to start on an invalid one. A
+client must still treat it as untrusted and render it as an image, never inline.
 
 ## Errors
 
@@ -124,6 +151,8 @@ Non-2xx responses carry:
 | Code | Status | Meaning |
 |------|--------|---------|
 | `missing_token` / `invalid_token` | 401 | no bearer, or the provider's verification failed (including an organisation or domain allowlist) |
+| `missing_provider` | 401 | no `Claimward-Provider` header (since v0.14.0) |
+| `unknown_provider` | 401 | the header names a provider the server does not list, or several (since v0.14.0) |
 | `bad_public_key` / `bad_request` | 400 | malformed input |
 | `key_not_registered` | 403 | go-authn: the key is not registered at the provider by this person |
 | `not_a_member` | 403 | the tenant asked for is not one of the caller's, or no longer is |
@@ -152,7 +181,8 @@ message RouteUpdate {
 
 The server listens on `GRPC_ADDR` and advertises `GRPC_ENDPOINT` in the
 enrollment response. The bearer travels in the metadata,
-`authorization: Bearer <token>`, and is verified as for the HTTP API. `Watch`
+`authorization: Bearer <token>`, with the provider in `claimward-provider`, and
+is verified as for the HTTP API (`UNAUTHENTICATED` when either is wrong). `Watch`
 sends the current set at once, then a new one each time the tenant's routes
 change, for the tenant **the device enrolled into**, found by `public_key`,
 which must be enrolled by the caller (`NOT_FOUND` otherwise,
