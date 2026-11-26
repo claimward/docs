@@ -75,13 +75,21 @@ For several gateways or a durable audit trail, the `store`, `ipam` and
 
 ## Identity provider
 
-By default Claimward signs people in with **GitHub** (device flow): create a
-GitHub OAuth App with **Device Flow** enabled and restrict access with
-`GITHUB_ALLOWED_ORGS`. For **OIDC**, set `AUTH_PROVIDER=oidc` with a
-native/public PKCE client, and restrict with `OIDC_ALLOWED_DOMAINS`. For
-**go-authn**, set `AUTH_PROVIDER=go-authn` with the gateway's own client: the
-provider then decides which keys may connect, and a gateway that cannot fetch
-its list admits nobody new. See
+Since v0.14.0 the server takes **one or several** providers from the JSON file
+named by `PROVIDERS_FILE` (required, 1 MiB at most). The old variables
+`AUTH_PROVIDER`, `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_ALLOWED_DOMAINS`,
+`GITHUB_CLIENT_ID`, `GITHUB_ALLOWED_ORGS` and `GOAUTHN_GATEWAY_CLIENT_ID` are
+refused at start. A `github` provider needs a GitHub OAuth App with **Device
+Flow** enabled, its client secret in the file `provider-<id>-secret`, and
+`allowed_orgs` to restrict access. An `oidc` provider needs a native/public
+PKCE client, and `allowed_domains` restricts it. A `go-authn` provider uses the
+gateway's own client (`gateway_client_id`, secret in
+`provider-<id>-gateway-secret`): the provider then decides which keys may
+connect, and a gateway that cannot fetch its list admits nobody new. Every
+request names its provider in the `Claimward-Provider` header (`401
+missing_provider`, `401 unknown_provider`). `SERVER_LOGO_FILE` publishes a logo
+at `/.well-known/claimward-logo.svg`. After a change to the file, restart the
+server. See
 [Identity providers]({{< relref "/identity-providers.md" >}}).
 
 ## Admin API and WebUI

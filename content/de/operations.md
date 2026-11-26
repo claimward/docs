@@ -75,13 +75,21 @@ Für mehrere Gateways oder einen dauerhaften Audit-Trail benötigen die Pakete `
 
 ## Identitätsanbieter {#identity-provider}
 
-Standardmäßig meldet Claimward Personen mit **GitHub** an (Device Flow): Legen Sie eine
-GitHub-OAuth-App mit aktiviertem **Device Flow** an und beschränken Sie den Zugang mit
-`GITHUB_ALLOWED_ORGS`. Für **OIDC** setzen Sie `AUTH_PROVIDER=oidc` mit einem
-nativen/öffentlichen PKCE-Client und beschränken mit `OIDC_ALLOWED_DOMAINS`. Für
-**go-authn** setzen Sie `AUTH_PROVIDER=go-authn` mit dem eigenen Client des Gateways: Der
-Anbieter entscheidet dann, welche Schlüssel sich verbinden dürfen, und ein Gateway, das
-seine Liste nicht abrufen kann, lässt niemanden Neues zu. Siehe
+Seit v0.14.0 liest der Server **einen oder mehrere** Anbieter aus der JSON-Datei,
+die `PROVIDERS_FILE` benennt (erforderlich, höchstens 1 MiB). Die alten Variablen
+`AUTH_PROVIDER`, `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_ALLOWED_DOMAINS`,
+`GITHUB_CLIENT_ID`, `GITHUB_ALLOWED_ORGS` und `GOAUTHN_GATEWAY_CLIENT_ID` werden
+beim Start abgelehnt. Ein Anbieter `github` braucht eine GitHub-OAuth-App mit aktiviertem **Device
+Flow**, ihr Client-Secret in der Datei `provider-<id>-secret` und `allowed_orgs`,
+um den Zugang zu beschränken. Ein Anbieter `oidc` braucht einen nativen/öffentlichen
+PKCE-Client, und `allowed_domains` beschränkt ihn. Ein Anbieter `go-authn` nutzt den
+eigenen Client des Gateways (`gateway_client_id`, Secret in
+`provider-<id>-gateway-secret`): Der Anbieter entscheidet dann, welche Schlüssel sich
+verbinden dürfen, und ein Gateway, das seine Liste nicht abrufen kann, lässt niemanden
+Neues zu. Jede Anfrage benennt ihren Anbieter im Header `Claimward-Provider`
+(`401 missing_provider`, `401 unknown_provider`). `SERVER_LOGO_FILE` veröffentlicht ein
+Logo unter `/.well-known/claimward-logo.svg`. Starten Sie den Server nach einer Änderung
+der Datei neu. Siehe
 [Identitätsanbieter]({{< relref "/identity-providers.md" >}}).
 
 ## Admin-API und WebUI {#admin-api-and-webui}
