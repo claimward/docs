@@ -36,11 +36,13 @@ checking; the provider and tenant choices are pop-up buttons. The
 owns the tunnel. Closing the window quits the app, as on Linux and Windows.
 
 The window has a header (the Claimward mark, the title and **Settings**), a
-**Servers** sidebar on the left with **+** and **−** under the list, and the
+**Servers** sidebar on the left with **+**, **−** and a gear (**Edit server**) under the list, and the
 selected server's detail panel on the right: its name, the **Tenant** pop-up
 with **Refresh**, the session state, sign-in, Connect and Disconnect, and the
 connection log. The settings form opens in a window of its own, so the status
 stays visible; it shows in the main window where a second window cannot open.
+The gear opens that settings form for the selected server; it is disabled, with
+the reason in its accessible label, while no server is selected.
 
 ## Build
 
