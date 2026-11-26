@@ -1,6 +1,6 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Claimward – Wireguard</title><link>https://claimward.github.io/docs/dev/fr/tags/wireguard/</link><description>Recent content in Wireguard on Claimward</description><generator>Hugo -- gohugo.io</generator><language>fr</language><atom:link href="https://claimward.github.io/docs/dev/fr/tags/wireguard/index.xml" rel="self" type="application/rss+xml"/><item><title>Serveur</title><link>https://claimward.github.io/docs/dev/fr/components/server/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/fr/components/server/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-server" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-server&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.13.0&lt;/strong&gt; est le plan de contrôle. Il vérifie le jeton porteur (bearer) que présente un appareil,
+&lt;strong&gt;v0.14.0&lt;/strong&gt; est le plan de contrôle. Il vérifie le jeton porteur (bearer) que présente un appareil,
 attribue les adresses VPN, et programme la passerelle WireGuard avec un pair par
 appareil enrôlé. Il s&amp;rsquo;exécute sur l&amp;rsquo;hôte de passerelle, à côté d&amp;rsquo;un &lt;code&gt;wg0&lt;/code&gt; existant : Linux
 (nftables) ou, depuis la v0.10.0, OpenBSD (pf, voir &lt;a href="#openbsd"&gt;OpenBSD&lt;/a&gt;).&lt;/p&gt;
@@ -46,6 +46,11 @@ appareil enrôlé. Il s&amp;rsquo;exécute sur l&amp;rsquo;hôte de passerelle, 
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;GET /.well-known/claimward-logo.svg&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;le logo du serveur, sans authentification, seulement lorsque &lt;code&gt;SERVER_LOGO_FILE&lt;/code&gt; est défini (depuis v0.14.0), voir &lt;a href="https://claimward.github.io/docs/dev/fr/reference/protocol/#logo"&gt;le protocole&lt;/a&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;/td&gt;
 &lt;td&gt;&lt;code&gt;/admin/&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;API d&amp;rsquo;administration et WebUI, lorsque l&amp;rsquo;identifiant &lt;code&gt;admin-token&lt;/code&gt; existe&lt;/td&gt;
 &lt;/tr&gt;
@@ -62,8 +67,9 @@ appareil enrôlé. Il s&amp;rsquo;exécute sur l&amp;rsquo;hôte de passerelle, 
 &lt;/tbody&gt;
 &lt;/table&gt;
 &lt;p&gt;Les requêtes de l&amp;rsquo;API portent &lt;code&gt;Authorization: Bearer &amp;lt;token&amp;gt;&lt;/code&gt; : un jeton d&amp;rsquo;accès GitHub,
-un jeton d&amp;rsquo;identité (ID token) OIDC, ou un jeton d&amp;rsquo;accès go-authn, selon &lt;code&gt;AUTH_PROVIDER&lt;/code&gt;.
-Voir le &lt;a href="https://claimward.github.io/docs/dev/fr/reference/protocol/"&gt;protocole d&amp;rsquo;enrôlement&lt;/a&gt; pour
+un jeton d&amp;rsquo;identité (ID token) OIDC, ou un jeton d&amp;rsquo;accès go-authn, selon le fournisseur qu&amp;rsquo;elles
+nomment dans l&amp;rsquo;en-tête &lt;code&gt;Claimward-Provider&lt;/code&gt; (depuis v0.14.0, voir
+&lt;a href="#providers"&gt;Fournisseurs d&amp;rsquo;identité&lt;/a&gt;). Voir le &lt;a href="https://claimward.github.io/docs/dev/fr/reference/protocol/"&gt;protocole d&amp;rsquo;enrôlement&lt;/a&gt; pour
 le contenu des messages.&lt;/p&gt;
 &lt;p&gt;Avec &lt;code&gt;TLS_CERT&lt;/code&gt; et &lt;code&gt;TLS_KEY&lt;/code&gt;, les deux écoutes utilisent TLS. Sans eux, l&amp;rsquo;API HTTP
 est en clair (terminez TLS sur un proxy), tout comme le RouteService, que les
@@ -83,52 +89,22 @@ sont des fichiers d&amp;rsquo;un répertoire d&amp;rsquo;identifiants, voir &lt;
 &lt;/thead&gt;
 &lt;tbody&gt;
 &lt;tr&gt;
-&lt;td&gt;&lt;code&gt;AUTH_PROVIDER&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;github&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;fournisseur d&amp;rsquo;identité : &lt;code&gt;github&lt;/code&gt;, &lt;code&gt;oidc&lt;/code&gt; ou &lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;&lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;github&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;PROVIDERS_FILE&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;✅&lt;/td&gt;
 &lt;td&gt;—&lt;/td&gt;
-&lt;td&gt;liste CSV des organisations autorisées : un membre actif de l&amp;rsquo;une d&amp;rsquo;elles est admis, de même qu&amp;rsquo;un membre nommé d&amp;rsquo;un locataire. Depuis v0.5.0 elle n&amp;rsquo;est &lt;strong&gt;facultative que si au moins un locataire a des &lt;code&gt;members&lt;/code&gt;&lt;/strong&gt; : sans l&amp;rsquo;un ni l&amp;rsquo;autre le serveur refuse de démarrer, sans option de contournement (avant : obligatoire depuis v0.4.0)&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;&lt;code&gt;GITHUB_CLIENT_ID&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;github&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;—&lt;/td&gt;
-&lt;td&gt;identifiant client (public) de l&amp;rsquo;application OAuth GitHub de Claimward. Depuis v0.12.0 (&lt;strong&gt;rupture&lt;/strong&gt;) seuls les jetons &lt;strong&gt;de cette application&lt;/strong&gt; sont admis : le serveur interroge GitHub (&lt;a href="https://docs.github.com/en/rest/apps/oauth-applications#check-a-token" target="_blank" rel="noopener"&gt;Check a token&lt;/a&gt;) avec le fichier &lt;code&gt;github-client-secret&lt;/code&gt; avant d&amp;rsquo;en croire un, de sorte qu&amp;rsquo;un jeton détenu par une autre application OAuth ne peut pas enrôler un pair. Sans identifiant ou sans fichier secret, le serveur refuse de démarrer, sans option de contournement. Les déploiements existants doivent ajouter les deux&lt;/td&gt;
+&lt;td&gt;fichier JSON listant les fournisseurs d&amp;rsquo;identité (depuis v0.14.0, &lt;strong&gt;rupture&lt;/strong&gt;), voir &lt;a href="#providers"&gt;Fournisseurs d&amp;rsquo;identité&lt;/a&gt;. Il remplace &lt;code&gt;AUTH_PROVIDER&lt;/code&gt;, &lt;code&gt;OIDC_ISSUER&lt;/code&gt;, &lt;code&gt;OIDC_CLIENT_ID&lt;/code&gt;, &lt;code&gt;OIDC_ALLOWED_DOMAINS&lt;/code&gt;, &lt;code&gt;GITHUB_CLIENT_ID&lt;/code&gt;, &lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt; et &lt;code&gt;GOAUTHN_GATEWAY_CLIENT_ID&lt;/code&gt; : le serveur refuse de démarrer tant que l&amp;rsquo;une d&amp;rsquo;elles est définie&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;GITHUB_API_URL&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;&lt;/td&gt;
 &lt;td&gt;&lt;code&gt;https://api.github.com&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;à définir pour GitHub Enterprise&lt;/td&gt;
+&lt;td&gt;l&amp;rsquo;API auprès de laquelle sont résolus les membres nommés des locataires ; à définir pour GitHub Enterprise. Chaque fournisseur &lt;code&gt;github&lt;/code&gt; a son propre &lt;code&gt;api_url&lt;/code&gt; dans le fichier des fournisseurs&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
-&lt;td&gt;&lt;code&gt;OIDC_ISSUER&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;oidc&lt;/code&gt;, &lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;—&lt;/td&gt;
-&lt;td&gt;URL de l&amp;rsquo;émetteur (découverte)&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;&lt;code&gt;OIDC_CLIENT_ID&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;oidc&lt;/code&gt;, &lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;—&lt;/td&gt;
-&lt;td&gt;l&amp;rsquo;audience que les jetons doivent porter&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;&lt;code&gt;OIDC_ALLOWED_DOMAINS&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;SERVER_LOGO_FILE&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;&lt;/td&gt;
 &lt;td&gt;—&lt;/td&gt;
-&lt;td&gt;liste CSV des domaines de messagerie autorisés (&lt;code&gt;oidc&lt;/code&gt;) ; l&amp;rsquo;e-mail du jeton doit être vérifié&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;&lt;code&gt;GOAUTHN_GATEWAY_CLIENT_ID&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;—&lt;/td&gt;
-&lt;td&gt;le client propre de la passerelle chez le fournisseur (&lt;code&gt;wireguard_peers&lt;/code&gt;)&lt;/td&gt;
+&lt;td&gt;un logo SVG publié dans le document de découverte et à &lt;code&gt;/.well-known/claimward-logo.svg&lt;/code&gt; (depuis v0.14.0) ; 64 Kio au plus, validé au démarrage (sans script, sans référence externe) : un fichier invalide refuse le démarrage&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;GOAUTHN_PEER_LIST_INTERVAL&lt;/code&gt;&lt;/td&gt;
@@ -297,14 +273,14 @@ un saut de ligne final est retiré.&lt;/p&gt;
 &lt;td&gt;jeton porteur de l&amp;rsquo;API d&amp;rsquo;administration et de la WebUI ; &lt;strong&gt;sans le fichier, elles sont désactivées&lt;/strong&gt;&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
-&lt;td&gt;&lt;code&gt;goauthn-gateway-secret&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;AUTH_PROVIDER=go-authn&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;le secret du client de la passerelle&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;provider-&amp;lt;id&amp;gt;-gateway-secret&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;un fournisseur &lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;le secret du client de la passerelle (était &lt;code&gt;goauthn-gateway-secret&lt;/code&gt;, avant v0.14.0)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
-&lt;td&gt;&lt;code&gt;github-client-secret&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;code&gt;AUTH_PROVIDER=github&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;le secret client de l&amp;rsquo;application OAuth GitHub de Claimward (voir &lt;code&gt;GITHUB_CLIENT_ID&lt;/code&gt;), depuis v0.12.0&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;provider-&amp;lt;id&amp;gt;-secret&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;chaque fournisseur &lt;code&gt;github&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;le secret client de l&amp;rsquo;application OAuth GitHub de ce fournisseur (voir &lt;code&gt;github_client_id&lt;/code&gt; ; était &lt;code&gt;github-client-secret&lt;/code&gt;, avant v0.14.0)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;github-token&lt;/code&gt;&lt;/td&gt;
@@ -395,24 +371,98 @@ fichier à créer. Mettez chaque valeur dans son fichier (&lt;code&gt;admin-toke
 &lt;code&gt;github-token&lt;/code&gt;.&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;h2 data-hextra-search-id="authentication-providers"&gt;Fournisseurs d&amp;rsquo;authentification&lt;span class="hx:absolute hx:-mt-20" id="authentication-providers"&gt;&lt;/span&gt;
-&lt;a href="#authentication-providers" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;L&amp;rsquo;authentification est modulaire, derrière l&amp;rsquo;interface &lt;code&gt;Verifier&lt;/code&gt;
-(&lt;code&gt;internal/auth&lt;/code&gt;) :&lt;/p&gt;
+&lt;h2 data-hextra-search-id="providers"&gt;Fournisseurs d&amp;rsquo;identité&lt;span class="hx:absolute hx:-mt-20" id="providers"&gt;&lt;/span&gt;
+&lt;a href="#providers" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Depuis v0.14.0 le serveur accepte &lt;strong&gt;plusieurs&lt;/strong&gt; fournisseurs d&amp;rsquo;identité à la fois. Ils
+sont listés dans le fichier JSON désigné par &lt;code&gt;PROVIDERS_FILE&lt;/code&gt; (les champs inconnus
+sont refusés, 1 Mio au plus) :&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;providers&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:[&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;campus&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;kind&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;oidc&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;name&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;Campus&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;oidc_issuer&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;https://idp.example.org&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;oidc_client_id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;claimward&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;},&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;hub&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;kind&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;github&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;name&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;GitHub&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;github_client_id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;Iv1.0123456789abcdef&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;allowed_orgs&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:[&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;my-org&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;]}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;]}&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copier le code"
+aria-label="Copier le code"
+data-copied-label="Copié !"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;&lt;code&gt;kind&lt;/code&gt;&lt;/th&gt;
+&lt;th&gt;Champs en plus de &lt;code&gt;id&lt;/code&gt;, &lt;code&gt;kind&lt;/code&gt;, &lt;code&gt;name&lt;/code&gt;&lt;/th&gt;
+&lt;th&gt;Fichier secret&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;github&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;github_client_id&lt;/code&gt;, &lt;code&gt;api_url&lt;/code&gt; (GitHub Enterprise), &lt;code&gt;allowed_orgs&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;provider-&amp;lt;id&amp;gt;-secret&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;oidc&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;oidc_issuer&lt;/code&gt;, &lt;code&gt;oidc_client_id&lt;/code&gt;, &lt;code&gt;allowed_domains&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;aucun&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;oidc_issuer&lt;/code&gt;, &lt;code&gt;oidc_client_id&lt;/code&gt;, &lt;code&gt;gateway_client_id&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;provider-&amp;lt;id&amp;gt;-gateway-secret&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;&lt;code&gt;github&lt;/code&gt;&lt;/strong&gt; (par défaut) : le jeton porteur est un jeton d&amp;rsquo;accès OAuth GitHub issu du
-flux d&amp;rsquo;appareil (device flow). Le serveur le résout via l&amp;rsquo;API GitHub (&lt;code&gt;/user&lt;/code&gt;,
-&lt;code&gt;/user/orgs&lt;/code&gt;) et, avec &lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;, admet un membre actif
-de l&amp;rsquo;une de ces organisations, ou un membre nommé d&amp;rsquo;un locataire (la liste
-n&amp;rsquo;est facultative que si un locataire a des &lt;code&gt;members&lt;/code&gt;). Aucun secret client n&amp;rsquo;intervient.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;github&lt;/code&gt;&lt;/strong&gt; : le jeton porteur est un jeton d&amp;rsquo;accès OAuth GitHub issu du flux d&amp;rsquo;appareil
+(device flow). Le serveur interroge GitHub (&lt;a href="https://docs.github.com/en/rest/apps/oauth-applications#check-a-token" target="_blank" rel="noopener"&gt;Check a token&lt;/a&gt;)
+avec le secret du fournisseur avant de l&amp;rsquo;accepter, de sorte que seuls les jetons
+&lt;strong&gt;de cette application OAuth&lt;/strong&gt; sont admis, puis le résout via l&amp;rsquo;API GitHub (&lt;code&gt;/user&lt;/code&gt;,
+&lt;code&gt;/user/orgs&lt;/code&gt;) et admet un membre actif de l&amp;rsquo;une des &lt;code&gt;allowed_orgs&lt;/code&gt;, ou un membre
+nommé d&amp;rsquo;un locataire (la liste n&amp;rsquo;est facultative que si un locataire a des
+&lt;code&gt;members&lt;/code&gt;). Sans identifiant client, sans fichier secret, ou sans liste ni
+membres nommés : le serveur refuse de démarrer, sans option de contournement.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;&lt;code&gt;oidc&lt;/code&gt;&lt;/strong&gt; : le jeton porteur est un jeton d&amp;rsquo;identité OIDC, vérifié auprès de l&amp;rsquo;émetteur avec
-l&amp;rsquo;audience &lt;code&gt;OIDC_CLIENT_ID&lt;/code&gt; et la liste facultative des domaines de messagerie autorisés.&lt;/li&gt;
+l&amp;rsquo;audience &lt;code&gt;oidc_client_id&lt;/code&gt; et la liste facultative &lt;code&gt;allowed_domains&lt;/code&gt; (l&amp;rsquo;e-mail
+du jeton doit être vérifié).&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;&lt;code&gt;go-authn&lt;/code&gt;&lt;/strong&gt; : le jeton porteur est un jeton d&amp;rsquo;accès (&lt;code&gt;at+jwt&lt;/code&gt;) émis par un
 fournisseur &lt;a href="https://github.com/go-authn/bridge" target="_blank" rel="noopener"&gt;go-authn/bridge&lt;/a&gt;, et la
 clé de l&amp;rsquo;appareil doit y avoir été enregistrée par la même personne. Le serveur lit
 la liste signée des clés enregistrées du fournisseur
 (&lt;a href="https://github.com/go-authn/wireguard" target="_blank" rel="noopener"&gt;go-authn/wireguard&lt;/a&gt;) et retire de
-&lt;code&gt;wg0&lt;/code&gt; une clé que le fournisseur reprend.&lt;/li&gt;
+&lt;code&gt;wg0&lt;/code&gt; une clé que le fournisseur reprend. Au plus un fournisseur est de ce type.&lt;/li&gt;
 &lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;La requête nomme son fournisseur.&lt;/strong&gt; Chaque appel de l&amp;rsquo;API porte l&amp;rsquo;en-tête
+&lt;code&gt;Claimward-Provider: &amp;lt;id&amp;gt;&lt;/code&gt; (gRPC : la métadonnée &lt;code&gt;claimward-provider&lt;/code&gt;), et son
+jeton est jugé par ce fournisseur &lt;strong&gt;seul&lt;/strong&gt; : un jeton du fournisseur A est refusé
+quand la requête nomme B. Sans en-tête, c&amp;rsquo;est &lt;code&gt;401 missing_provider&lt;/code&gt; ; un id que le serveur
+ne liste pas donne &lt;code&gt;401 unknown_provider&lt;/code&gt;. Le document de découverte liste les
+fournisseurs (jamais un secret), de sorte qu&amp;rsquo;un client n&amp;rsquo;a besoin que de l&amp;rsquo;URL du serveur.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Une identité par émetteur et &lt;code&gt;sub&lt;/code&gt;.&lt;/strong&gt; L&amp;rsquo;identité est &lt;code&gt;issuer#sub&lt;/code&gt; pour &lt;code&gt;oidc&lt;/code&gt;
+et &lt;code&gt;go-authn&lt;/code&gt;, et &lt;code&gt;github:&amp;lt;id&amp;gt;&lt;/code&gt; pour &lt;code&gt;github&lt;/code&gt; : le même &lt;code&gt;sub&lt;/code&gt; chez deux émetteurs
+est deux personnes, et la seconde ne peut pas prendre l&amp;rsquo;appareil de la première.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Locataires.&lt;/strong&gt; Un locataire gagne un champ &lt;code&gt;providers&lt;/code&gt;, et ses groupes s&amp;rsquo;écrivent
+&lt;code&gt;&amp;lt;id du fournisseur&amp;gt;:&amp;lt;groupe&amp;gt;&lt;/code&gt;. Avec plusieurs fournisseurs, un locataire qui utilise &lt;code&gt;domains&lt;/code&gt; ou
+&lt;code&gt;idps&lt;/code&gt; doit nommer &lt;code&gt;providers&lt;/code&gt;, sans quoi le serveur échoue en mode fermé.&lt;/p&gt;
+&lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-amber-200 hx:bg-amber-100 hx:text-amber-900 hx:dark:border-amber-200/30 hx:dark:bg-amber-900/30 hx:dark:text-amber-200"&gt;
+&lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/&gt;&lt;/svg&gt;&lt;/div&gt;
+&lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Passage à v0.14.0&lt;/strong&gt; (rupture). &lt;code&gt;AUTH_PROVIDER&lt;/code&gt;, &lt;code&gt;OIDC_ISSUER&lt;/code&gt;,
+&lt;code&gt;OIDC_CLIENT_ID&lt;/code&gt;, &lt;code&gt;OIDC_ALLOWED_DOMAINS&lt;/code&gt;, &lt;code&gt;GITHUB_CLIENT_ID&lt;/code&gt;,
+&lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt; et &lt;code&gt;GOAUTHN_GATEWAY_CLIENT_ID&lt;/code&gt; ne sont plus lues, et
+le serveur refuse de démarrer tant que l&amp;rsquo;une d&amp;rsquo;elles est définie, en nommant le fichier qui la remplace.
+Écrivez le fichier des fournisseurs, renommez &lt;code&gt;github-client-secret&lt;/code&gt; en
+&lt;code&gt;provider-&amp;lt;id&amp;gt;-secret&lt;/code&gt; et &lt;code&gt;goauthn-gateway-secret&lt;/code&gt; en
+&lt;code&gt;provider-&amp;lt;id&amp;gt;-gateway-secret&lt;/code&gt;, écrivez les groupes des locataires sous la forme &lt;code&gt;&amp;lt;id du fournisseur&amp;gt;:&amp;lt;groupe&amp;gt;&lt;/code&gt;,
+et attendez-vous à un nouveau sujet pour chaque personne (&lt;code&gt;issuer#sub&lt;/code&gt;, &lt;code&gt;github:&amp;lt;id&amp;gt;&lt;/code&gt;), donc
+les appareils s&amp;rsquo;enrôlent de nouveau. Utilisez le client v0.9.0 ou plus récent : les clients plus anciens n&amp;rsquo;envoient pas
+l&amp;rsquo;en-tête.&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
 &lt;p&gt;Voir &lt;a href="https://claimward.github.io/docs/dev/fr/identity-providers/"&gt;Fournisseurs d&amp;rsquo;identité&lt;/a&gt; pour chaque
 flux de bout en bout.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="enrollment-rules"&gt;Règles d&amp;rsquo;enrôlement&lt;span class="hx:absolute hx:-mt-20" id="enrollment-rules"&gt;&lt;/span&gt;
@@ -588,7 +638,8 @@ seule capacité (&lt;code&gt;CapEff&lt;/code&gt; &lt;code&gt;0x1000&lt;/code&gt;
 lequel l&amp;rsquo;arbre de supervision s&amp;rsquo;exécute : celui de l&amp;rsquo;hôte, sauf si vous lancez
 &lt;code&gt;s6-svscan&lt;/code&gt; dans un espace de noms à part (&lt;code&gt;ip netns exec&lt;/code&gt;).&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;Noms.&lt;/strong&gt; Chaque fichier de &lt;code&gt;--source&lt;/code&gt; porte le nom de son secret
-(&lt;code&gt;wg-private-key&lt;/code&gt;, &lt;code&gt;github-token&lt;/code&gt;, &lt;code&gt;admin-token&lt;/code&gt;, &lt;code&gt;goauthn-gateway-secret&lt;/code&gt;) et
+(&lt;code&gt;wg-private-key&lt;/code&gt;, &lt;code&gt;github-token&lt;/code&gt;, &lt;code&gt;admin-token&lt;/code&gt;, &lt;code&gt;provider-&amp;lt;id&amp;gt;-secret&lt;/code&gt;,
+&lt;code&gt;provider-&amp;lt;id&amp;gt;-gateway-secret&lt;/code&gt;) et
 est chiffré avec &lt;code&gt;sdcreds encrypt --name=&amp;lt;ce nom&amp;gt;&lt;/code&gt; ; tout autre nom arrête le
 démarrage. &lt;code&gt;s6-run&lt;/code&gt; exige root et &lt;code&gt;CAP_SYS_ADMIN&lt;/code&gt; (il monte un système de
 fichiers).&lt;/li&gt;
@@ -607,9 +658,10 @@ du service supprime le montage.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="run-locally"&gt;Exécuter en local&lt;span class="hx:absolute hx:-mt-20" id="run-locally"&gt;&lt;/span&gt;
 &lt;a href="#run-locally" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Avec &lt;code&gt;WG_DRYRUN=true&lt;/code&gt;, aucun périphérique WireGuard n&amp;rsquo;est touché :&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
-&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;AUTH_PROVIDER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;oidc
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;OIDC_ISSUER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;https://accounts.google.com
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;OIDC_CLIENT_ID&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;xxxx.apps.googleusercontent.com
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;cat &amp;gt; providers.json &lt;span class="s"&gt;&amp;lt;&amp;lt;&amp;#39;EOF&amp;#39;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="s"&gt;{&amp;#34;providers&amp;#34;:[{&amp;#34;id&amp;#34;:&amp;#34;google&amp;#34;,&amp;#34;kind&amp;#34;:&amp;#34;oidc&amp;#34;,&amp;#34;name&amp;#34;:&amp;#34;Google&amp;#34;,&amp;#34;oidc_issuer&amp;#34;:&amp;#34;https://accounts.google.com&amp;#34;,&amp;#34;oidc_client_id&amp;#34;:&amp;#34;xxxx.apps.googleusercontent.com&amp;#34;}]}
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="s"&gt;EOF&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;PROVIDERS_FILE&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$PWD&lt;/span&gt;/providers.json
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;WG_ENDPOINT&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;vpn.example.com:51820
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;CREDENTIALS_DIRECTORY&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$HOME&lt;/span&gt;/.local/state/claimward-dev-creds
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;umask&lt;/span&gt; 077&lt;span class="p"&gt;;&lt;/span&gt; mkdir -p &lt;span class="s2"&gt;&amp;#34;&lt;/span&gt;&lt;span class="nv"&gt;$CREDENTIALS_DIRECTORY&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; wg genkey &amp;gt; &lt;span class="s2"&gt;&amp;#34;&lt;/span&gt;&lt;span class="nv"&gt;$CREDENTIALS_DIRECTORY&lt;/span&gt;&lt;span class="s2"&gt;/wg-private-key&amp;#34;&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;

@@ -4,8 +4,13 @@
 (HTTP) und &lt;code&gt;proto/routes/v1/routes.proto&lt;/code&gt; (gRPC), und wird von beiden Seiten importiert.&lt;/p&gt;
 &lt;p&gt;Jede authentifizierte Anfrage sendet das Bearer-Token der Person als
 &lt;code&gt;Authorization: Bearer &amp;lt;token&amp;gt;&lt;/code&gt;, niemals im Body: ein &lt;strong&gt;GitHub-OAuth-Access-Token&lt;/strong&gt;
-(&lt;code&gt;AUTH_PROVIDER=github&lt;/code&gt;), ein &lt;strong&gt;OIDC-ID-Token&lt;/strong&gt; (&lt;code&gt;oidc&lt;/code&gt;) oder ein
-&lt;strong&gt;go-authn-Access-Token&lt;/strong&gt; (&lt;code&gt;go-authn&lt;/code&gt;). Anfrage-Bodys sind JSON, höchstens
+(ein &lt;code&gt;github&lt;/code&gt;-Anbieter), ein &lt;strong&gt;OIDC-ID-Token&lt;/strong&gt; (&lt;code&gt;oidc&lt;/code&gt;) oder ein
+&lt;strong&gt;go-authn-Access-Token&lt;/strong&gt; (&lt;code&gt;go-authn&lt;/code&gt;). Seit Server v0.14.0 nennt die Anfrage auch
+den Anbieter, der es ausgestellt hat, im Header &lt;strong&gt;&lt;code&gt;Claimward-Provider: &amp;lt;id&amp;gt;&lt;/code&gt;&lt;/strong&gt;
+(gRPC: die Metadaten &lt;code&gt;claimward-provider&lt;/code&gt;), eine &lt;code&gt;id&lt;/code&gt; aus den &lt;code&gt;providers&lt;/code&gt; des
+Discovery-Dokuments. Das Token wird von diesem Anbieter allein beurteilt. Kein
+Header ist &lt;code&gt;401 missing_provider&lt;/code&gt;; eine Id, die der Server nicht listet, oder
+mehrere Ids sind &lt;code&gt;401 unknown_provider&lt;/code&gt;. Anfrage-Bodys sind JSON, höchstens
 64 KiB, und unbekannte Felder werden abgelehnt.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="post-apiv1enroll"&gt;&lt;code&gt;POST /api/v1/enroll&lt;/code&gt;&lt;span class="hx:absolute hx:-mt-20" id="post-apiv1enroll"&gt;&lt;/span&gt;
 &lt;a href="#post-apiv1enroll" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Anfrage:&lt;/p&gt;
@@ -122,11 +127,14 @@ niemals ein Geheimnis. Antwort &lt;code&gt;200&lt;/code&gt;, &lt;code&gt;applica
 abgelehnt.&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;version&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;version&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;server_name&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;Lab&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;provider&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;github&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;github_client_id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;Iv1.0123456789abcdef&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;exclusive&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="kc"&gt;false&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;providers&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;hub&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;kind&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;github&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;name&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;GitHub&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;github_client_id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;Iv1.0123456789abcdef&amp;#34;&lt;/span&gt; &lt;span class="p"&gt;},&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;campus&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;kind&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;oidc&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;name&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;Campus&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;oidc_issuer&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;https://idp.example.org&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;oidc_client_id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;claimward&amp;#34;&lt;/span&gt; &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="p"&gt;],&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;exclusive&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="kc"&gt;false&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;logo&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;path&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;/.well-known/claimward-logo.svg&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nt"&gt;&amp;#34;sha256&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;&amp;lt;hex&amp;gt;&amp;#34;&lt;/span&gt; &lt;span class="p"&gt;}&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
 &lt;button
 class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
@@ -139,12 +147,30 @@ data-copied-label="Kopiert!"
 &lt;/button&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;p&gt;&lt;code&gt;server_name&lt;/code&gt; erscheint nur, wenn &lt;code&gt;SERVER_NAME&lt;/code&gt; gesetzt ist. &lt;code&gt;github_client_id&lt;/code&gt;
-wird für den Anbieter &lt;code&gt;github&lt;/code&gt; angegeben, &lt;code&gt;oidc_issuer&lt;/code&gt; und &lt;code&gt;oidc_client_id&lt;/code&gt;
-für &lt;code&gt;oidc&lt;/code&gt; und &lt;code&gt;go-authn&lt;/code&gt;. &lt;code&gt;exclusive&lt;/code&gt; ist &lt;code&gt;SERVER_EXCLUSIVE&lt;/code&gt;: Dieser Server
+&lt;p&gt;Version 2 (Server v0.14.0, &lt;strong&gt;inkompatibel&lt;/strong&gt;) ersetzt den einzelnen &lt;code&gt;provider&lt;/code&gt; und
+seine Felder aus Version 1 durch die Liste &lt;code&gt;providers&lt;/code&gt;, ein Eintrag pro Anbieter
+aus &lt;code&gt;PROVIDERS_FILE&lt;/code&gt;, in Dateireihenfolge: &lt;code&gt;id&lt;/code&gt; (was der Client in
+&lt;code&gt;Claimward-Provider&lt;/code&gt; sendet), &lt;code&gt;kind&lt;/code&gt; (&lt;code&gt;github&lt;/code&gt;, &lt;code&gt;oidc&lt;/code&gt; oder &lt;code&gt;go-authn&lt;/code&gt;), &lt;code&gt;name&lt;/code&gt;
+(der Person angezeigt), dann &lt;code&gt;github_client_id&lt;/code&gt; für &lt;code&gt;github&lt;/code&gt;, &lt;code&gt;oidc_issuer&lt;/code&gt; und
+&lt;code&gt;oidc_client_id&lt;/code&gt; für &lt;code&gt;oidc&lt;/code&gt; und &lt;code&gt;go-authn&lt;/code&gt;. Ein Client ab Version 0.9.0
+liest es; ein Dokument einer ihm unbekannten Version lehnt er ab.
+&lt;code&gt;server_name&lt;/code&gt; erscheint nur, wenn &lt;code&gt;SERVER_NAME&lt;/code&gt; gesetzt ist, &lt;code&gt;logo&lt;/code&gt; nur, wenn
+&lt;code&gt;SERVER_LOGO_FILE&lt;/code&gt; es ist. &lt;code&gt;exclusive&lt;/code&gt; ist &lt;code&gt;SERVER_EXCLUSIVE&lt;/code&gt;: Dieser Server
 weigert sich, die Maschine mit anderen Claimward-Tunneln zu teilen; Clients
 verbinden ihn nicht neben anderen und lehnen andere ab, solange er verbunden
 ist.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="logo"&gt;&lt;code&gt;GET /.well-known/claimward-logo.svg&lt;/code&gt;&lt;span class="hx:absolute hx:-mt-20" id="logo"&gt;&lt;/span&gt;
+&lt;a href="#logo" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Das Logo des Servers (seit Server v0.14.0), ohne Authentifizierung, nur vorhanden,
+wenn &lt;code&gt;SERVER_LOGO_FILE&lt;/code&gt; gesetzt ist; andernfalls &lt;code&gt;404&lt;/code&gt;. Das &lt;code&gt;logo&lt;/code&gt; des
+Discovery-Dokuments nennt seinen &lt;code&gt;path&lt;/code&gt; und den &lt;code&gt;sha256&lt;/code&gt; (hex) seiner Bytes, sodass
+ein Client es zwischenspeichern und eine Änderung bemerken kann. Antwort &lt;code&gt;200&lt;/code&gt;:
+&lt;code&gt;Content-Type: image/svg+xml&lt;/code&gt;, &lt;code&gt;X-Content-Type-Options: nosniff&lt;/code&gt;,
+&lt;code&gt;Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; sandbox&lt;/code&gt;,
+und &lt;code&gt;ETag&lt;/code&gt; auf denselben Hash gesetzt; eine Anfrage mit passendem &lt;code&gt;If-None-Match&lt;/code&gt;
+erhält &lt;code&gt;304&lt;/code&gt;. Der Server prüft die Datei beim Start (höchstens 64 KiB, kein Skript,
+keine externe Referenz, kein DOCTYPE) und startet bei einer ungültigen nicht. Ein
+Client muss es dennoch als nicht vertrauenswürdig behandeln und als Bild darstellen,
+nie inline.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="errors"&gt;Fehler&lt;span class="hx:absolute hx:-mt-20" id="errors"&gt;&lt;/span&gt;
 &lt;a href="#errors" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Antworten außerhalb von 2xx tragen:&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
@@ -173,6 +199,16 @@ data-copied-label="Kopiert!"
 &lt;td&gt;&lt;code&gt;missing_token&lt;/code&gt; / &lt;code&gt;invalid_token&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;401&lt;/td&gt;
 &lt;td&gt;kein Bearer-Token, oder die Prüfung durch den Anbieter ist fehlgeschlagen (einschließlich einer Allowlist für Organisationen oder Domains)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;missing_provider&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;401&lt;/td&gt;
+&lt;td&gt;kein Header &lt;code&gt;Claimward-Provider&lt;/code&gt; (seit v0.14.0)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;unknown_provider&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;401&lt;/td&gt;
+&lt;td&gt;der Header nennt einen Anbieter, den der Server nicht listet, oder mehrere (seit v0.14.0)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;bad_public_key&lt;/code&gt; / &lt;code&gt;bad_request&lt;/code&gt;&lt;/td&gt;
@@ -247,7 +283,8 @@ data-copied-label="Kopiert!"
 &lt;/div&gt;
 &lt;p&gt;Der Server lauscht auf &lt;code&gt;GRPC_ADDR&lt;/code&gt; und kündigt &lt;code&gt;GRPC_ENDPOINT&lt;/code&gt; in der
 Registrierungsantwort an. Das Bearer-Token wird in den Metadaten übertragen,
-&lt;code&gt;authorization: Bearer &amp;lt;token&amp;gt;&lt;/code&gt;, und wie bei der HTTP-API geprüft. &lt;code&gt;Watch&lt;/code&gt;
+&lt;code&gt;authorization: Bearer &amp;lt;token&amp;gt;&lt;/code&gt;, mit dem Anbieter in &lt;code&gt;claimward-provider&lt;/code&gt;, und
+wie bei der HTTP-API geprüft (&lt;code&gt;UNAUTHENTICATED&lt;/code&gt;, wenn eines von beiden falsch ist). &lt;code&gt;Watch&lt;/code&gt;
 sendet sofort die aktuelle Menge, dann jedes Mal eine neue, wenn sich die Routen des Mandanten
 ändern, für den Mandanten, &lt;strong&gt;in den sich das Gerät registriert hat&lt;/strong&gt;, ermittelt über &lt;code&gt;public_key&lt;/code&gt;,
 der vom Aufrufer registriert sein muss (andernfalls &lt;code&gt;NOT_FOUND&lt;/code&gt;,
