@@ -37,11 +37,13 @@ des menus locaux. Le [helper]({{< relref "/components/helper.md" >}}) s'enrôle 
 serveur et détient le tunnel. Fermer la fenêtre quitte l'application, comme sous Linux et Windows.
 
 La fenêtre a un en-tête (le logo Claimward, le titre et **Settings**), une barre latérale
-**Servers** à gauche avec **+** et **−** sous la liste, et à droite le panneau de détail du
+**Servers** à gauche avec **+**, **−** et un engrenage (**Edit server**) sous la liste, et à droite le panneau de détail du
 serveur sélectionné : son nom, le menu local **Tenant** avec **Refresh**, l'état de la
 session, la connexion, Connect et Disconnect, et le journal de connexion. Le formulaire de
 réglages s'ouvre dans une fenêtre à part, pour que l'état reste visible ; il s'affiche dans
 la fenêtre principale là où une seconde fenêtre ne peut pas s'ouvrir.
+L'engrenage ouvre ce formulaire pour le serveur sélectionné ; il est désactivé, avec la
+raison dans son libellé d'accessibilité, tant qu'aucun serveur n'est sélectionné.
 
 ## Compilation {#build}
 
