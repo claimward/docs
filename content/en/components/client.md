@@ -7,7 +7,7 @@ tags: [client, go, wireguard, grpc]
 ---
 
 [`claimward-vpn-client`](https://github.com/claimward/claimward-vpn-client)
-**v0.7.0** is a Go **library**. It ships no binary: the runnable programs are
+**v0.11.0** is a Go **library**. It ships no binary: the runnable programs are
 the apps' (`cmd/claimward-app` and `cmd/claimward-helper` in each app
 repository). The server imports it too, for the wire types and the gRPC stubs.
 
@@ -33,8 +33,9 @@ the library-only module is what the apps build on.
 | `pkg/routeclient` | watches the server's RouteService and reports route updates; TLS except to loopback |
 | `pkg/appcore` | the apps' logic, shared by the three: sign-in, the tenant chosen for the session, connect and disconnect through the helper, status for the UI |
 | `pkg/appvm` | the apps' view model, with no UI in it: the screen to show, what each command may do, the status poll, and the events (tunnel dropped, session expired); each app adapts it to its own widgets |
-| `pkg/helper` | the privileged helper, shared by the three apps: enrolls, owns the tunnel, watches route pushes |
-| `pkg/hproto`, `pkg/helperclient` | the helper's socket protocol, and the app's client for it |
+| `pkg/helper` | the privileged helper, shared by the three apps: enrolls, owns the tunnel, watches route pushes, and approves servers with the system's consent ([Server approval](../../server-approval/)) |
+| `pkg/hproto`, `pkg/helperclient` | the helper's socket protocol, and the app's client for it: `Approve`, `ApproveElevated`, `Revoke`, `Approved`, and the typed errors `*NotApprovedError` and `ErrApprovalDenied` |
+| `pkg/macauth` | macOS Authorization Services for server approval: `Obtain(prompt)` in the app, `Verify` in the helper |
 | `pkg/tokenstore` | the session (bearer, refresh token, device private key, chosen tenant) in the OS secret store: macOS Keychain, Windows DPAPI, Linux Secret Service; no plaintext fallback |
 
 ## Files on the device
@@ -75,8 +76,13 @@ A file of v0.9.0 or earlier (`server_url`, `provider`, `github_client_id`,
 `CLAIMWARD_AUTH_PROVIDER`, `CLAIMWARD_GITHUB_CLIENT_ID`, `CLAIMWARD_OIDC_*`
 variables) is migrated once on first load. An **exclusive** server is refused
 while any other is connected, and any other is refused while an exclusive one is;
-the refusal names the blocking server. Linux and Windows hold one tunnel at a
-time for now; macOS holds one per server.
+the refusal names the blocking server. Since **v0.11.0** every platform holds
+one tunnel per server, each on its own deterministic interface (below).
+
+Since v0.11.0 the helper's `servers` is optional (the administrator's
+pre-approval) and a server the person adds is trusted only once the system has
+consented: see [Server approval](../../server-approval/). The helper's
+`helper.json` gains `approvals`, the file of approved servers.
 
 ## Use in your own tooling
 
@@ -141,7 +147,13 @@ A long-lived client renews its lease with `c.Heartbeat` before
   them yet.
 - **Route pushes** replace the allowed IPs and the routes; DNS changes in a
   push are not applied.
-- **Windows.** The device is a Wintun adapter named `Claimward`: `wintun.dll`
+- **Interface names.** One interface per server, named from the server's URL
+  by `wgtun.InterfaceName`: macOS `utunN` (numbered by the kernel), Linux
+  `cw-` and ten hex digits of the URL's SHA-256 (13 bytes, within the 15 of
+  `IFNAMSIZ`), Windows `Claimward <host> <6 hex>`. Reconnecting replaces the
+  interface; a leftover of that name is removed first, and a Linux TUN device
+  goes with its process, so a crashed helper leaves none.
+- **Windows.** The device is a Wintun adapter, one per server (see above): `wintun.dll`
   (from <https://www.wintun.net>, signed by WireGuard LLC) must sit beside the
   executable that calls `wgtun.Up`, which the Windows app's packaging takes
   care of. Address, routes, DNS and MTU are set through `winipcfg` (the IP
