@@ -41,20 +41,42 @@ c'est sur le module réduit à la bibliothèque que s'appuient les applications.
 
 | Fichier | Contenu |
 |---|---|
-| `<config dir>/Claimward/config.json` | la configuration de l'application (`appcore.Config`), `0600`, surchargée par les variables `CLAIMWARD_*` |
+| `<config dir>/Claimward/config.json` | la configuration de l'application (`appcore.Config`), `0600`, sa socket peut être surchargée par `CLAIMWARD_HELPER_SOCKET` |
 | `<config dir>/claimward/session.enc` (macOS et Linux), `session.dpapi` (Windows) | la session scellée ; sa clé est dans le Keychain (macOS) ou le Secret Service (Linux), ou le blob est protégé par DPAPI. Sous Linux, le blob est scellé avec AES-GCM et seule sa clé est dans le Secret Service. |
 
 `<config dir>` est le `os.UserConfigDir()` de Go : `~/Library/Application Support` sur
 macOS, `~/.config` sur Linux, `%AppData%` sur Windows.
 
-| Clé de `config.json` | Variable | |
-|---|---|---|
-| `server_url` | `CLAIMWARD_SERVER` | l'URL de base du serveur ; doit faire partie de celles pour lesquelles le helper est configuré |
-| `provider` | `CLAIMWARD_AUTH_PROVIDER` | `github` (par défaut), `oidc` ou `go-authn` |
-| `github_client_id` | `CLAIMWARD_GITHUB_CLIENT_ID` | l'identifiant client de l'application OAuth GitHub |
-| `oidc_issuer` | `CLAIMWARD_OIDC_ISSUER` | `oidc` et `go-authn` |
-| `oidc_client_id` | `CLAIMWARD_OIDC_CLIENT_ID` | `oidc` et `go-authn` |
-| `socket_path` | `CLAIMWARD_HELPER_SOCKET` | la socket du helper, si ce n'est pas celle par défaut |
+Voici le format du **client v0.10.0 et ultérieur**, qui se connecte à plusieurs
+serveurs à la fois. La personne ne saisit que l'URL d'un serveur ; le nom, les
+fournisseurs, l'exclusivité et le logo sont lus dans le
+`/.well-known/claimward-configuration` du serveur.
+
+```json
+{
+  "version": 2,
+  "servers": [
+    {"url": "https://vpn.example.com", "provider": "campus"},
+    {"url": "https://lab.example.org"}
+  ],
+  "socket_path": "/var/run/claimward-helper.sock"
+}
+```
+
+| Clé de `config.json` | |
+|---|---|
+| `version` | `2` |
+| `servers[].url` | l'URL de base du serveur (`https://` ; `http://` seulement en boucle locale) ; doit faire partie de celles pour lesquelles le helper est configuré |
+| `servers[].provider` | facultatif : l'`id` du fournisseur choisi dans le document du serveur |
+| `socket_path` | facultatif : la socket du helper, si ce n'est pas celle par défaut. Peut être surchargée par `CLAIMWARD_HELPER_SOCKET`, la seule variable restante |
+
+Un fichier de la v0.9.0 ou antérieure (`server_url`, `provider`, `github_client_id`,
+`oidc_issuer`, `oidc_client_id`, et les variables `CLAIMWARD_SERVER`,
+`CLAIMWARD_AUTH_PROVIDER`, `CLAIMWARD_GITHUB_CLIENT_ID`, `CLAIMWARD_OIDC_*`) est
+migré une fois au premier chargement. Un serveur **exclusif** est refusé tant qu'un
+autre est connecté, et tout autre est refusé tant qu'un serveur exclusif l'est ; le
+refus nomme le serveur bloquant. Linux et Windows ne tiennent pour l'instant qu'un
+tunnel à la fois ; macOS en tient un par serveur.
 
 ## Utilisation dans vos propres outils {#use-in-your-own-tooling}
 
