@@ -1,6 +1,6 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Claimward – Github</title><link>https://claimward.github.io/docs/dev/de/tags/github/</link><description>Recent content in Github on Claimward</description><generator>Hugo -- gohugo.io</generator><language>de</language><atom:link href="https://claimward.github.io/docs/dev/de/tags/github/index.xml" rel="self" type="application/rss+xml"/><item><title>Server</title><link>https://claimward.github.io/docs/dev/de/components/server/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/de/components/server/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-server" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-server&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.10.0&lt;/strong&gt; ist die Steuerungsebene. Er prüft das Bearer-Token, das ein Gerät vorlegt,
+&lt;strong&gt;v0.13.0&lt;/strong&gt; ist die Steuerungsebene. Er prüft das Bearer-Token, das ein Gerät vorlegt,
 vergibt VPN-Adressen und programmiert das WireGuard-Gateway mit einem Peer pro
 registriertem Gerät. Er läuft auf dem Gateway-Host, neben einem vorhandenen &lt;code&gt;wg0&lt;/code&gt;: Linux
 (nftables) oder, ab v0.10.0, OpenBSD (pf, siehe &lt;a href="#openbsd"&gt;OpenBSD&lt;/a&gt;).&lt;/p&gt;

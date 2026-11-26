@@ -255,7 +255,7 @@ qui doit être enrôlée par l&amp;rsquo;appelant (&lt;code&gt;NOT_FOUND&lt;/cod
 (&lt;code&gt;pkg/routeclient&lt;/code&gt;) lui parlent en TLS, vérifié par rapport aux autorités racines du système,
 sauf vers une adresse de boucle locale, et refusent un service en clair.&lt;/p&gt;</description></item><item><title>Serveur</title><link>https://claimward.github.io/docs/dev/fr/components/server/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/fr/components/server/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-server" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-server&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.10.0&lt;/strong&gt; est le plan de contrôle. Il vérifie le jeton porteur (bearer) que présente un appareil,
+&lt;strong&gt;v0.13.0&lt;/strong&gt; est le plan de contrôle. Il vérifie le jeton porteur (bearer) que présente un appareil,
 attribue les adresses VPN, et programme la passerelle WireGuard avec un pair par
 appareil enrôlé. Il s&amp;rsquo;exécute sur l&amp;rsquo;hôte de passerelle, à côté d&amp;rsquo;un &lt;code&gt;wg0&lt;/code&gt; existant : Linux
 (nftables) ou, depuis la v0.10.0, OpenBSD (pf, voir &lt;a href="#openbsd"&gt;OpenBSD&lt;/a&gt;).&lt;/p&gt;
