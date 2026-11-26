@@ -110,6 +110,38 @@ data-copied-label="Copied!"
 belongs to another person.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="get-healthz"&gt;&lt;code&gt;GET /healthz&lt;/code&gt;&lt;span class="hx:absolute hx:-mt-20" id="get-healthz"&gt;&lt;/span&gt;
 &lt;a href="#get-healthz" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Response &lt;code&gt;200&lt;/code&gt;: &lt;code&gt;{ &amp;quot;status&amp;quot;: &amp;quot;ok&amp;quot; }&lt;/code&gt;, unauthenticated.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="discovery"&gt;&lt;code&gt;GET /.well-known/claimward-configuration&lt;/code&gt;&lt;span class="hx:absolute hx:-mt-20" id="discovery"&gt;&lt;/span&gt;
+&lt;a href="#discovery" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;The public discovery document (since server v0.13.0), unauthenticated, so that
+a client can learn how to sign in before it does. The path follows
+&lt;a href="https://www.rfc-editor.org/rfc/rfc8615" target="_blank" rel="noopener"&gt;RFC 8615&lt;/a&gt; section 3; a claim without a
+value is omitted, as in &lt;a href="https://www.rfc-editor.org/rfc/rfc8414" target="_blank" rel="noopener"&gt;RFC 8414&lt;/a&gt;
+section 3.2. Public values only, never a secret. Response &lt;code&gt;200&lt;/code&gt;,
+&lt;code&gt;application/json&lt;/code&gt;, &lt;code&gt;Cache-Control: public, max-age=300&lt;/code&gt;; any other method is
+refused with &lt;code&gt;405&lt;/code&gt;.&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;version&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;server_name&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;Lab&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;provider&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;github&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;github_client_id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;Iv1.0123456789abcdef&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;exclusive&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="kc"&gt;false&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;code&gt;server_name&lt;/code&gt; appears only when &lt;code&gt;SERVER_NAME&lt;/code&gt; is set. &lt;code&gt;github_client_id&lt;/code&gt; is
+given for the &lt;code&gt;github&lt;/code&gt; provider, &lt;code&gt;oidc_issuer&lt;/code&gt; and &lt;code&gt;oidc_client_id&lt;/code&gt; for &lt;code&gt;oidc&lt;/code&gt;
+and &lt;code&gt;go-authn&lt;/code&gt;. &lt;code&gt;exclusive&lt;/code&gt; is &lt;code&gt;SERVER_EXCLUSIVE&lt;/code&gt;: this server refuses to share
+the machine with other Claimward tunnels, clients refuse to connect it
+alongside others, and refuse others while it is connected.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="errors"&gt;Errors&lt;span class="hx:absolute hx:-mt-20" id="errors"&gt;&lt;/span&gt;
 &lt;a href="#errors" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Non-2xx responses carry:&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
@@ -262,6 +294,11 @@ enrolled device. It runs on the gateway host, beside an existing &lt;code&gt;wg0
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;GET /.well-known/claimward-configuration&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;public discovery document, unauthenticated (since v0.13.0), see &lt;a href="https://claimward.github.io/docs/dev/reference/protocol/#discovery"&gt;the protocol&lt;/a&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;/td&gt;
 &lt;td&gt;&lt;code&gt;/admin/&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;admin API and WebUI, when the &lt;code&gt;admin-token&lt;/code&gt; credential exists&lt;/td&gt;
 &lt;/tr&gt;
@@ -309,6 +346,12 @@ files in a credentials directory, see &lt;a href="#credentials"&gt;Credentials&l
 &lt;td&gt;&lt;code&gt;github&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;—&lt;/td&gt;
 &lt;td&gt;CSV organisation allowlist: an active member of any is allowed, and so is a named tenant member. Since v0.5.0 it is &lt;strong&gt;optional only when at least one tenant has &lt;code&gt;members&lt;/code&gt;&lt;/strong&gt;: with neither the server refuses to start, with no opt-out (before: required since v0.4.0)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GITHUB_CLIENT_ID&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;github&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;client ID (public) of Claimward&amp;rsquo;s GitHub OAuth app. Since v0.12.0 (&lt;strong&gt;breaking&lt;/strong&gt;) only tokens &lt;strong&gt;that app&lt;/strong&gt; minted are admitted: the server asks GitHub (&lt;a href="https://docs.github.com/en/rest/apps/oauth-applications#check-a-token" target="_blank" rel="noopener"&gt;Check a token&lt;/a&gt;) with the &lt;code&gt;github-client-secret&lt;/code&gt; file before trusting one, so a token another OAuth app holds cannot enrol a peer. No client ID or no secret file: the server refuses to start, with no opt-out. Existing deployments must add both&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;GITHUB_API_URL&lt;/code&gt;&lt;/td&gt;
@@ -449,6 +492,18 @@ files in a credentials directory, see &lt;a href="#credentials"&gt;Credentials&l
 &lt;td&gt;devices one identity may enroll&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
+&lt;td&gt;&lt;code&gt;SERVER_NAME&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;display name published in the discovery document (since v0.13.0); at most 100 characters, no control characters; unset, none is published&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;SERVER_EXCLUSIVE&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;false&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;published in the discovery document (since v0.13.0): this server refuses to share the machine with other Claimward tunnels; clients refuse to connect it alongside others, and refuse others while it is connected. &lt;code&gt;true&lt;/code&gt; or &lt;code&gt;false&lt;/code&gt;, anything else refuses to start&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
 &lt;td&gt;&lt;code&gt;GRPC_ENDPOINT&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;&lt;/td&gt;
 &lt;td&gt;—&lt;/td&gt;
@@ -497,6 +552,11 @@ file names are fixed, and one trailing newline is trimmed.&lt;/p&gt;
 &lt;td&gt;&lt;code&gt;goauthn-gateway-secret&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;&lt;code&gt;AUTH_PROVIDER=go-authn&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;the gateway client&amp;rsquo;s secret&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;github-client-secret&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;AUTH_PROVIDER=github&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;the client secret of Claimward&amp;rsquo;s GitHub OAuth app (see &lt;code&gt;GITHUB_CLIENT_ID&lt;/code&gt;), since v0.12.0&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;github-token&lt;/code&gt;&lt;/td&gt;

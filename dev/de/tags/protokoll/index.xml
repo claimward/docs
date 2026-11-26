@@ -110,6 +110,41 @@ data-copied-label="Kopiert!"
 einer anderen Person gehört.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="get-healthz"&gt;&lt;code&gt;GET /healthz&lt;/code&gt;&lt;span class="hx:absolute hx:-mt-20" id="get-healthz"&gt;&lt;/span&gt;
 &lt;a href="#get-healthz" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Antwort &lt;code&gt;200&lt;/code&gt;: &lt;code&gt;{ &amp;quot;status&amp;quot;: &amp;quot;ok&amp;quot; }&lt;/code&gt;, ohne Authentifizierung.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="discovery"&gt;&lt;code&gt;GET /.well-known/claimward-configuration&lt;/code&gt;&lt;span class="hx:absolute hx:-mt-20" id="discovery"&gt;&lt;/span&gt;
+&lt;a href="#discovery" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Das öffentliche Discovery-Dokument (seit Server v0.13.0), ohne
+Authentifizierung, damit ein Client vor der Anmeldung erfährt, wie er sich
+anmelden kann. Der Pfad folgt Abschnitt 3 von
+&lt;a href="https://www.rfc-editor.org/rfc/rfc8615" target="_blank" rel="noopener"&gt;RFC 8615&lt;/a&gt;; ein Feld ohne Wert wird
+weggelassen, wie in Abschnitt 3.2 von
+&lt;a href="https://www.rfc-editor.org/rfc/rfc8414" target="_blank" rel="noopener"&gt;RFC 8414&lt;/a&gt;. Nur öffentliche Werte,
+niemals ein Geheimnis. Antwort &lt;code&gt;200&lt;/code&gt;, &lt;code&gt;application/json&lt;/code&gt;,
+&lt;code&gt;Cache-Control: public, max-age=300&lt;/code&gt;; jede andere Methode wird mit &lt;code&gt;405&lt;/code&gt;
+abgelehnt.&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;version&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;server_name&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;Lab&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;provider&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;github&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;github_client_id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;Iv1.0123456789abcdef&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;exclusive&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="kc"&gt;false&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;code&gt;server_name&lt;/code&gt; erscheint nur, wenn &lt;code&gt;SERVER_NAME&lt;/code&gt; gesetzt ist. &lt;code&gt;github_client_id&lt;/code&gt;
+wird für den Anbieter &lt;code&gt;github&lt;/code&gt; angegeben, &lt;code&gt;oidc_issuer&lt;/code&gt; und &lt;code&gt;oidc_client_id&lt;/code&gt;
+für &lt;code&gt;oidc&lt;/code&gt; und &lt;code&gt;go-authn&lt;/code&gt;. &lt;code&gt;exclusive&lt;/code&gt; ist &lt;code&gt;SERVER_EXCLUSIVE&lt;/code&gt;: Dieser Server
+weigert sich, die Maschine mit anderen Claimward-Tunneln zu teilen; Clients
+verbinden ihn nicht neben anderen und lehnen andere ab, solange er verbunden
+ist.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="errors"&gt;Fehler&lt;span class="hx:absolute hx:-mt-20" id="errors"&gt;&lt;/span&gt;
 &lt;a href="#errors" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Antworten außerhalb von 2xx tragen:&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;

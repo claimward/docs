@@ -110,6 +110,40 @@ data-copied-label="¡Copiado!"
 pertenece a otra persona.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="get-healthz"&gt;&lt;code&gt;GET /healthz&lt;/code&gt;&lt;span class="hx:absolute hx:-mt-20" id="get-healthz"&gt;&lt;/span&gt;
 &lt;a href="#get-healthz" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Respuesta &lt;code&gt;200&lt;/code&gt;: &lt;code&gt;{ &amp;quot;status&amp;quot;: &amp;quot;ok&amp;quot; }&lt;/code&gt;, sin autenticación.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="discovery"&gt;&lt;code&gt;GET /.well-known/claimward-configuration&lt;/code&gt;&lt;span class="hx:absolute hx:-mt-20" id="discovery"&gt;&lt;/span&gt;
+&lt;a href="#discovery" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;El documento de descubrimiento público (desde el servidor v0.13.0), sin
+autenticación, para que un cliente sepa cómo iniciar sesión antes de hacerlo.
+La ruta sigue la sección 3 de la
+&lt;a href="https://www.rfc-editor.org/rfc/rfc8615" target="_blank" rel="noopener"&gt;RFC 8615&lt;/a&gt;; un campo sin valor se
+omite, como en la sección 3.2 de la
+&lt;a href="https://www.rfc-editor.org/rfc/rfc8414" target="_blank" rel="noopener"&gt;RFC 8414&lt;/a&gt;. Solo valores públicos,
+nunca un secreto. Respuesta &lt;code&gt;200&lt;/code&gt;, &lt;code&gt;application/json&lt;/code&gt;,
+&lt;code&gt;Cache-Control: public, max-age=300&lt;/code&gt;; cualquier otro método se rechaza con
+&lt;code&gt;405&lt;/code&gt;.&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;version&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;server_name&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;Lab&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;provider&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;github&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;github_client_id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;Iv1.0123456789abcdef&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;exclusive&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="kc"&gt;false&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copiar código"
+aria-label="Copiar código"
+data-copied-label="¡Copiado!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;code&gt;server_name&lt;/code&gt; aparece solo si &lt;code&gt;SERVER_NAME&lt;/code&gt; está definido. &lt;code&gt;github_client_id&lt;/code&gt; se
+da para el proveedor &lt;code&gt;github&lt;/code&gt;, &lt;code&gt;oidc_issuer&lt;/code&gt; y &lt;code&gt;oidc_client_id&lt;/code&gt; para &lt;code&gt;oidc&lt;/code&gt; y
+&lt;code&gt;go-authn&lt;/code&gt;. &lt;code&gt;exclusive&lt;/code&gt; es &lt;code&gt;SERVER_EXCLUSIVE&lt;/code&gt;: este servidor se niega a
+compartir la máquina con otros túneles de Claimward; los clientes no lo
+conectan junto a otros y rechazan a los demás mientras esté conectado.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="errors"&gt;Errores&lt;span class="hx:absolute hx:-mt-20" id="errors"&gt;&lt;/span&gt;
 &lt;a href="#errors" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Las respuestas que no son 2xx contienen:&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
@@ -262,6 +296,11 @@ dispositivo registrado. Se ejecuta en el host de la pasarela, junto a un &lt;cod
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;GET /.well-known/claimward-configuration&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;documento de descubrimiento público, sin autenticación (desde v0.13.0), véase &lt;a href="https://claimward.github.io/docs/dev/es/reference/protocol/#discovery"&gt;el protocolo&lt;/a&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;/td&gt;
 &lt;td&gt;&lt;code&gt;/admin/&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;API de administración y WebUI, cuando existe la credencial &lt;code&gt;admin-token&lt;/code&gt;&lt;/td&gt;
 &lt;/tr&gt;
@@ -309,6 +348,12 @@ archivos de un directorio de credenciales, véase &lt;a href="#credentials"&gt;C
 &lt;td&gt;&lt;code&gt;github&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;—&lt;/td&gt;
 &lt;td&gt;lista CSV de organizaciones permitidas: se admite a un miembro activo de cualquiera de ellas, y también a un miembro nombrado de un inquilino. Desde v0.5.0 es &lt;strong&gt;opcional solo si al menos un inquilino tiene &lt;code&gt;members&lt;/code&gt;&lt;/strong&gt;: sin ninguno de los dos el servidor se niega a arrancar, sin opción de excepción (antes: obligatoria desde v0.4.0)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GITHUB_CLIENT_ID&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;github&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;ID de cliente (público) de la aplicación OAuth de GitHub de Claimward. Desde v0.12.0 (&lt;strong&gt;incompatible&lt;/strong&gt;) solo se admiten tokens &lt;strong&gt;de esa aplicación&lt;/strong&gt;: el servidor consulta a GitHub (&lt;a href="https://docs.github.com/en/rest/apps/oauth-applications#check-a-token" target="_blank" rel="noopener"&gt;Check a token&lt;/a&gt;) con el archivo &lt;code&gt;github-client-secret&lt;/code&gt; antes de fiarse de uno, de modo que un token de otra aplicación OAuth no puede inscribir un par. Sin ID de cliente o sin archivo secreto el servidor se niega a arrancar, sin opción de excepción. Las instalaciones existentes deben añadir ambos&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;GITHUB_API_URL&lt;/code&gt;&lt;/td&gt;
@@ -449,6 +494,18 @@ archivos de un directorio de credenciales, véase &lt;a href="#credentials"&gt;C
 &lt;td&gt;dispositivos que una identidad puede inscribir&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
+&lt;td&gt;&lt;code&gt;SERVER_NAME&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;nombre para mostrar publicado en el documento de descubrimiento (desde v0.13.0); hasta 100 caracteres, sin caracteres de control; sin definir, no se publica ninguno&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;SERVER_EXCLUSIVE&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;false&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;publicado en el documento de descubrimiento (desde v0.13.0): este servidor se niega a compartir la máquina con otros túneles de Claimward; los clientes no lo conectan junto a otros y rechazan a los demás mientras esté conectado. &lt;code&gt;true&lt;/code&gt; o &lt;code&gt;false&lt;/code&gt;, cualquier otro valor impide el arranque&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
 &lt;td&gt;&lt;code&gt;GRPC_ENDPOINT&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;&lt;/td&gt;
 &lt;td&gt;—&lt;/td&gt;
@@ -498,6 +555,11 @@ final.&lt;/p&gt;
 &lt;td&gt;&lt;code&gt;goauthn-gateway-secret&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;&lt;code&gt;AUTH_PROVIDER=go-authn&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;el secreto del cliente de la pasarela&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;github-client-secret&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;AUTH_PROVIDER=github&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;el secreto de cliente de la aplicación OAuth de GitHub de Claimward (véase &lt;code&gt;GITHUB_CLIENT_ID&lt;/code&gt;), desde v0.12.0&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;github-token&lt;/code&gt;&lt;/td&gt;
