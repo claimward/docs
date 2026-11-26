@@ -39,7 +39,7 @@ Alles ist in Go geschrieben, und die drei Apps zeichnen ihr Fenster mit
 | Repository | Release | Was es ist |
 |------------|---------|------------|
 | [`claimward-vpn-server`](https://github.com/claimward/claimward-vpn-server) | v0.14.0 | Steuerungsebene: prüft die Anmeldung, vergibt Adressen, programmiert das WireGuard-Gateway, streamt die Routen der Mandanten über gRPC, Admin-API und Metriken |
-| [`claimward-vpn-client`](https://github.com/claimward/claimward-vpn-client) | v0.9.0 | Go-**Bibliothek**, die sich die Apps und der Server teilen: Wire-Protokoll, Anmeldeanbieter, Tunnel, privilegierter Helper, App-Kern. Sie liefert kein Binary aus |
+| [`claimward-vpn-client`](https://github.com/claimward/claimward-vpn-client) | v0.10.0 | Go-**Bibliothek**, die sich die Apps und der Server teilen: Wire-Protokoll, Anmeldeanbieter, Tunnel, privilegierter Helper, App-Kern. Sie liefert kein Binary aus |
 | [`claimward-vpn-app-osx`](https://github.com/claimward/claimward-vpn-app-osx) | v0.7.4 | macOS-App: native Fenster und Menüleisten-Symbol (go-widgets), Helper als root-LaunchDaemon |
 | [`claimward-vpn-app-linux`](https://github.com/claimward/claimward-vpn-app-linux) | v0.8.0 | Linux-App: Fenster und Infobereich in reinem Go, von systemd ausgeführter Helper |
 | [`claimward-vpn-app-windows`](https://github.com/claimward/claimward-vpn-app-windows) | v0.8.5 | Windows-App: Fenster und Infobereich in reinem Go, Helper als Windows-Dienst, Wintun-Tunnel |

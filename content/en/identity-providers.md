@@ -197,15 +197,20 @@ client "claimward-gw" {         # the gateway's own client
 }
 ```
 
-The app (v0.9.0 or later) reads the providers from the server's discovery
-document, so its `config.json` needs the server's URL, and it sends the chosen
-provider's `id` in `Claimward-Provider`:
+The client (v0.10.0 or later) reads the providers from the server's discovery
+document, so its `config.json` needs only the server's URL, and it sends the
+chosen provider's `id` in `Claimward-Provider`:
 
 ```json
 {
-  "server_url": "https://vpn.example.com"
+  "version": 2,
+  "servers": [
+    {"url": "https://vpn.example.com"}
+  ]
 }
 ```
+
+(`provider` may be added to an entry to remember the chosen provider's `id`.)
 
 ## Adding a provider
 

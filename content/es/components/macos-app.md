@@ -64,21 +64,23 @@ CGO_ENABLED=0 go build -o bin/claimward-helper ./cmd/claimward-helper
 
 ## Configuración {#configure}
 
-`~/Library/Application Support/Claimward/config.json`, también editable desde la
-ventana **Settings** (GitHub es el valor predeterminado):
+`~/Library/Application Support/Claimward/config.json`, para las compilaciones basadas en
+el cliente v0.10.0 o posterior (el formato se describe en la página del cliente):
 
 ```json
 {
-  "server_url": "https://vpn.example.com",
-  "provider": "github",
-  "github_client_id": "Iv1.0123456789abcdef"
+  "version": 2,
+  "servers": [
+    {"url": "https://vpn.example.com"}
+  ]
 }
 ```
 
-Para OIDC, establezca `"provider": "oidc"`; para go-authn, `"provider": "go-authn"`, con
-`"oidc_issuer"` y `"oidc_client_id"`. Con GitHub y go-authn, al hacer clic en
-**Connect** se muestra un código que se debe introducir en la página indicada; con OIDC el navegador
-abre la página de inicio de sesión del proveedor.
+Solo se configura la URL del servidor; los proveedores vienen del servidor. Con GitHub
+y go-authn, al hacer clic en **Connect** se muestra un código que se debe introducir en
+la página indicada; con OIDC el navegador abre la página de inicio de sesión del
+proveedor. Las compilaciones anteriores (cliente v0.9.0 y anteriores) leían
+`server_url`, `provider`, `github_client_id`, `oidc_issuer` y `oidc_client_id`.
 
 ## Instalar el helper y ejecutar {#install-the-helper-and-run}
 

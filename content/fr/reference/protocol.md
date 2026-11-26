@@ -122,7 +122,7 @@ champs de la version 1 par la liste `providers`, une entrée par fournisseur de
 `PROVIDERS_FILE`, dans l'ordre du fichier : `id` (ce que le client envoie dans
 `Claimward-Provider`), `kind` (`github`, `oidc` ou `go-authn`), `name` (montré
 à la personne), puis `github_client_id` pour `github`, `oidc_issuer` et
-`oidc_client_id` pour `oidc` et `go-authn`. Un client en version 0.9.0 ou plus récente
+`oidc_client_id` pour `oidc` et `go-authn`. Un client en version 0.10.0 ou plus récente
 le lit ; il refuse un document d'une version qu'il ne connaît pas.
 `server_name` n'apparaît que si `SERVER_NAME` est défini, `logo` que si
 `SERVER_LOGO_FILE` l'est. `exclusive` est `SERVER_EXCLUSIVE` : ce serveur refuse de
