@@ -87,6 +87,35 @@ einer anderen Person gehört.
 
 Antwort `200`: `{ "status": "ok" }`, ohne Authentifizierung.
 
+## `GET /.well-known/claimward-configuration` {#discovery}
+
+Das öffentliche Discovery-Dokument (seit Server v0.13.0), ohne
+Authentifizierung, damit ein Client vor der Anmeldung erfährt, wie er sich
+anmelden kann. Der Pfad folgt Abschnitt 3 von
+[RFC 8615](https://www.rfc-editor.org/rfc/rfc8615); ein Feld ohne Wert wird
+weggelassen, wie in Abschnitt 3.2 von
+[RFC 8414](https://www.rfc-editor.org/rfc/rfc8414). Nur öffentliche Werte,
+niemals ein Geheimnis. Antwort `200`, `application/json`,
+`Cache-Control: public, max-age=300`; jede andere Methode wird mit `405`
+abgelehnt.
+
+```json
+{
+  "version": 1,
+  "server_name": "Lab",
+  "provider": "github",
+  "github_client_id": "Iv1.0123456789abcdef",
+  "exclusive": false
+}
+```
+
+`server_name` erscheint nur, wenn `SERVER_NAME` gesetzt ist. `github_client_id`
+wird für den Anbieter `github` angegeben, `oidc_issuer` und `oidc_client_id`
+für `oidc` und `go-authn`. `exclusive` ist `SERVER_EXCLUSIVE`: Dieser Server
+weigert sich, die Maschine mit anderen Claimward-Tunneln zu teilen; Clients
+verbinden ihn nicht neben anderen und lehnen andere ab, solange er verbunden
+ist.
+
 ## Fehler {#errors}
 
 Antworten außerhalb von 2xx tragen:

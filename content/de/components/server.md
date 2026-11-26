@@ -21,6 +21,7 @@ registriertem Gerät. Er läuft auf dem Gateway-Host, neben einem vorhandenen `w
 | | `POST /api/v1/heartbeat` | die Lease des Geräts erneuern |
 | | `POST /api/v1/deregister` | den Peer entfernen |
 | | `GET /healthz` | Liveness |
+| | `GET /.well-known/claimward-configuration` | öffentliches Discovery-Dokument, ohne Authentifizierung (seit v0.13.0), siehe [das Protokoll]({{< relref "/reference/protocol.md#discovery" >}}) |
 | | `/admin/` | Admin-API und WebUI, wenn die Credential `admin-token` existiert |
 | `GRPC_ADDR` (`:8444`) | `claimward.routes.v1.RouteService/Watch` | streamt die Routen des Mandanten und ihre Aktualisierungen |
 | `METRICS_ADDR` (kein Standard: aus, solange nicht gesetzt) | `GET /metrics` | Prometheus-Metriken, auf einem eigenen Listener, nie auf `LISTEN_ADDR` |
@@ -45,6 +46,7 @@ sie Dateien in einem Credentials-Verzeichnis, siehe [Credentials](#credentials) 
 |----------|----------|---------|-------|
 | `AUTH_PROVIDER` | | `github` | Identitätsanbieter: `github`, `oidc` oder `go-authn` |
 | `GITHUB_ALLOWED_ORGS` | `github` | — | CSV-Allowlist der Organisationen: Ein aktives Mitglied einer davon wird zugelassen, ebenso ein benanntes Mandantenmitglied. Seit v0.5.0 ist sie **nur optional, wenn mindestens ein Mandant `members` hat**: Ohne beides startet der Server nicht, es gibt keine Ausnahme-Option (zuvor: Pflicht seit v0.4.0) |
+| `GITHUB_CLIENT_ID` | `github` | — | Client-ID (öffentlich) der GitHub-OAuth-App von Claimward. Seit v0.12.0 (**inkompatibel**) werden nur Token **dieser App** zugelassen: Der Server fragt GitHub ([Check a token](https://docs.github.com/en/rest/apps/oauth-applications#check-a-token)) mit der Datei `github-client-secret`, bevor er einem traut, sodass ein Token einer anderen OAuth-App keinen Peer registrieren kann. Ohne Client-ID oder ohne Secret-Datei startet der Server nicht, es gibt keine Ausnahme-Option. Bestehende Installationen müssen beides ergänzen |
 | `GITHUB_API_URL` | | `https://api.github.com` | für GitHub Enterprise zu setzen |
 | `OIDC_ISSUER` | `oidc`, `go-authn` | — | URL des Issuers (Discovery) |
 | `OIDC_CLIENT_ID` | `oidc`, `go-authn` | — | die Audience, die Tokens tragen müssen |
@@ -68,6 +70,8 @@ sie Dateien in einem Credentials-Verzeichnis, siehe [Credentials](#credentials) 
 | `GRPC_ADDR` | | `:8444` | Listen-Adresse des RouteService; `Watch`-Streams werden alle 15 s neu autorisiert und enden, wenn die Identität nicht mehr zugelassen ist |
 | `METRICS_ADDR` | | — (aus) | eigener Listener für `/metrics`, **nur wenn gesetzt** (seit v0.9.0 gibt es keinen Standardport: der frühere `127.0.0.1:9090` kollidierte mit Prometheus); nie auf `LISTEN_ADDR`. Er nennt jeden Tenant: auf Loopback oder in einem privaten Netz halten |
 | `MAX_DEVICES_PER_SUBJECT` | | `5` | Geräte, die eine Identität registrieren darf |
+| `SERVER_NAME` | | — | Anzeigename im Discovery-Dokument (seit v0.13.0); höchstens 100 Zeichen, keine Steuerzeichen; ungesetzt wird kein Name veröffentlicht |
+| `SERVER_EXCLUSIVE` | | `false` | im Discovery-Dokument veröffentlicht (seit v0.13.0): Dieser Server weigert sich, die Maschine mit anderen Claimward-Tunneln zu teilen; Clients verbinden ihn nicht neben anderen und lehnen andere ab, solange er verbunden ist. `true` oder `false`, jeder andere Wert verhindert den Start |
 | `GRPC_ENDPOINT` | | — | den Clients mitgeteilter `host:port` des RouteService; ist er leer, beobachten sie nicht |
 | `TLS_CERT` / `TLS_KEY` | | — | HTTPS und TLS auf dem RouteService |
 | `DEBUG` | | — | beliebiger Wert: Debug-Protokollierung (eine Zeile pro Anfrage) |
@@ -85,6 +89,7 @@ Die Dateinamen sind fest, ein abschließender Zeilenumbruch wird entfernt.
 | `wg-private-key` | immer | der private Schlüssel des Gateways in Base64 |
 | `admin-token` | nein | Bearer-Token der Admin-API und der WebUI; **ohne die Datei sind sie deaktiviert** |
 | `goauthn-gateway-secret` | `AUTH_PROVIDER=go-authn` | das Secret des Gateway-Clients |
+| `github-client-secret` | `AUTH_PROVIDER=github` | das Client-Secret der GitHub-OAuth-App von Claimward (siehe `GITHUB_CLIENT_ID`), seit v0.12.0 |
 | `github-token` | wenn ein Mandant `members` hat | Bearer für `GET /users/{login}` (siehe [Mandanten]({{< relref "/tenants.md" >}})) |
 
 Eine fehlende erforderliche Datei verhindert den Start und wird benannt. Vor dem

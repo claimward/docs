@@ -21,6 +21,7 @@ appareil enrôlé. Il s'exécute sur l'hôte de passerelle, à côté d'un `wg0`
 | | `POST /api/v1/heartbeat` | renouveler le bail de l'appareil |
 | | `POST /api/v1/deregister` | retirer le pair |
 | | `GET /healthz` | vivacité |
+| | `GET /.well-known/claimward-configuration` | document de découverte public, sans authentification (depuis v0.13.0), voir [le protocole]({{< relref "/reference/protocol.md#discovery" >}}) |
 | | `/admin/` | API d'administration et WebUI, lorsque l'identifiant `admin-token` existe |
 | `GRPC_ADDR` (`:8444`) | `claimward.routes.v1.RouteService/Watch` | diffuse les routes du locataire et leurs mises à jour |
 | `METRICS_ADDR` (pas de défaut : désactivé si non défini) | `GET /metrics` | métriques Prometheus, sur une écoute à part, jamais sur `LISTEN_ADDR` |
@@ -44,6 +45,7 @@ sont des fichiers d'un répertoire d'identifiants, voir [Identifiants](#credenti
 |----------|----------|---------|-------|
 | `AUTH_PROVIDER` | | `github` | fournisseur d'identité : `github`, `oidc` ou `go-authn` |
 | `GITHUB_ALLOWED_ORGS` | `github` | — | liste CSV des organisations autorisées : un membre actif de l'une d'elles est admis, de même qu'un membre nommé d'un locataire. Depuis v0.5.0 elle n'est **facultative que si au moins un locataire a des `members`** : sans l'un ni l'autre le serveur refuse de démarrer, sans option de contournement (avant : obligatoire depuis v0.4.0) |
+| `GITHUB_CLIENT_ID` | `github` | — | identifiant client (public) de l'application OAuth GitHub de Claimward. Depuis v0.12.0 (**rupture**) seuls les jetons **de cette application** sont admis : le serveur interroge GitHub ([Check a token](https://docs.github.com/en/rest/apps/oauth-applications#check-a-token)) avec le fichier `github-client-secret` avant d'en croire un, de sorte qu'un jeton détenu par une autre application OAuth ne peut pas enrôler un pair. Sans identifiant ou sans fichier secret, le serveur refuse de démarrer, sans option de contournement. Les déploiements existants doivent ajouter les deux |
 | `GITHUB_API_URL` | | `https://api.github.com` | à définir pour GitHub Enterprise |
 | `OIDC_ISSUER` | `oidc`, `go-authn` | — | URL de l'émetteur (découverte) |
 | `OIDC_CLIENT_ID` | `oidc`, `go-authn` | — | l'audience que les jetons doivent porter |
@@ -67,6 +69,8 @@ sont des fichiers d'un répertoire d'identifiants, voir [Identifiants](#credenti
 | `GRPC_ADDR` | | `:8444` | adresse d'écoute du RouteService ; les flux `Watch` sont ré-autorisés toutes les 15 s et se terminent quand l'identité n'est plus admise |
 | `METRICS_ADDR` | | — (désactivé) | écouteur séparé pour `/metrics`, servi **seulement si défini** (depuis la v0.9.0 il n'y a plus de port par défaut : l'ancien `127.0.0.1:9090` entrait en conflit avec Prometheus) ; jamais sur `LISTEN_ADDR`. Il nomme chaque tenant : gardez-le en boucle locale ou sur un réseau privé |
 | `MAX_DEVICES_PER_SUBJECT` | | `5` | appareils qu'une identité peut enrôler |
+| `SERVER_NAME` | | — | nom d'affichage publié dans le document de découverte (depuis v0.13.0) ; 100 caractères au plus, sans caractère de contrôle ; non défini, aucun nom n'est publié |
+| `SERVER_EXCLUSIVE` | | `false` | publié dans le document de découverte (depuis v0.13.0) : ce serveur refuse de partager la machine avec d'autres tunnels Claimward ; les clients refusent de le connecter avec d'autres, et refusent les autres tant qu'il est connecté. `true` ou `false`, toute autre valeur refuse le démarrage |
 | `GRPC_ENDPOINT` | | — | `host:port` du RouteService annoncé aux clients ; vide, ils ne surveillent rien |
 | `TLS_CERT` / `TLS_KEY` | | — | HTTPS, et TLS sur le RouteService |
 | `DEBUG` | | — | n'importe quelle valeur : journalisation de débogage (une ligne par requête) |
@@ -85,6 +89,7 @@ un saut de ligne final est retiré.
 | `wg-private-key` | toujours | la clé privée base64 de la passerelle |
 | `admin-token` | non | jeton porteur de l'API d'administration et de la WebUI ; **sans le fichier, elles sont désactivées** |
 | `goauthn-gateway-secret` | `AUTH_PROVIDER=go-authn` | le secret du client de la passerelle |
+| `github-client-secret` | `AUTH_PROVIDER=github` | le secret client de l'application OAuth GitHub de Claimward (voir `GITHUB_CLIENT_ID`), depuis v0.12.0 |
 | `github-token` | quand un locataire a des `members` | jeton porteur pour `GET /users/{login}` (voir [Locataires]({{< relref "/tenants.md" >}})) |
 
 Un fichier requis absent empêche le démarrage et est nommé. Avant de lire, le
