@@ -1,0 +1,1329 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Claimward – Wireguard</title><link>https://claimward.github.io/docs/v0.9.2/de/tags/wireguard/</link><description>Recent content in Wireguard on Claimward</description><generator>Hugo -- gohugo.io</generator><language>de</language><atom:link href="https://claimward.github.io/docs/v0.9.2/de/tags/wireguard/index.xml" rel="self" type="application/rss+xml"/><item><title>Server</title><link>https://claimward.github.io/docs/v0.9.2/de/components/server/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/v0.9.2/de/components/server/</guid><description>
+&lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-server" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-server&lt;/code&gt;&lt;/a&gt;
+&lt;strong&gt;v0.13.0&lt;/strong&gt; ist die Steuerungsebene. Er prüft das Bearer-Token, das ein Gerät vorlegt,
+vergibt VPN-Adressen und programmiert das WireGuard-Gateway mit einem Peer pro
+registriertem Gerät. Er läuft auf dem Gateway-Host, neben einem vorhandenen &lt;code&gt;wg0&lt;/code&gt;: Linux
+(nftables) oder, ab v0.10.0, OpenBSD (pf, siehe &lt;a href="#openbsd"&gt;OpenBSD&lt;/a&gt;).&lt;/p&gt;
+&lt;h2 data-hextra-search-id="what-it-serves"&gt;Was er bereitstellt&lt;span class="hx:absolute hx:-mt-20" id="what-it-serves"&gt;&lt;/span&gt;
+&lt;a href="#what-it-serves" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Listener&lt;/th&gt;
+&lt;th&gt;Pfad&lt;/th&gt;
+&lt;th&gt;Zweck&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;LISTEN_ADDR&lt;/code&gt; (&lt;code&gt;:8443&lt;/code&gt;)&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;POST /api/v1/enroll&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;prüfen, den Mandanten wählen, eine Adresse vergeben, den Peer hinzufügen, die Tunnelkonfiguration zurückgeben&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;GET /api/v1/tenants&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;die Mandanten, mit denen sich der Aufrufer verbinden darf&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;POST /api/v1/heartbeat&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;die Lease des Geräts erneuern&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;POST /api/v1/deregister&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;den Peer entfernen&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;GET /healthz&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Liveness&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;GET /.well-known/claimward-configuration&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;öffentliches Discovery-Dokument, ohne Authentifizierung (seit v0.13.0), siehe &lt;a href="https://claimward.github.io/docs/v0.9.2/de/reference/protocol/#discovery"&gt;das Protokoll&lt;/a&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;/admin/&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Admin-API und WebUI, wenn die Credential &lt;code&gt;admin-token&lt;/code&gt; existiert&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GRPC_ADDR&lt;/code&gt; (&lt;code&gt;:8444&lt;/code&gt;)&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;claimward.routes.v1.RouteService/Watch&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;streamt die Routen des Mandanten und ihre Aktualisierungen&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;METRICS_ADDR&lt;/code&gt; (kein Standard: aus, solange nicht gesetzt)&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;GET /metrics&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Prometheus-Metriken, auf einem eigenen Listener, nie auf &lt;code&gt;LISTEN_ADDR&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Die API-Anfragen tragen &lt;code&gt;Authorization: Bearer &amp;lt;token&amp;gt;&lt;/code&gt;: ein GitHub-Access-Token,
+ein OIDC-ID-Token oder ein go-authn-Access-Token, je nach &lt;code&gt;AUTH_PROVIDER&lt;/code&gt;.
+Die Nutzdaten sind im
+&lt;a href="https://claimward.github.io/docs/v0.9.2/de/reference/protocol/"&gt;Registrierungsprotokoll&lt;/a&gt;
+beschrieben.&lt;/p&gt;
+&lt;p&gt;Mit &lt;code&gt;TLS_CERT&lt;/code&gt; und &lt;code&gt;TLS_KEY&lt;/code&gt; verwenden beide Listener TLS. Ohne sie ist die HTTP-API
+unverschlüsselt (terminieren Sie TLS an einem Proxy), ebenso der RouteService, den die
+Clients dann ablehnen, außer über Loopback: Geräte verbinden sich, erhalten aber keine Live-Aktualisierungen
+der Routen.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="configuration"&gt;Konfiguration&lt;span class="hx:absolute hx:-mt-20" id="configuration"&gt;&lt;/span&gt;
+&lt;a href="#configuration" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Die Einstellungen stehen in der Umgebung. &lt;strong&gt;Secrets nicht&lt;/strong&gt;: Seit v0.6.0 sind
+sie Dateien in einem Credentials-Verzeichnis, siehe &lt;a href="#credentials"&gt;Credentials&lt;/a&gt; unten.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Variable&lt;/th&gt;
+&lt;th&gt;Erforderlich&lt;/th&gt;
+&lt;th&gt;Standard&lt;/th&gt;
+&lt;th&gt;Hinweise&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;AUTH_PROVIDER&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;github&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Identitätsanbieter: &lt;code&gt;github&lt;/code&gt;, &lt;code&gt;oidc&lt;/code&gt; oder &lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;github&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;CSV-Allowlist der Organisationen: Ein aktives Mitglied einer davon wird zugelassen, ebenso ein benanntes Mandantenmitglied. Seit v0.5.0 ist sie &lt;strong&gt;nur optional, wenn mindestens ein Mandant &lt;code&gt;members&lt;/code&gt; hat&lt;/strong&gt;: Ohne beides startet der Server nicht, es gibt keine Ausnahme-Option (zuvor: Pflicht seit v0.4.0)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GITHUB_CLIENT_ID&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;github&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;Client-ID (öffentlich) der GitHub-OAuth-App von Claimward. Seit v0.12.0 (&lt;strong&gt;inkompatibel&lt;/strong&gt;) werden nur Token &lt;strong&gt;dieser App&lt;/strong&gt; zugelassen: Der Server fragt GitHub (&lt;a href="https://docs.github.com/en/rest/apps/oauth-applications#check-a-token" target="_blank" rel="noopener"&gt;Check a token&lt;/a&gt;) mit der Datei &lt;code&gt;github-client-secret&lt;/code&gt;, bevor er einem traut, sodass ein Token einer anderen OAuth-App keinen Peer registrieren kann. Ohne Client-ID oder ohne Secret-Datei startet der Server nicht, es gibt keine Ausnahme-Option. Bestehende Installationen müssen beides ergänzen&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GITHUB_API_URL&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;https://api.github.com&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;für GitHub Enterprise zu setzen&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;OIDC_ISSUER&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;oidc&lt;/code&gt;, &lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;URL des Issuers (Discovery)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;OIDC_CLIENT_ID&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;oidc&lt;/code&gt;, &lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;die Audience, die Tokens tragen müssen&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;OIDC_ALLOWED_DOMAINS&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;CSV-Allowlist der E-Mail-Domains (&lt;code&gt;oidc&lt;/code&gt;); die E-Mail des Tokens muss verifiziert sein&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GOAUTHN_GATEWAY_CLIENT_ID&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;der eigene Client des Gateways beim Anbieter (&lt;code&gt;wireguard_peers&lt;/code&gt;)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GOAUTHN_PEER_LIST_INTERVAL&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;30s&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;wie oft die Liste der registrierten Schlüssel abgerufen wird&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GOAUTHN_SSF&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;false&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;zusätzlich den Shared-Signals-Stream des Anbieters abfragen, damit auf eine Deaktivierung sofort reagiert wird; der Client des Gateways muss dort SSF-Empfänger sein&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GOAUTHN_SSF_INTERVAL&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;5s&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;wie oft der SSF-Stream abgefragt wird&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;WG_ENDPOINT&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;✅&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;öffentlicher &lt;code&gt;host:port&lt;/code&gt; des Gateways, den Clients mitgeteilt&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;✅&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;das Verzeichnis mit den Secret-Dateien, siehe &lt;a href="#credentials"&gt;Credentials&lt;/a&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;WG_INTERFACE&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;wg0&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;zu verwaltende Schnittstelle&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;WG_DRYRUN&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;false&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Peer-Operationen protokollieren statt sie anzuwenden (lokale Entwicklung)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;VPN_CIDR&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;10.80.0.0/24&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;IPv4-Adresspool; sein erster Host ist der des Gateways&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;PUSH_ROUTES&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;VPN_CIDR&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;CSV-Routen des Mandanten &lt;code&gt;default&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;TENANTS_FILE&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;JSON-Datei mit Mandanten, beim Start geladen, samt &lt;a href="https://claimward.github.io/docs/v0.9.2/de/tenants/#access-policy"&gt;Zugriffsrichtlinie&lt;/a&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;DNS&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;CSV-DNS-Server des Mandanten &lt;code&gt;default&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;KEEPALIVE&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;25&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;den Clients mitgeteiltes Persistent Keepalive (Sekunden)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;LEASE_TTL&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;24h&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;wie lange eine Registrierung ohne Heartbeat gilt&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;TUNNEL_MTU&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;abgeleitet&lt;/td&gt;
+&lt;td&gt;MTU der WireGuard-Schnittstelle, 1280 bis 9000, als &lt;code&gt;mtu&lt;/code&gt; angekündigt; alles andere verweigert den Start. Ungesetzt: Uplink-MTU minus 80, höchstens 1420, mindestens 1280. Dieselbe atomare Tabelle &lt;code&gt;inet claimward&lt;/code&gt; senkt außerdem das MSS jedes TCP-SYN, das die Schnittstelle quert (weitergeleitet in beide Richtungen sowie Eingang für das Gateway selbst), auf diese MTU minus 40 (IPv4) bzw. 60 (IPv6)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;LISTEN_ADDR&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;:8443&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;HTTP-Listen-Adresse&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GRPC_ADDR&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;:8444&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Listen-Adresse des RouteService; &lt;code&gt;Watch&lt;/code&gt;-Streams werden alle 15 s neu autorisiert und enden, wenn die Identität nicht mehr zugelassen ist&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;METRICS_ADDR&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;— (aus)&lt;/td&gt;
+&lt;td&gt;eigener Listener für &lt;code&gt;/metrics&lt;/code&gt;, &lt;strong&gt;nur wenn gesetzt&lt;/strong&gt; (seit v0.9.0 gibt es keinen Standardport: der frühere &lt;code&gt;127.0.0.1:9090&lt;/code&gt; kollidierte mit Prometheus); nie auf &lt;code&gt;LISTEN_ADDR&lt;/code&gt;. Er nennt jeden Tenant: auf Loopback oder in einem privaten Netz halten&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;MAX_DEVICES_PER_SUBJECT&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;5&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Geräte, die eine Identität registrieren darf&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;SERVER_NAME&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;Anzeigename im Discovery-Dokument (seit v0.13.0); höchstens 100 Zeichen, keine Steuerzeichen; ungesetzt wird kein Name veröffentlicht&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;SERVER_EXCLUSIVE&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;false&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;im Discovery-Dokument veröffentlicht (seit v0.13.0): Dieser Server weigert sich, die Maschine mit anderen Claimward-Tunneln zu teilen; Clients verbinden ihn nicht neben anderen und lehnen andere ab, solange er verbunden ist. &lt;code&gt;true&lt;/code&gt; oder &lt;code&gt;false&lt;/code&gt;, jeder andere Wert verhindert den Start&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GRPC_ENDPOINT&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;den Clients mitgeteilter &lt;code&gt;host:port&lt;/code&gt; des RouteService; ist er leer, beobachten sie nicht&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;TLS_CERT&lt;/code&gt; / &lt;code&gt;TLS_KEY&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;HTTPS und TLS auf dem RouteService&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;DEBUG&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;/td&gt;
+&lt;td&gt;—&lt;/td&gt;
+&lt;td&gt;beliebiger Wert: Debug-Protokollierung (eine Zeile pro Anfrage)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 data-hextra-search-id="credentials"&gt;Credentials&lt;span class="hx:absolute hx:-mt-20" id="credentials"&gt;&lt;/span&gt;
+&lt;a href="#credentials" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Jedes Secret ist eine &lt;strong&gt;Datei&lt;/strong&gt; im Verzeichnis, das &lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt;
+nennt, nie eine Umgebungsvariable: Eine Umgebung wird in jeden Kindprozess und
+jeden Crash-Dump kopiert. systemd setzt die Variable für &lt;code&gt;LoadCredential=&lt;/code&gt; und
+&lt;code&gt;LoadCredentialEncrypted=&lt;/code&gt;; auf den anderen Plattformen setzen Sie sie selbst.
+Die Dateinamen sind fest, ein abschließender Zeilenumbruch wird entfernt.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Datei&lt;/th&gt;
+&lt;th&gt;Erforderlich&lt;/th&gt;
+&lt;th&gt;Inhalt&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;wg-private-key&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;immer&lt;/td&gt;
+&lt;td&gt;der private Schlüssel des Gateways in Base64&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;admin-token&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;nein&lt;/td&gt;
+&lt;td&gt;Bearer-Token der Admin-API und der WebUI; &lt;strong&gt;ohne die Datei sind sie deaktiviert&lt;/strong&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;goauthn-gateway-secret&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;AUTH_PROVIDER=go-authn&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;das Secret des Gateway-Clients&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;github-client-secret&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;AUTH_PROVIDER=github&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;das Client-Secret der GitHub-OAuth-App von Claimward (siehe &lt;code&gt;GITHUB_CLIENT_ID&lt;/code&gt;), seit v0.12.0&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;github-token&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;wenn ein Mandant &lt;code&gt;members&lt;/code&gt; hat&lt;/td&gt;
+&lt;td&gt;Bearer für &lt;code&gt;GET /users/{login}&lt;/code&gt; (siehe &lt;a href="https://claimward.github.io/docs/v0.9.2/de/tenants/"&gt;Mandanten&lt;/a&gt;)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Eine fehlende erforderliche Datei verhindert den Start und wird benannt. Vor dem
+Lesen prüft der Server jede Datei über den offenen Deskriptor (&lt;code&gt;O_NOFOLLOW&lt;/code&gt;,
+dann &lt;code&gt;fstat&lt;/code&gt;) und &lt;strong&gt;verweigert&lt;/strong&gt; einen symbolischen Link, alles außer einer
+regulären Datei, eine für Gruppe oder andere lesbare Datei, eine Datei, die
+nicht der UID des Servers gehört, eine leere Datei und eine über 64 KiB. Eine
+Ausnahme seit v0.7.1: Eine Datei der UID 0 mit genau dem Modus &lt;code&gt;0440&lt;/code&gt; wird
+akzeptiert, wenn ihre Gruppe die GID des Servers oder eine seiner
+Zusatzgruppen ist (so ein Kubernetes-Secret-Volume mit &lt;code&gt;fsGroup&lt;/code&gt;). Eine
+zweite seit v0.9.0, für systemd mit &lt;code&gt;DynamicUser=yes&lt;/code&gt;: systemd lässt die Datei
+&lt;code&gt;root:root&lt;/code&gt;, Modus &lt;code&gt;0400&lt;/code&gt;, plus einen schreibgeschützten POSIX-ACL-Eintrag für
+die UID des Dienstes (&lt;code&gt;src/core/exec-credential.c:338-361&lt;/code&gt;,
+&lt;code&gt;src/shared/acl-util.c:448-494&lt;/code&gt;), sodass &lt;code&gt;stat&lt;/code&gt; &lt;code&gt;0440&lt;/code&gt; zeigt. Der Server liest
+&lt;code&gt;system.posix_acl_access&lt;/code&gt; vom offenen Deskriptor und akzeptiert genau
+&lt;code&gt;user::&lt;/code&gt; (ohne Schreiben oder Ausführen), &lt;code&gt;user:&amp;lt;seine UID&amp;gt;:r--&lt;/code&gt;, &lt;code&gt;group::---&lt;/code&gt;, &lt;code&gt;mask::r--&lt;/code&gt;, &lt;code&gt;other::---&lt;/code&gt;;
+jeder andere benannte Benutzer oder jede Gruppe, jedes Schreib- oder
+Ausführungsbit und ein fehlerhafter oder zu großer Wert werden abgelehnt. Die
+Fehlermeldung nennt die Abhilfe.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Plattform&lt;/th&gt;
+&lt;th&gt;&lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt;&lt;/th&gt;
+&lt;th&gt;Eigentümer und Modus&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;systemd&lt;/td&gt;
+&lt;td&gt;von &lt;code&gt;LoadCredentialEncrypted=&lt;/code&gt; gesetzt&lt;/td&gt;
+&lt;td&gt;mit &lt;code&gt;DynamicUser=yes&lt;/code&gt; (wie ausgeliefert): Eigentum von root mit schreibgeschützter ACL für die UID des Dienstes, akzeptiert; mit festem &lt;code&gt;User=&lt;/code&gt; auf einem Dateisystem ohne ACL: der Dienstbenutzer, &lt;code&gt;0400&lt;/code&gt;. Privates tmpfs&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Docker Swarm&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;/run/secrets&lt;/code&gt;, von Hand gesetzt&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;mode: 0400&lt;/code&gt; am Secret&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Docker Compose&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;/run/secrets&lt;/code&gt;, von Hand gesetzt&lt;/td&gt;
+&lt;td&gt;die der Host-Datei: &lt;code&gt;chown&lt;/code&gt; und &lt;code&gt;chmod 0400&lt;/code&gt;, und &lt;code&gt;user:&lt;/code&gt; passend setzen&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Podman&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;/run/secrets&lt;/code&gt;, von Hand gesetzt&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;--secret ...,mode=0400&lt;/code&gt; (Quadlet: &lt;code&gt;Secret=...,mode=0400&lt;/code&gt;)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Kubernetes&lt;/td&gt;
+&lt;td&gt;der Mount-Pfad des Secret-Volumes, von Hand gesetzt&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;defaultMode: 0440&lt;/code&gt; und &lt;code&gt;fsGroup&lt;/code&gt;: die Dateien sind &lt;code&gt;root:&amp;lt;fsGroup&amp;gt;&lt;/code&gt;, von der Gruppenregel oben akzeptiert, daher läuft der Pod als Nicht-root-UID mit allen Capabilities außer &lt;code&gt;NET_ADMIN&lt;/code&gt; entfernt. &lt;code&gt;add: [NET_ADMIN]&lt;/code&gt; allein gibt einer Nicht-root-UID die Capability nicht (keine Ambient-Menge): Die Binärdatei im Image braucht &lt;code&gt;setcap cap_net_admin=+ep&lt;/code&gt; (nach capabilities(7), nicht auf einem Cluster gemessen)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;s6 (ohne systemd)&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;/run/sdcreds/claimward-server&lt;/code&gt;, von &lt;code&gt;sdcreds s6-run&lt;/code&gt; gesetzt&lt;/td&gt;
+&lt;td&gt;der Dienstbenutzer, &lt;code&gt;0400&lt;/code&gt;, in einem privaten tmpfs (siehe &lt;a href="#s6-deploy"&gt;s6&lt;/a&gt;)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;sonst&lt;/td&gt;
+&lt;td&gt;ein beliebiges Verzeichnis&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;chmod 0400&lt;/code&gt;, Eigentümer: der Dienstbenutzer&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Fertige Units für systemd, Compose, Podman, Kubernetes und s6 liegen im
+Verzeichnis &lt;code&gt;deploy/&lt;/code&gt; des Repositorys, mit den Schritten für &lt;code&gt;systemd-creds encrypt&lt;/code&gt;. Hosts ohne systemd erhalten dasselbe Verzeichnis von
+&lt;code&gt;go-authn/sdcreds&lt;/code&gt; (siehe &lt;a href="#s6-deploy"&gt;s6&lt;/a&gt;); der Server hängt nicht davon ab.&lt;/p&gt;
+&lt;p&gt;Die Organisationsprüfung des Anbieters &lt;code&gt;github&lt;/code&gt; verwendet &lt;code&gt;github-token&lt;/code&gt; nicht:
+Sie läuft mit dem Token der &lt;em&gt;Person&lt;/em&gt;, ein privates Mitglied ist also nur
+sichtbar, wenn dieses Token &lt;code&gt;read:org&lt;/code&gt; trägt. Die Credential ist optional,
+solange nur Organisationen verwendet werden.&lt;/p&gt;
+&lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-amber-200 hx:bg-amber-100 hx:text-amber-900 hx:dark:border-amber-200/30 hx:dark:bg-amber-900/30 hx:dark:text-amber-200"&gt;
+&lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/&gt;&lt;/svg&gt;&lt;/div&gt;
+&lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Migration von v0.5.0&lt;/strong&gt; (inkompatibel). &lt;code&gt;ADMIN_TOKEN&lt;/code&gt;, &lt;code&gt;WG_PRIVATE_KEY&lt;/code&gt;,
+&lt;code&gt;WG_PRIVATE_KEY_FILE&lt;/code&gt; und &lt;code&gt;GOAUTHN_GATEWAY_SECRET_FILE&lt;/code&gt; werden nicht mehr
+gelesen, und der Server verweigert den Start, solange eine davon gesetzt ist;
+er nennt die anzulegende Datei. Legen Sie jeden Wert in seine Datei
+(&lt;code&gt;admin-token&lt;/code&gt;, &lt;code&gt;wg-private-key&lt;/code&gt;, &lt;code&gt;goauthn-gateway-secret&lt;/code&gt;), entfernen Sie die
+Variable und setzen Sie &lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt;. Ein Mandant mit &lt;code&gt;members&lt;/code&gt;
+braucht jetzt auch &lt;code&gt;github-token&lt;/code&gt;.&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;h2 data-hextra-search-id="authentication-providers"&gt;Authentifizierungsanbieter&lt;span class="hx:absolute hx:-mt-20" id="authentication-providers"&gt;&lt;/span&gt;
+&lt;a href="#authentication-providers" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Die Authentifizierung ist hinter der Schnittstelle &lt;code&gt;Verifier&lt;/code&gt; austauschbar
+(&lt;code&gt;internal/auth&lt;/code&gt;):&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;github&lt;/code&gt;&lt;/strong&gt; (Standard): Das Bearer-Token ist ein GitHub-OAuth-Access-Token aus dem
+Device Flow. Der Server löst es über die GitHub-API auf (&lt;code&gt;/user&lt;/code&gt;,
+&lt;code&gt;/user/orgs&lt;/code&gt;) und lässt mit &lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt; ein aktives Mitglied
+einer dieser Organisationen oder ein benanntes Mandantenmitglied zu (die Liste
+ist nur optional, wenn ein Mandant &lt;code&gt;members&lt;/code&gt; hat). Es ist kein Client-Secret beteiligt.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;oidc&lt;/code&gt;&lt;/strong&gt;: Das Bearer-Token ist ein OIDC-ID-Token, geprüft gegen den Issuer mit
+der Audience &lt;code&gt;OIDC_CLIENT_ID&lt;/code&gt; und der optionalen Allowlist der E-Mail-Domains.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;go-authn&lt;/code&gt;&lt;/strong&gt;: Das Bearer-Token ist ein Access-Token (&lt;code&gt;at+jwt&lt;/code&gt;) eines
+&lt;a href="https://github.com/go-authn/bridge" target="_blank" rel="noopener"&gt;go-authn/bridge&lt;/a&gt;-Anbieters, und der
+Schlüssel des Geräts muss dort von derselben Person registriert sein. Der Server liest
+die signierte Liste der registrierten Schlüssel des Anbieters
+(&lt;a href="https://github.com/go-authn/wireguard" target="_blank" rel="noopener"&gt;go-authn/wireguard&lt;/a&gt;) und entfernt aus
+&lt;code&gt;wg0&lt;/code&gt; einen Schlüssel, den der Anbieter zurückzieht.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Jeden Ablauf von Ende zu Ende finden Sie unter
+&lt;a href="https://claimward.github.io/docs/v0.9.2/de/identity-providers/"&gt;Identitätsanbieter&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="enrollment-rules"&gt;Registrierungsregeln&lt;span class="hx:absolute hx:-mt-20" id="enrollment-rules"&gt;&lt;/span&gt;
+&lt;a href="#enrollment-rules" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Ein Schlüssel gehört demjenigen, der ihn registriert hat.&lt;/strong&gt; Das Registrieren eines Schlüssels, den eine andere Identität
+hält, wird abgelehnt (&lt;code&gt;409 key_taken&lt;/code&gt;): Ein öffentlicher Schlüssel ist öffentlich, und ihn zu übernehmen
+gäbe die Macht, das Gerät seines Besitzers abzumelden.&lt;/li&gt;
+&lt;li&gt;Derselbe Schlüssel, erneut von seinem Besitzer registriert, behält seine Adresse und erhält eine neue
+Lease.&lt;/li&gt;
+&lt;li&gt;Die einzige erlaubte IP des Peers ist das &lt;code&gt;/32&lt;/code&gt; des Geräts, sodass Geräte die Adressen der jeweils
+anderen nicht verwenden können.&lt;/li&gt;
+&lt;li&gt;Der Mandant ist derjenige, den der Aufrufer angefordert hat, sofern er Mitglied ist, oder sein
+einziger. Siehe &lt;a href="https://claimward.github.io/docs/v0.9.2/de/tenants/"&gt;Mandanten&lt;/a&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 data-hextra-search-id="how-it-programs-the-gateway"&gt;Wie er das Gateway programmiert&lt;span class="hx:absolute hx:-mt-20" id="how-it-programs-the-gateway"&gt;&lt;/span&gt;
+&lt;a href="#how-it-programs-the-gateway" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Der Server verwendet &lt;a href="https://pkg.go.dev/golang.zx2c4.com/wireguard/wgctrl" target="_blank" rel="noopener"&gt;&lt;code&gt;wgctrl&lt;/code&gt;&lt;/a&gt;,
+um Peers auf einer vorhandenen Schnittstelle hinzuzufügen und zu entfernen, und prüft beim Start, dass
+die Schnittstelle existiert. Die Schnittstelle selbst (ihr privater Schlüssel und Listen-Port)
+bleibt &lt;code&gt;wg-quick&lt;/code&gt; oder systemd-networkd beim Booten überlassen, was die privilegierte
+Einrichtung der Schnittstelle aus dem dauerhaft laufenden Dienst heraushält.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="openbsd"&gt;OpenBSD (pf)&lt;span class="hx:absolute hx:-mt-20" id="openbsd"&gt;&lt;/span&gt;
+&lt;a href="#openbsd" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Ab v0.10.0 läuft der Server auch unter OpenBSD und setzt die Zugriffsrichtlinie
+dort mit pf statt mit nftables durch. Er spricht den Kernel direkt über die
+ioctls von &lt;code&gt;/dev/pf&lt;/code&gt; an; er startet nie &lt;code&gt;pfctl&lt;/code&gt;, und es gibt keinen Rückfall auf
+&lt;code&gt;pfctl&lt;/code&gt;.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Unterstützte Versionen: OpenBSD 7.9 und 8.0.&lt;/strong&gt; Sie teilen sich dasselbe
+Layout von &lt;code&gt;struct pf_rule&lt;/code&gt;, das der Server gegen die laufende Version prüft.
+Auf jeder anderen Version startet der Server nicht, statt eine Regel falsch zu
+kodieren.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;&lt;code&gt;pf.conf&lt;/code&gt; gehört Ihnen.&lt;/strong&gt; Der Server ändert den Hauptregelsatz nie. Fügen
+Sie &lt;code&gt;/etc/pf.conf&lt;/code&gt; eine Zeile hinzu und lassen Sie &lt;code&gt;pf&lt;/code&gt; aktiviert:&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;anchor &amp;#34;claimward&amp;#34;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;Der Server lädt die Richtlinie in diesen Anchor. Beim Start liest er den
+Hauptregelsatz zurück und prüft, dass er &lt;code&gt;anchor &amp;quot;claimward&amp;quot;&lt;/code&gt; aufruft.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Er startet nicht,&lt;/strong&gt; wenn &lt;code&gt;/dev/pf&lt;/code&gt; nicht lesend und schreibend geöffnet
+werden kann (er muss als root starten), wenn pf deaktiviert ist, wenn der
+Hauptregelsatz den Anchor nicht aufruft (die Richtlinie würde geladen, ohne
+etwas zu filtern) und wenn &lt;code&gt;pf.conf&lt;/code&gt; für die WireGuard-Schnittstelle (&lt;code&gt;wg0&lt;/code&gt;,
+&lt;code&gt;wg*&lt;/code&gt;) &lt;code&gt;set skip on&lt;/code&gt; enthält, weil pf den Datenverkehr der Peers dann nie
+sähe.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Dieselbe Richtlinie wie unter Linux.&lt;/strong&gt; Standardmäßig wird der auf
+&lt;code&gt;WG_INTERFACE&lt;/code&gt; eingehende Verkehr verworfen; erlaubt ist nur IPv4, IPv6
+durch den Tunnel wird verworfen. Die MSS-Begrenzung (&lt;code&gt;TUNNEL_MTU&lt;/code&gt;) gilt für
+beide Familien, als Regel &lt;code&gt;match ... scrub (max-mss N)&lt;/code&gt;.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Atomar und fail-closed.&lt;/strong&gt; Anchor und Tabellen werden in einer einzigen
+pf-Transaktion ersetzt, danach zurückgelesen und mit dem verglichen, was
+geladen werden sollte. Schlägt das fehl, wird ein vollständiges Verwerfen
+geladen. Der Anchor bleibt beim Beenden des Prozesses bestehen. Tabellennamen
+tragen ein Generationssuffix pro Ladevorgang, sodass das kurze Fenster
+zwischen dem Übernehmen der Tabellen und dem der Regeln nie die Regeln eines
+Mandanten auf die Peers eines anderen anwenden kann.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Rechtetrennung (ab v0.11.0).&lt;/strong&gt; Das Versprechen &lt;code&gt;pf&lt;/code&gt; von &lt;code&gt;pledge(2)&lt;/code&gt; erlaubt
+nur zwölf der &lt;code&gt;DIOC*&lt;/code&gt;-ioctls (&lt;code&gt;sys/kern/kern_pledge.c&lt;/code&gt;, &lt;code&gt;pledge_ioctl&lt;/code&gt;); der
+Server braucht zusätzlich &lt;code&gt;DIOCRINADEFINE&lt;/code&gt;, &lt;code&gt;DIOCXROLLBACK&lt;/code&gt;, &lt;code&gt;DIOCGETRULES&lt;/code&gt;,
+&lt;code&gt;DIOCGETRULE&lt;/code&gt;, &lt;code&gt;DIOCXEND&lt;/code&gt; und &lt;code&gt;DIOCRGETADDRS&lt;/code&gt;; jedes andere ioctl würde den
+Prozess beenden. Daher hat der Eltern-Prozess (root), der &lt;code&gt;/dev/pf&lt;/code&gt; bedient,
+kein Pledge. Der unprivilegierte Kindprozess &lt;code&gt;_claimward&lt;/code&gt;, der die Geheimnisse
+hält und das Netz bedient, wird vor dem Bedienen mit &lt;code&gt;unveil(2)&lt;/code&gt; und
+&lt;code&gt;pledge(2)&lt;/code&gt; eingeschränkt (siehe unten).&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;WireGuard-Peers (ab v0.11.0).&lt;/strong&gt; Vor v0.11.0 scheiterte unter OpenBSD eine
+Anmeldung beim Hinzufügen des Peers zu &lt;code&gt;wg(4)&lt;/code&gt; (Issue Nr. 79). Der Server
+schreibt Peers jetzt mit den ioctls &lt;code&gt;SIOCSWG&lt;/code&gt; und &lt;code&gt;SIOCGWG&lt;/code&gt; aus
+&lt;code&gt;sys/net/if_wg.h&lt;/code&gt; und liest sie mit einem eigenen Dekoder zurück. In echten
+OpenBSD-7.9- und -8.0-amd64-VMs geprüft: Das Strukturlayout stimmt mit dem des
+C-Compilers überein, und Hinzufügen, Ersetzen, Entfernen und Aufräumen
+funktionieren auf einer echten &lt;code&gt;wg(4)&lt;/code&gt;-Schnittstelle. OpenBSD auf arm64 wird
+nur cross-kompiliert, nicht auf einem Kernel ausgeführt.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 data-hextra-search-id="openbsd-deploy"&gt;Bereitstellung unter OpenBSD (rc.d)&lt;span class="hx:absolute hx:-mt-20" id="openbsd-deploy"&gt;&lt;/span&gt;
+&lt;a href="#openbsd-deploy" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;Ab v0.10.1 liefert das Repository &lt;code&gt;deploy/openbsd/&lt;/code&gt; mit: ein &lt;code&gt;rc.d(8)&lt;/code&gt;-Skript,
+ein &lt;code&gt;environment.example&lt;/code&gt;, ein &lt;code&gt;hostname.wg0.example&lt;/code&gt; und ein &lt;code&gt;pf.conf.example&lt;/code&gt;.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Zwei Prozesse (ab v0.11.0).&lt;/strong&gt; Die WireGuard-Peer-Konfiguration von &lt;code&gt;wg(4)&lt;/code&gt;
+liegt hinter &lt;code&gt;suser(9)&lt;/code&gt; (&lt;code&gt;sys/net/if_wg.c&lt;/code&gt;), und &lt;code&gt;/dev/pf&lt;/code&gt; ist nur durch
+seinen Geräteknoten geschützt, der root vorbehalten ist: &lt;code&gt;pfopen&lt;/code&gt;
+(&lt;code&gt;sys/net/pf_ioctl.c&lt;/code&gt;) prüft nichts weiter. OpenBSD hat keine privilegierte
+Gruppe, mit der ein unprivilegierter Benutzer das eine oder das andere dürfte;
+das Skript startet den Daemon daher als root (&lt;code&gt;daemon_user=&amp;quot;root&amp;quot;&lt;/code&gt;), und der
+Daemon teilt sich in zwei Prozesse. Der &lt;strong&gt;Eltern-Prozess&lt;/strong&gt; (root) fügt Peers
+hinzu und entfernt sie, setzt die Tunnel-MTU und lädt den pf-Anchor; er liest
+kein Geheimnis, bedient kein Netz und macht nur &lt;code&gt;/dev/pf&lt;/code&gt; per &lt;code&gt;unveil(2)&lt;/code&gt;
+sichtbar. Das &lt;strong&gt;Kind&lt;/strong&gt;, ausgeführt als Benutzer &lt;code&gt;_claimward&lt;/code&gt;, hält die
+Geheimnisse, die TLS- und gRPC-Listener, den Identitätsanbieter und die
+Mandantenrichtlinie und wird vor dem Bedienen mit &lt;code&gt;unveil(2)&lt;/code&gt; und &lt;code&gt;pledge(2)&lt;/code&gt;
+(&lt;code&gt;stdio rpath inet dns&lt;/code&gt;) eingeschränkt. Kann es die Rechte nicht abgeben,
+startet der Server nicht. Das Kind fragt den Eltern-Prozess über ein
+Socketpair, und dieser verweigert alles außerhalb des Adresspools
+(&lt;code&gt;VPN_CIDR&lt;/code&gt;).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Der Benutzer &lt;code&gt;_claimward&lt;/code&gt; muss existieren&lt;/strong&gt;, und die Ports müssen größer als
+1024 sein (die Vorgaben 8443 und 8444 sind es); um auf 443 zu bedienen,
+leiten Sie mit einem pf-&lt;code&gt;rdr-to&lt;/code&gt; um.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Geheimnisse sind Dateien&lt;/strong&gt; in &lt;code&gt;/etc/claimward/credentials&lt;/code&gt;, einem
+Verzeichnis &lt;code&gt;0700&lt;/code&gt; im Besitz von &lt;code&gt;_claimward&lt;/code&gt;, jede Datei &lt;code&gt;0400&lt;/code&gt; und im Besitz
+von &lt;code&gt;_claimward&lt;/code&gt; (&lt;code&gt;install(1)&lt;/code&gt;). Das Skript setzt &lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt;
+darauf; kein Geheimnis steht in der Umgebung, in Argumenten oder in einer URL.
+Die nicht geheimen Einstellungen stehen in &lt;code&gt;/etc/claimward/environment&lt;/code&gt;, die
+root gehört.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;wg0&lt;/code&gt; muss existieren&lt;/strong&gt;, bevor der Server startet: &lt;code&gt;hostname.wg0&lt;/code&gt; enthält
+denselben privaten Schlüssel wie das Geheimnis &lt;code&gt;wg-private-key&lt;/code&gt; (Modus &lt;code&gt;0640&lt;/code&gt;).&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;install -m &lt;span class="m"&gt;0555&lt;/span&gt; claimward-server /usr/local/bin/claimward-server
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;useradd -g &lt;span class="o"&gt;=&lt;/span&gt;uid -c claimward -d /var/empty -s /sbin/nologin -r 1..999 _claimward
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;install -d -m &lt;span class="m"&gt;0755&lt;/span&gt; -o root -g wheel /etc/claimward
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;install -d -m &lt;span class="m"&gt;0700&lt;/span&gt; -o _claimward -g _claimward /etc/claimward/credentials
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;install -m &lt;span class="m"&gt;0400&lt;/span&gt; -o _claimward -g _claimward wg-private-key /etc/claimward/credentials/wg-private-key
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;install -m &lt;span class="m"&gt;0600&lt;/span&gt; -o root -g wheel environment.example /etc/claimward/environment &lt;span class="c1"&gt;# dann bearbeiten&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;install -m &lt;span class="m"&gt;0640&lt;/span&gt; -o root -g wheel hostname.wg0.example /etc/hostname.wg0 &lt;span class="c1"&gt;# dann bearbeiten&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sh /etc/netstart wg0
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;install -m &lt;span class="m"&gt;0555&lt;/span&gt; claimward_server /etc/rc.d/claimward_server
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;rcctl &lt;span class="nb"&gt;enable&lt;/span&gt; claimward_server
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;rcctl start claimward_server &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; rcctl check claimward_server&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;code&gt;rcctl start&lt;/code&gt; meldet &lt;code&gt;(ok)&lt;/code&gt; erst, wenn der Server auf &lt;code&gt;LISTEN_ADDR&lt;/code&gt; Verbindungen
+annimmt; ein Daemon, der vorher endet, etwa an einem Geheimnis, das dem Konto
+&lt;code&gt;_claimward&lt;/code&gt; nicht gehört, ergibt &lt;code&gt;(failed)&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Das Protokoll geht an syslog (&lt;code&gt;/var/log/daemon&lt;/code&gt;). Die CI führt dieses Skript in
+echten OpenBSD-7.9- und -8.0-VMs aus: &lt;code&gt;rcctl start&lt;/code&gt;, die Startzeile,
+&lt;code&gt;rcctl check&lt;/code&gt;, ein Eltern-Prozess als root mit einem Kind &lt;code&gt;_claimward&lt;/code&gt;, eine
+Anmeldung über das Kind, deren Peer auf &lt;code&gt;wg0&lt;/code&gt; erscheint, und &lt;code&gt;rcctl stop&lt;/code&gt;;
+danach einen Start mit einem Geheimnis im Besitz von root und einen Start ohne
+den Anchor in &lt;code&gt;pf.conf&lt;/code&gt;, die beide fehlschlagen müssen.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="s6-deploy"&gt;Bereitstellung unter s6 (sdcreds)&lt;span class="hx:absolute hx:-mt-20" id="s6-deploy"&gt;&lt;/span&gt;
+&lt;a href="#s6-deploy" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Ab v0.10.2 liefert das Repository &lt;code&gt;deploy/s6/claimward-server/&lt;/code&gt; (&lt;code&gt;run&lt;/code&gt; und
+&lt;code&gt;finish&lt;/code&gt;) für Hosts ohne systemd mit. &lt;code&gt;sdcreds s6-run&lt;/code&gt; (go-authn/sdcreds v0.2.0
+oder neuer) entschlüsselt jede Datei seines &lt;code&gt;--source&lt;/code&gt;-Verzeichnisses in ein
+privates tmpfs, schreibt jede mit Modus &lt;code&gt;0400&lt;/code&gt; und &lt;code&gt;--user&lt;/code&gt; als Eigentümer,
+setzt &lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt; und startet den Server unter diesem Benutzer. Eine
+Datei, die der UID des Prozesses gehört und für Gruppe und andere nicht
+zugänglich ist, ist die erste Form, die der Lader akzeptiert; er bleibt also
+unverändert. Kein Geheimnis geht durch die Umgebung, durch argv oder eine URL.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Eine Capability, absichtlich behalten.&lt;/strong&gt; Der Server braucht &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt;
+(wgctrl, nftables, MTU der Schnittstelle). Standardmäßig leert &lt;code&gt;s6-run&lt;/code&gt; alle
+Capability-Mengen des Dienstes und lässt &lt;code&gt;no_new_privs&lt;/code&gt; aktiv; das Beispiel
+übergibt &lt;code&gt;--keep-cap=CAP_NET_ADMIN&lt;/code&gt;, sodass der Server mit genau dieser einen
+Capability läuft (&lt;code&gt;CapEff&lt;/code&gt; &lt;code&gt;0x1000&lt;/code&gt;). Sie wirkt auf den Netzwerk-Namespace, in
+dem der Supervisionsbaum läuft: den des Hosts, außer Sie starten &lt;code&gt;s6-svscan&lt;/code&gt;
+in einem eigenen (&lt;code&gt;ip netns exec&lt;/code&gt;).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Namen.&lt;/strong&gt; Jede Datei von &lt;code&gt;--source&lt;/code&gt; heißt wie ihr Geheimnis
+(&lt;code&gt;wg-private-key&lt;/code&gt;, &lt;code&gt;github-token&lt;/code&gt;, &lt;code&gt;admin-token&lt;/code&gt;, &lt;code&gt;goauthn-gateway-secret&lt;/code&gt;) und
+wird mit &lt;code&gt;sdcreds encrypt --name=&amp;lt;dieser Name&amp;gt;&lt;/code&gt; verschlüsselt; jeder andere
+Name stoppt den Start. &lt;code&gt;s6-run&lt;/code&gt; braucht root und &lt;code&gt;CAP_SYS_ADMIN&lt;/code&gt; (es mountet
+ein Dateisystem).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Nicht geheime Konfiguration&lt;/strong&gt; steht in &lt;code&gt;/etc/claimward/env&lt;/code&gt;, das das
+&lt;code&gt;run&lt;/code&gt;-Skript liest.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Container&lt;/strong&gt; brauchen es nicht: Compose, Podman und Kubernetes mounten
+Geheimnisse bereits als Dateien (Tabelle oben).&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Die CI führt dieses Verzeichnis unter einem echten &lt;code&gt;s6-svscan&lt;/code&gt; aus, in einem
+Netzwerk-Namespace, mit einer echten WireGuard-Schnittstelle und nftables (kein
+Trockenlauf). Sie prüft, dass das Log den aus dem verschlüsselten Geheimnis
+abgeleiteten öffentlichen Schlüssel enthält (und keinen Kontrollschlüssel), dass
+der Server als Dienstbenutzer mit &lt;code&gt;CapEff&lt;/code&gt; &lt;code&gt;0x1000&lt;/code&gt; und &lt;code&gt;no_new_privs&lt;/code&gt; läuft,
+dass kein Geheimnis in seiner Umgebung steht, dass eine Geheimnisdatei mit Modus
+&lt;code&gt;0644&lt;/code&gt; abgelehnt wird und dass das Stoppen des Dienstes den Mount entfernt.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="run-locally"&gt;Lokal ausführen&lt;span class="hx:absolute hx:-mt-20" id="run-locally"&gt;&lt;/span&gt;
+&lt;a href="#run-locally" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Mit &lt;code&gt;WG_DRYRUN=true&lt;/code&gt; wird kein WireGuard-Gerät angetastet:&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;AUTH_PROVIDER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;oidc
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;OIDC_ISSUER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;https://accounts.google.com
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;OIDC_CLIENT_ID&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;xxxx.apps.googleusercontent.com
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;WG_ENDPOINT&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;vpn.example.com:51820
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;CREDENTIALS_DIRECTORY&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$HOME&lt;/span&gt;/.local/state/claimward-dev-creds
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;umask&lt;/span&gt; 077&lt;span class="p"&gt;;&lt;/span&gt; mkdir -p &lt;span class="s2"&gt;&amp;#34;&lt;/span&gt;&lt;span class="nv"&gt;$CREDENTIALS_DIRECTORY&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; wg genkey &amp;gt; &lt;span class="s2"&gt;&amp;#34;&lt;/span&gt;&lt;span class="nv"&gt;$CREDENTIALS_DIRECTORY&lt;/span&gt;&lt;span class="s2"&gt;/wg-private-key&amp;#34;&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;chmod &lt;span class="m"&gt;0400&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;&lt;/span&gt;&lt;span class="nv"&gt;$CREDENTIALS_DIRECTORY&lt;/span&gt;&lt;span class="s2"&gt;/wg-private-key&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;WG_DRYRUN&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nb"&gt;true&lt;/span&gt; &lt;span class="nv"&gt;LISTEN_ADDR&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;:8080
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;go run ./cmd/claimward-server&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;code&gt;task run:dev&lt;/code&gt; tut dasselbe mit GitHub-Anmeldung und einem flüchtigen Schlüssel, und
+&lt;code&gt;task dex&lt;/code&gt; startet ein lokales &lt;a href="https://dexidp.io/" target="_blank" rel="noopener"&gt;Dex&lt;/a&gt;, bei dem man sich anmelden kann
+(&lt;code&gt;deploy/dev/&lt;/code&gt;).&lt;/p&gt;
+&lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-amber-200 hx:bg-amber-100 hx:text-amber-900 hx:dark:border-amber-200/30 hx:dark:bg-amber-900/30 hx:dark:text-amber-200"&gt;
+&lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/&gt;&lt;/svg&gt;&lt;/div&gt;
+&lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Hinter TLS betreiben.&lt;/strong&gt; Bearer-Tokens sind Zugangsdaten: Stellen Sie die API immer über
+HTTPS bereit, entweder mit &lt;code&gt;TLS_CERT&lt;/code&gt;/&lt;code&gt;TLS_KEY&lt;/code&gt; oder hinter einem Proxy, der TLS terminiert, und
+geben Sie dem RouteService ein Zertifikat, damit Geräte Live-Aktualisierungen der Routen erhalten.&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description></item><item><title>Client-Bibliothek</title><link>https://claimward.github.io/docs/v0.9.2/de/components/client/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/v0.9.2/de/components/client/</guid><description>
+&lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-client" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-client&lt;/code&gt;&lt;/a&gt;
+&lt;strong&gt;v0.7.0&lt;/strong&gt; ist eine Go-&lt;strong&gt;Bibliothek&lt;/strong&gt;. Sie liefert kein Binary aus: Die ausführbaren Programme sind
+die der Apps (&lt;code&gt;cmd/claimward-app&lt;/code&gt; und &lt;code&gt;cmd/claimward-helper&lt;/code&gt; in jedem App-Repository).
+Auch der Server importiert sie, für die Wire-Typen und die gRPC-Stubs.&lt;/p&gt;
+&lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-blue-200 hx:bg-blue-100 hx:text-blue-900 hx:dark:border-blue-200/30 hx:dark:bg-blue-900/30 hx:dark:text-blue-200"&gt;
+&lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/&gt;&lt;/svg&gt;&lt;/div&gt;
+&lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;Es gibt keinen Kommandozeilen-Client &lt;code&gt;claimward&lt;/code&gt;. Frühere Versionen dieses Moduls
+hatten einen (&lt;code&gt;cmd/claimward&lt;/code&gt;, mit &lt;code&gt;login&lt;/code&gt; und &lt;code&gt;connect&lt;/code&gt;); er wurde entfernt, und
+das reine Bibliotheksmodul ist die Grundlage der Apps.&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;h2 data-hextra-search-id="packages"&gt;Pakete&lt;span class="hx:absolute hx:-mt-20" id="packages"&gt;&lt;/span&gt;
+&lt;a href="#packages" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Paket&lt;/th&gt;
+&lt;th&gt;Zweck&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pkg/protocol&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;der Wire-Vertrag (&lt;code&gt;/enroll&lt;/code&gt;, &lt;code&gt;/tenants&lt;/code&gt;, &lt;code&gt;/heartbeat&lt;/code&gt;, &lt;code&gt;/deregister&lt;/code&gt;), gemeinsam mit dem Server&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pkg/routespb&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;generierte gRPC/Protobuf-Stubs des RouteService, gemeinsam mit dem Server&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pkg/auth&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;interaktive Anmeldung hinter einem &lt;code&gt;Provider&lt;/code&gt;: GitHub Device Flow (Standard), OIDC Code + PKCE oder go-authn Device Flow, dessen Anbieter außerdem den Schlüssel des Geräts registriert (&lt;code&gt;KeyRegistrar&lt;/code&gt;)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pkg/oidc&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;der OIDC-Ablauf Authorization Code + PKCE: Discovery, Loopback-Weiterleitung&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pkg/browser&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;öffnet eine URL im Standardbrowser mit absoluten Pfaden zu den Öffnerprogrammen, damit es aus GUI-Apps heraus funktioniert&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pkg/client&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;Enroll&lt;/code&gt;, &lt;code&gt;Tenants&lt;/code&gt;, &lt;code&gt;Heartbeat&lt;/code&gt;, &lt;code&gt;Deregister&lt;/code&gt; gegen den Server sowie &lt;code&gt;TunnelConfig&lt;/code&gt;, um eine &lt;code&gt;EnrollResponse&lt;/code&gt; in eine &lt;code&gt;wgtun.Config&lt;/code&gt; umzuwandeln&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pkg/wgkey&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Erzeugung und Parsen von WireGuard-Schlüsseln&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pkg/pathmtu&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;passt die Tunnel-MTU an den Pfad an: das &lt;code&gt;mtu&lt;/code&gt; des Servers (Standard 1420), gesenkt auf die Schnittstellen-MTU zum Endpunkt minus 60 (IPv4) oder 80 (IPv6), nie unter 1280, nie über dem Wert des Servers; nur Standardbibliothek&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pkg/wgtun&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;WireGuard-Tunnel im Userspace mit &lt;code&gt;wireguard-go&lt;/code&gt;, dazu Adresse und Routen: &lt;code&gt;ifconfig&lt;/code&gt;/&lt;code&gt;route&lt;/code&gt; unter macOS, &lt;code&gt;ip&lt;/code&gt; unter Linux, ein Wintun-Adapter über &lt;code&gt;winipcfg&lt;/code&gt; unter Windows (mit DNS und MTU); benötigt Privilegien&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pkg/routeclient&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;beobachtet den RouteService des Servers und meldet Aktualisierungen der Routen; TLS, außer zu Loopback&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pkg/appcore&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;die Logik der Apps, gemeinsam für alle drei: Anmeldung, der für die Sitzung gewählte Mandant, Verbinden und Trennen über den Helper, Status für die Oberfläche&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pkg/appvm&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;das View-Model der Apps, ohne Oberfläche: welcher Bildschirm gezeigt wird, was jeder Befehl darf, die Statusabfrage und die Ereignisse (Tunnel getrennt, Sitzung abgelaufen); jede App passt es an ihre Widgets an&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pkg/helper&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;der privilegierte Helper, gemeinsam für die drei Apps: registriert, besitzt den Tunnel, beobachtet gepushte Routen&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pkg/hproto&lt;/code&gt;, &lt;code&gt;pkg/helperclient&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;das Socket-Protokoll des Helpers und der Client der App dafür&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pkg/tokenstore&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;die Sitzung (Bearer-Token, Refresh-Token, privater Schlüssel des Geräts, gewählter Mandant) im Geheimnisspeicher des Betriebssystems: macOS-Keychain, Windows-DPAPI, Linux-Secret-Service; kein Klartext-Fallback&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 data-hextra-search-id="files-on-the-device"&gt;Dateien auf dem Gerät&lt;span class="hx:absolute hx:-mt-20" id="files-on-the-device"&gt;&lt;/span&gt;
+&lt;a href="#files-on-the-device" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Datei&lt;/th&gt;
+&lt;th&gt;Was&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;&amp;lt;config dir&amp;gt;/Claimward/config.json&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;die Konfiguration der App (&lt;code&gt;appcore.Config&lt;/code&gt;), &lt;code&gt;0600&lt;/code&gt;, überschrieben durch die Variablen &lt;code&gt;CLAIMWARD_*&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;&amp;lt;config dir&amp;gt;/claimward/session.enc&lt;/code&gt; (macOS und Linux), &lt;code&gt;session.dpapi&lt;/code&gt; (Windows)&lt;/td&gt;
+&lt;td&gt;die versiegelte Sitzung; ihr Schlüssel liegt in der Keychain (macOS) oder im Secret Service (Linux), oder der Blob ist durch DPAPI geschützt. Unter Linux ist der Blob mit AES-GCM versiegelt, und nur sein Schlüssel liegt im Secret Service.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;code&gt;&amp;lt;config dir&amp;gt;&lt;/code&gt; ist Go&amp;rsquo;s &lt;code&gt;os.UserConfigDir()&lt;/code&gt;: &lt;code&gt;~/Library/Application Support&lt;/code&gt; unter
+macOS, &lt;code&gt;~/.config&lt;/code&gt; unter Linux, &lt;code&gt;%AppData%&lt;/code&gt; unter Windows.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Schlüssel in &lt;code&gt;config.json&lt;/code&gt;&lt;/th&gt;
+&lt;th&gt;Variable&lt;/th&gt;
+&lt;th&gt;&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;server_url&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;CLAIMWARD_SERVER&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;die Basis-URL des Servers; muss eine sein, für die der Helper konfiguriert ist&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;provider&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;CLAIMWARD_AUTH_PROVIDER&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;github&lt;/code&gt; (Standard), &lt;code&gt;oidc&lt;/code&gt; oder &lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;github_client_id&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;CLAIMWARD_GITHUB_CLIENT_ID&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;die Client-ID der GitHub-OAuth-App&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;oidc_issuer&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;CLAIMWARD_OIDC_ISSUER&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;oidc&lt;/code&gt; und &lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;oidc_client_id&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;CLAIMWARD_OIDC_CLIENT_ID&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;oidc&lt;/code&gt; und &lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;socket_path&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;CLAIMWARD_HELPER_SOCKET&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;der Socket des Helpers, falls nicht der Standard&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 data-hextra-search-id="use-in-your-own-tooling"&gt;Verwendung in eigenen Werkzeugen&lt;span class="hx:absolute hx:-mt-20" id="use-in-your-own-tooling"&gt;&lt;/span&gt;
+&lt;a href="#use-in-your-own-tooling" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-go" data-lang="go"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nx"&gt;ctx&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;context&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Background&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;// 1. Sign in. GitHub is the default provider (device flow).&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nx"&gt;provider&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;auth&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;New&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;auth&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Config&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nx"&gt;Provider&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;#34;github&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;GitHubClientID&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;#34;Iv1.0123456789abcdef&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;})&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;!=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;nil&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;log&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Fatal&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nx"&gt;tok&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;provider&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Login&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;ctx&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kd"&gt;func&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;p&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;auth&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;DevicePrompt&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;fmt&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Printf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#34;visit %s and enter code %s\n&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;p&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;VerificationURI&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;p&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;UserCode&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;})&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;!=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;nil&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;log&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Fatal&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;// 2. A key pair, and with go-authn the PUBLIC key registered first: the&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;// token for the server is the one RegisterKey returns.&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nx"&gt;keys&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;wgkey&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Generate&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;!=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;nil&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;log&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Fatal&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;reg&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;ok&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;provider&lt;/span&gt;&lt;span class="p"&gt;.(&lt;/span&gt;&lt;span class="nx"&gt;auth&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;KeyRegistrar&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;ok&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;tok&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;reg&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;RegisterKey&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;ctx&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;tok&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;keys&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Public&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;String&lt;/span&gt;&lt;span class="p"&gt;(),&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;#34;laptop&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;!=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;nil&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;log&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Fatal&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;// 3. Enroll; &amp;#34;&amp;#34; lets the server use the person&amp;#39;s only tenant.&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nx"&gt;c&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;client&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;New&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#34;https://vpn.example.com&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nx"&gt;resp&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;c&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Enroll&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;ctx&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;tok&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Value&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;keys&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Public&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;protocol&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;DeviceInfo&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nx"&gt;Name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;#34;laptop&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;OS&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;#34;linux&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;Platform&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;#34;my-tool&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;},&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;#34;&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;!=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;nil&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;log&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Fatal&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;// 4. The tunnel (needs privileges), and optionally live routes.&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nx"&gt;cfg&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;client&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;TunnelConfig&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;resp&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;keys&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Private&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;!=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;nil&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;log&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Fatal&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nx"&gt;tun&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;wgtun&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Up&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;cfg&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;!=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kc"&gt;nil&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;log&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Fatal&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;err&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;defer&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;tun&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Close&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;if&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;resp&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;GRPCEndpoint&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;!=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;#34;&amp;#34;&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;go&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;routeclient&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Watch&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;ctx&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;resp&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;GRPCEndpoint&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;tok&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Value&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;keys&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Public&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;String&lt;/span&gt;&lt;span class="p"&gt;(),&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="kd"&gt;func&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;u&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;routeclient&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;Update&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;_&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;tun&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;UpdateRoutes&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nx"&gt;u&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nx"&gt;AllowedIPs&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p"&gt;})&lt;/span&gt;&lt;span class="w"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;Ein langlebiger Client erneuert seine Lease mit &lt;code&gt;c.Heartbeat&lt;/code&gt; vor
+&lt;code&gt;resp.LeaseExpiresAt&lt;/code&gt; und entfernt seinen Peer mit &lt;code&gt;c.Deregister&lt;/code&gt;, wenn er fertig ist.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="platform-notes"&gt;Hinweise zu den Plattformen&lt;span class="hx:absolute hx:-mt-20" id="platform-notes"&gt;&lt;/span&gt;
+&lt;a href="#platform-notes" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;DNS.&lt;/strong&gt; Die DNS-Server des Servers werden nur unter &lt;strong&gt;Windows&lt;/strong&gt; angewendet; unter macOS
+und Linux werden sie im Protokoll übertragen, aber &lt;code&gt;pkg/wgtun&lt;/code&gt; wendet sie noch
+nicht an.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Gepushte Routen&lt;/strong&gt; ersetzen die erlaubten IPs und die Routen; DNS-Änderungen in einem
+Push werden nicht angewendet.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Windows.&lt;/strong&gt; Das Gerät ist ein Wintun-Adapter namens &lt;code&gt;Claimward&lt;/code&gt;: &lt;code&gt;wintun.dll&lt;/code&gt;
+(von &lt;a href="https://www.wintun.net" target="_blank" rel="noopener"&gt;https://www.wintun.net&lt;/a&gt;, signiert von WireGuard LLC) muss neben der
+ausführbaren Datei liegen, die &lt;code&gt;wgtun.Up&lt;/code&gt; aufruft, worum sich das Packaging der Windows-App
+kümmert. Adresse, Routen, DNS und MTU werden über &lt;code&gt;winipcfg&lt;/code&gt; gesetzt (die IP
+Helper API, reines Go, &lt;code&gt;CGO_ENABLED=0&lt;/code&gt;).&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Sitzungsspeicher.&lt;/strong&gt; Der Geheimnisspeicher der Plattform: die Login-Keychain von macOS
+(sie hält einen AES-GCM-Schlüssel; die Sitzung ist in &lt;code&gt;session.enc&lt;/code&gt; versiegelt), Windows-DPAPI
+(&lt;code&gt;session.dpapi&lt;/code&gt;) und unter Linux ebenfalls eine versiegelte &lt;code&gt;session.enc&lt;/code&gt;, deren
+AES-GCM-Schlüssel im Secret Service über &lt;code&gt;secret-tool&lt;/code&gt; liegt. Seit
+&lt;strong&gt;v0.5.0&lt;/strong&gt; gibt es keinen Klartext-Fallback, und &lt;code&gt;CLAIMWARD_ALLOW_PLAINTEXT_SESSION&lt;/code&gt;
+hat keine Wirkung: ohne nutzbaren Speicher schlägt das Speichern der Sitzung fehl, und die
+Anmeldung schlägt mit einem Fehler fehl, der benennt, was fehlt (unter Linux einen Secret-Service-Anbieter
+wie gnome-keyring oder KeePassXC installieren und entsperren, dazu &lt;code&gt;secret-tool&lt;/code&gt;).
+Eine ältere &lt;code&gt;session.json&lt;/code&gt; wird einmal gelesen, in den Speicher verschoben und gelöscht, oder
+gelöscht, wenn der Speicher sie ablehnt. Tests anderer Pakete verwenden
+&lt;code&gt;tokenstore.UseMemory()&lt;/code&gt;.&lt;/li&gt;
+&lt;/ul&gt;</description></item><item><title>Erste Schritte</title><link>https://claimward.github.io/docs/v0.9.2/de/getting-started/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/v0.9.2/de/getting-started/</guid><description>
+&lt;p&gt;Diese Anleitung führt durch das Aufsetzen eines Gateways und das Verbinden eines ersten Geräts. Das
+Gateway ist ein Linux-Host; auf dem Gerät läuft eine der drei Desktop-Apps.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="1-prepare-the-wireguard-gateway-linux"&gt;1. Das WireGuard-Gateway vorbereiten (Linux)&lt;span class="hx:absolute hx:-mt-20" id="1-prepare-the-wireguard-gateway-linux"&gt;&lt;/span&gt;
+&lt;a href="#1-prepare-the-wireguard-gateway-linux" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Legen Sie die Schnittstelle &lt;code&gt;wg0&lt;/code&gt; mit einem Serverschlüssel und einem Listen-Port an. Claimward
+verwaltet die &lt;em&gt;Peers&lt;/em&gt; dieser Schnittstelle; die Schnittstelle selbst legt es nicht an.&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-ini" data-lang="ini"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# /etc/wireguard/wg0.conf&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;[Interface]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="na"&gt;Address&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;10.80.0.1/24&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="na"&gt;ListenPort&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;51820&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="na"&gt;PrivateKey&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;lt;server-private-key&amp;gt;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;wg genkey &lt;span class="p"&gt;|&lt;/span&gt; tee server.key &lt;span class="p"&gt;|&lt;/span&gt; wg pubkey &amp;gt; server.pub
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo wg-quick up wg0
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo sysctl -w net.ipv4.ip_forward&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt; &lt;span class="c1"&gt;# if you route beyond the VPN subnet&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;h2 data-hextra-search-id="2-run-the-control-plane"&gt;2. Die Steuerungsebene starten&lt;span class="hx:absolute hx:-mt-20" id="2-run-the-control-plane"&gt;&lt;/span&gt;
+&lt;a href="#2-run-the-control-plane" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;go install github.com/claimward/claimward-vpn-server/cmd/claimward-server@v0.13.0
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;AUTH_PROVIDER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;github &lt;span class="c1"&gt;# der Standard&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;GITHUB_ALLOWED_ORGS&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;claimward &lt;span class="c1"&gt;# eine Allowlist von Organisationen, oder nennen Sie stattdessen `members` des Mandanten (ohne eines von beiden verweigert der Server den Start)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;WG_ENDPOINT&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;vpn.example.com:51820
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;CREDENTIALS_DIRECTORY&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;/etc/claimward/credentials &lt;span class="c1"&gt;# enthält die Datei wg-private-key (0400, Eigentümer: der Dienstbenutzer)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;VPN_CIDR&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;10.80.0.0/24
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;TLS_CERT&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;/etc/claimward/fullchain.pem &lt;span class="c1"&gt;# HTTPS, und TLS auf dem gRPC-RouteService&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;TLS_KEY&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;/etc/claimward/privkey.pem
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;GRPC_ENDPOINT&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;vpn.example.com:8444 &lt;span class="c1"&gt;# wo die Clients auf Routen-Aktualisierungen warten&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo -E &lt;span class="s2"&gt;&amp;#34;&lt;/span&gt;&lt;span class="k"&gt;$(&lt;/span&gt;go env GOPATH&lt;span class="k"&gt;)&lt;/span&gt;&lt;span class="s2"&gt;/bin/claimward-server&amp;#34;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;Unter Linux benötigt der Server die Rechte, &lt;code&gt;wg0&lt;/code&gt; zu konfigurieren (root oder &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt;);
+für OpenBSD siehe &lt;a href="https://claimward.github.io/docs/v0.9.2/de/components/server/#openbsd"&gt;OpenBSD&lt;/a&gt;. Er
+lauscht auf &lt;code&gt;:8443&lt;/code&gt; (&lt;code&gt;LISTEN_ADDR&lt;/code&gt;) für die Registrierungs-API und auf &lt;code&gt;:8444&lt;/code&gt;
+(&lt;code&gt;GRPC_ADDR&lt;/code&gt;) für den RouteService. Alle Variablen finden Sie in der
+&lt;a href="https://claimward.github.io/docs/v0.9.2/de/components/server/"&gt;Server-Referenz&lt;/a&gt;; für
+Experimente ohne echte Schnittstelle setzen Sie &lt;code&gt;WG_DRYRUN=true&lt;/code&gt;.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="3-register-the-sign-in-client"&gt;3. Den Anmelde-Client registrieren&lt;span class="hx:absolute hx:-mt-20" id="3-register-the-sign-in-client"&gt;&lt;/span&gt;
+&lt;a href="#3-register-the-sign-in-client" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;
+&lt;div class="hextra-scrollbar hx:overflow-x-auto hx:overflow-y-hidden hx:overscroll-x-contain"&gt;
+&lt;div class="hx:mt-4 hx:flex hx:w-max hx:min-w-full hx:border-b hx:border-gray-200 hx:pb-px hx:dark:border-neutral-800" role="tablist"&gt;&lt;button class="hextra-tabs-toggle hx:cursor-pointer hx:data-[state=selected]:border-primary-500 hx:data-[state=selected]:text-primary-600 hx:data-[state=selected]:dark:border-primary-500 hx:data-[state=selected]:dark:text-primary-600 hx:mr-2 hx:rounded-t hx:p-2 hx:font-medium hx:leading-5 hx:transition-colors hx:-mb-0.5 hx:select-none hx:border-b-2 hx:border-transparent hx:text-gray-600 hx:hover:border-gray-200 hx:hover:text-black hx:dark:text-gray-200 hx:dark:hover:border-neutral-800 hx:dark:hover:text-white hx:hextra-focus-visible-inset" id="tabs-tab-tabs-02-0" role="tab" type="button" aria-controls="tabs-panel-tabs-02-0" aria-selected="true" tabindex="0" data-state="selected"&gt;&lt;span class="hx:inline-flex hx:items-center hx:gap-1.5"&gt;&lt;span&gt;GitHub (Standard)&lt;/span&gt;&lt;/span&gt;&lt;/button&gt;&lt;button class="hextra-tabs-toggle hx:cursor-pointer hx:data-[state=selected]:border-primary-500 hx:data-[state=selected]:text-primary-600 hx:data-[state=selected]:dark:border-primary-500 hx:data-[state=selected]:dark:text-primary-600 hx:mr-2 hx:rounded-t hx:p-2 hx:font-medium hx:leading-5 hx:transition-colors hx:-mb-0.5 hx:select-none hx:border-b-2 hx:border-transparent hx:text-gray-600 hx:hover:border-gray-200 hx:hover:text-black hx:dark:text-gray-200 hx:dark:hover:border-neutral-800 hx:dark:hover:text-white hx:hextra-focus-visible-inset" id="tabs-tab-tabs-02-1" role="tab" type="button" aria-controls="tabs-panel-tabs-02-1" aria-selected="false" tabindex="-1"&gt;&lt;span class="hx:inline-flex hx:items-center hx:gap-1.5"&gt;&lt;span&gt;OpenID Connect&lt;/span&gt;&lt;/span&gt;&lt;/button&gt;&lt;button class="hextra-tabs-toggle hx:cursor-pointer hx:data-[state=selected]:border-primary-500 hx:data-[state=selected]:text-primary-600 hx:data-[state=selected]:dark:border-primary-500 hx:data-[state=selected]:dark:text-primary-600 hx:mr-2 hx:rounded-t hx:p-2 hx:font-medium hx:leading-5 hx:transition-colors hx:-mb-0.5 hx:select-none hx:border-b-2 hx:border-transparent hx:text-gray-600 hx:hover:border-gray-200 hx:hover:text-black hx:dark:text-gray-200 hx:dark:hover:border-neutral-800 hx:dark:hover:text-white hx:hextra-focus-visible-inset" id="tabs-tab-tabs-02-2" role="tab" type="button" aria-controls="tabs-panel-tabs-02-2" aria-selected="false" tabindex="-1"&gt;&lt;span class="hx:inline-flex hx:items-center hx:gap-1.5"&gt;&lt;span&gt;go-authn&lt;/span&gt;&lt;/span&gt;&lt;/button&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div&gt;&lt;div class="hextra-tabs-panel hx:rounded-sm hx:pt-6 hx:hidden hx:data-[state=selected]:block" id="tabs-panel-tabs-02-0" role="tabpanel" aria-labelledby="tabs-tab-tabs-02-0" aria-hidden="false" tabindex="0" data-state="selected"&gt;Legen Sie eine GitHub-&lt;strong&gt;OAuth App&lt;/strong&gt; an (für eine Organisation oder persönlich) und &lt;strong&gt;aktivieren Sie den Device
+Flow&lt;/strong&gt; in ihren Einstellungen. Die Apps benötigen nur ihre &lt;strong&gt;Client-ID&lt;/strong&gt;, kein Secret. Sie
+fordern die Scopes &lt;code&gt;read:user&lt;/code&gt;, &lt;code&gt;user:email&lt;/code&gt; und &lt;code&gt;read:org&lt;/code&gt; an.&lt;/div&gt;&lt;div class="hextra-tabs-panel hx:rounded-sm hx:pt-6 hx:hidden hx:data-[state=selected]:block" id="tabs-panel-tabs-02-1" role="tabpanel" aria-labelledby="tabs-tab-tabs-02-1" aria-hidden="true"&gt;Legen Sie in Ihrem Identitätsanbieter einen &lt;strong&gt;nativen/öffentlichen&lt;/strong&gt; Client mit PKCE und der
+Loopback-Weiterleitung &lt;code&gt;http://127.0.0.1:&amp;lt;port&amp;gt;/callback&lt;/code&gt; an. Der Port wird bei
+jeder Anmeldung gewählt, daher muss der Anbieter jeden Loopback-Port akzeptieren (RFC 8252). Kein
+Client-Secret. Starten Sie den Server mit &lt;code&gt;AUTH_PROVIDER=oidc&lt;/code&gt;, &lt;code&gt;OIDC_ISSUER&lt;/code&gt; und
+&lt;code&gt;OIDC_CLIENT_ID&lt;/code&gt;.&lt;/div&gt;&lt;div class="hextra-tabs-panel hx:rounded-sm hx:pt-6 hx:hidden hx:data-[state=selected]:block" id="tabs-panel-tabs-02-2" role="tabpanel" aria-labelledby="tabs-tab-tabs-02-2" aria-hidden="true"&gt;Deklarieren Sie bei einem &lt;a href="https://github.com/go-authn/bridge" target="_blank" rel="noopener"&gt;go-authn/bridge&lt;/a&gt;-Anbieter
+zwei Clients: denjenigen, mit dem sich Personen anmelden (&lt;code&gt;device = true&lt;/code&gt;,
+&lt;code&gt;wireguard_keys = true&lt;/code&gt;, eine &lt;code&gt;refresh_lifetime&lt;/code&gt;), und den eigenen Client des Gateways
+(&lt;code&gt;wireguard_peers&lt;/code&gt;). Starten Sie den Server mit &lt;code&gt;AUTH_PROVIDER=go-authn&lt;/code&gt;. Siehe
+&lt;a href="https://claimward.github.io/docs/v0.9.2/de/identity-providers/#go-authn"&gt;Identitätsanbieter&lt;/a&gt;.&lt;/div&gt;&lt;/div&gt;
+&lt;h2 data-hextra-search-id="4-connect-a-device"&gt;4. Ein Gerät verbinden&lt;span class="hx:absolute hx:-mt-20" id="4-connect-a-device"&gt;&lt;/span&gt;
+&lt;a href="#4-connect-a-device" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Jede App hat einen &lt;strong&gt;privilegierten Helper&lt;/strong&gt;, der sich beim Server registriert und
+den Tunnel besitzt; er wird einmalig als Administrator installiert, zusammen mit den Servern, mit denen er sich
+verbinden darf. Die App selbst läuft unter Ihrem Benutzer.&lt;/p&gt;
+&lt;div class="hextra-scrollbar hx:overflow-x-auto hx:overflow-y-hidden hx:overscroll-x-contain"&gt;
+&lt;div class="hx:mt-4 hx:flex hx:w-max hx:min-w-full hx:border-b hx:border-gray-200 hx:pb-px hx:dark:border-neutral-800" role="tablist"&gt;&lt;button class="hextra-tabs-toggle hx:cursor-pointer hx:data-[state=selected]:border-primary-500 hx:data-[state=selected]:text-primary-600 hx:data-[state=selected]:dark:border-primary-500 hx:data-[state=selected]:dark:text-primary-600 hx:mr-2 hx:rounded-t hx:p-2 hx:font-medium hx:leading-5 hx:transition-colors hx:-mb-0.5 hx:select-none hx:border-b-2 hx:border-transparent hx:text-gray-600 hx:hover:border-gray-200 hx:hover:text-black hx:dark:text-gray-200 hx:dark:hover:border-neutral-800 hx:dark:hover:text-white hx:hextra-focus-visible-inset" id="tabs-tab-tabs-03-0" role="tab" type="button" aria-controls="tabs-panel-tabs-03-0" aria-selected="true" tabindex="0" data-state="selected"&gt;&lt;span class="hx:inline-flex hx:items-center hx:gap-1.5"&gt;&lt;span&gt;macOS&lt;/span&gt;&lt;/span&gt;&lt;/button&gt;&lt;button class="hextra-tabs-toggle hx:cursor-pointer hx:data-[state=selected]:border-primary-500 hx:data-[state=selected]:text-primary-600 hx:data-[state=selected]:dark:border-primary-500 hx:data-[state=selected]:dark:text-primary-600 hx:mr-2 hx:rounded-t hx:p-2 hx:font-medium hx:leading-5 hx:transition-colors hx:-mb-0.5 hx:select-none hx:border-b-2 hx:border-transparent hx:text-gray-600 hx:hover:border-gray-200 hx:hover:text-black hx:dark:text-gray-200 hx:dark:hover:border-neutral-800 hx:dark:hover:text-white hx:hextra-focus-visible-inset" id="tabs-tab-tabs-03-1" role="tab" type="button" aria-controls="tabs-panel-tabs-03-1" aria-selected="false" tabindex="-1"&gt;&lt;span class="hx:inline-flex hx:items-center hx:gap-1.5"&gt;&lt;span&gt;Linux&lt;/span&gt;&lt;/span&gt;&lt;/button&gt;&lt;button class="hextra-tabs-toggle hx:cursor-pointer hx:data-[state=selected]:border-primary-500 hx:data-[state=selected]:text-primary-600 hx:data-[state=selected]:dark:border-primary-500 hx:data-[state=selected]:dark:text-primary-600 hx:mr-2 hx:rounded-t hx:p-2 hx:font-medium hx:leading-5 hx:transition-colors hx:-mb-0.5 hx:select-none hx:border-b-2 hx:border-transparent hx:text-gray-600 hx:hover:border-gray-200 hx:hover:text-black hx:dark:text-gray-200 hx:dark:hover:border-neutral-800 hx:dark:hover:text-white hx:hextra-focus-visible-inset" id="tabs-tab-tabs-03-2" role="tab" type="button" aria-controls="tabs-panel-tabs-03-2" aria-selected="false" tabindex="-1"&gt;&lt;span class="hx:inline-flex hx:items-center hx:gap-1.5"&gt;&lt;span&gt;Windows&lt;/span&gt;&lt;/span&gt;&lt;/button&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div&gt;&lt;div class="hextra-tabs-panel hx:rounded-sm hx:pt-6 hx:hidden hx:data-[state=selected]:block" id="tabs-panel-tabs-03-0" role="tabpanel" aria-labelledby="tabs-tab-tabs-03-0" aria-hidden="false" tabindex="0" data-state="selected"&gt;&lt;p&gt;Aus einem Checkout von
+&lt;a href="https://github.com/claimward/claimward-vpn-app-osx" target="_blank" rel="noopener"&gt;claimward-vpn-app-osx&lt;/a&gt;:&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo ./scripts/install-helper.sh https://vpn.example.com &lt;span class="c1"&gt;# the root LaunchDaemon&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;task start:bundle &lt;span class="c1"&gt;# build Claimward.app and open it&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;Tragen Sie dann die Server-URL, den Anbieter und seine Client-ID unter
+&lt;strong&gt;Configuration…&lt;/strong&gt; ein (oder in &lt;code&gt;~/Library/Application Support/Claimward/config.json&lt;/code&gt;),
+und klicken Sie auf &lt;strong&gt;Connect&lt;/strong&gt;. Siehe die &lt;a href="https://claimward.github.io/docs/v0.9.2/de/components/macos-app/"&gt;macOS-App&lt;/a&gt;.&lt;/p&gt;
+&lt;/div&gt;&lt;div class="hextra-tabs-panel hx:rounded-sm hx:pt-6 hx:hidden hx:data-[state=selected]:block" id="tabs-panel-tabs-03-1" role="tabpanel" aria-labelledby="tabs-tab-tabs-03-1" aria-hidden="true"&gt;&lt;p&gt;Aus einem Checkout von
+&lt;a href="https://github.com/claimward/claimward-vpn-app-linux" target="_blank" rel="noopener"&gt;claimward-vpn-app-linux&lt;/a&gt;:&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;CGO_ENABLED&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt; go build -trimpath -o bin/ ./cmd/...
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo ./scripts/install.sh --server https://vpn.example.com&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;Melden Sie sich ab und wieder an (das Installationsprogramm fügt Sie der Gruppe &lt;code&gt;claimward&lt;/code&gt; hinzu), starten Sie
+&lt;strong&gt;Claimward VPN&lt;/strong&gt; aus dem Menü Ihrer Desktopumgebung, tragen Sie die Einstellungen ein und klicken Sie auf
+&lt;strong&gt;Connect&lt;/strong&gt;. Siehe die &lt;a href="https://claimward.github.io/docs/v0.9.2/de/components/linux-app/"&gt;Linux-App&lt;/a&gt;.&lt;/p&gt;
+&lt;/div&gt;&lt;div class="hextra-tabs-panel hx:rounded-sm hx:pt-6 hx:hidden hx:data-[state=selected]:block" id="tabs-panel-tabs-03-2" role="tabpanel" aria-labelledby="tabs-tab-tabs-03-2" aria-hidden="true"&gt;&lt;p&gt;Aus einem Release-Ordner, der von &lt;code&gt;scripts/package.sh&lt;/code&gt; aus
+&lt;a href="https://github.com/claimward/claimward-vpn-app-windows" target="_blank" rel="noopener"&gt;claimward-vpn-app-windows&lt;/a&gt; erstellt wurde,
+in einer PowerShell &lt;strong&gt;mit erhöhten Rechten&lt;/strong&gt;:&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-powershell" data-lang="powershell"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;Set-ExecutionPolicy&lt;/span&gt; &lt;span class="n"&gt;-Scope&lt;/span&gt; &lt;span class="k"&gt;Process&lt;/span&gt; &lt;span class="n"&gt;Bypass&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;.\&lt;/span&gt;&lt;span class="n"&gt;install&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="py"&gt;ps1&lt;/span&gt; &lt;span class="n"&gt;-Server&lt;/span&gt; &lt;span class="n"&gt;https&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="p"&gt;//&lt;/span&gt;&lt;span class="n"&gt;vpn&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="py"&gt;example&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="py"&gt;com&lt;/span&gt; &lt;span class="n"&gt;-Provider&lt;/span&gt; &lt;span class="n"&gt;github&lt;/span&gt; &lt;span class="n"&gt;-GitHubClientId&lt;/span&gt; &lt;span class="n"&gt;Iv1&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;0123456789abcdef&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;Melden Sie sich von Windows ab und wieder an (das Installationsprogramm fügt Sie der Gruppe
+&lt;strong&gt;Claimward Users&lt;/strong&gt; hinzu), starten Sie &lt;strong&gt;Claimward VPN&lt;/strong&gt; aus dem Startmenü und
+klicken Sie auf &lt;strong&gt;Connect&lt;/strong&gt;. Siehe die &lt;a href="https://claimward.github.io/docs/v0.9.2/de/components/windows-app/"&gt;Windows-App&lt;/a&gt;.&lt;/p&gt;
+&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Eine Person, die mehreren Mandanten angehört, wird gebeten, einen davon zu wählen, bevor die
+Verbindung hergestellt wird; siehe &lt;a href="https://claimward.github.io/docs/v0.9.2/de/tenants/"&gt;Mandanten&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Das Gerät hat nun eine Tunnelschnittstelle (&lt;code&gt;utunN&lt;/code&gt; unter macOS, &lt;code&gt;utun&lt;/code&gt; unter Linux, den
+Wintun-Adapter &lt;strong&gt;Claimward&lt;/strong&gt; unter Windows) mit seiner Adresse &lt;code&gt;10.80.0.x/32&lt;/code&gt; und
+leitet die Netze des Mandanten darüber.&lt;/p&gt;
+&lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-amber-200 hx:bg-amber-100 hx:text-amber-900 hx:dark:border-amber-200/30 hx:dark:bg-amber-900/30 hx:dark:text-amber-200"&gt;
+&lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/&gt;&lt;/svg&gt;&lt;/div&gt;
+&lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;Die Erneuerung der Lease kommt mit claimward-vpn-client v0.3.1, in den Apps ab
+v0.2.0: Von da an erneuert der Helper die Lease, solange der Tunnel steht, und
+meldet sich bei &lt;em&gt;Disconnect&lt;/em&gt; ab. Die Apps in v0.1.0 tun das nicht: Eine Verbindung, die
+länger als &lt;code&gt;LEASE_TTL&lt;/code&gt; (standardmäßig 24 Stunden) besteht, wird vom Gateway entfernt,
+und ein erneutes Verbinden beginnt eine neue Lease. Siehe
+&lt;a href="https://claimward.github.io/docs/v0.9.2/de/architecture/#leases"&gt;Leases&lt;/a&gt;.&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description></item><item><title>Architektur</title><link>https://claimward.github.io/docs/v0.9.2/de/architecture/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/v0.9.2/de/architecture/</guid><description>
+&lt;p&gt;Claimward trennt eine &lt;strong&gt;Steuerungsebene&lt;/strong&gt;, den Server, von der &lt;strong&gt;Datenebene&lt;/strong&gt;,
+dem WireGuard-Tunnel zwischen einem Gerät und dem Gateway. Die Authentifizierung wird
+an Ihren Identitätsanbieter delegiert: Claimward sieht nie ein Passwort.&lt;/p&gt;
+&lt;p&gt;Auf einem Gerät meldet eine nicht privilegierte &lt;strong&gt;App&lt;/strong&gt; die Person an und hält die
+Sitzung; ein &lt;strong&gt;privilegierter Helper&lt;/strong&gt; (root, unter Windows SYSTEM) registriert sich beim
+Server und besitzt den Tunnel. Die App selbst spricht nie mit dem Server.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="end-to-end-enrollment-flow"&gt;Registrierungsablauf von Ende zu Ende&lt;span class="hx:absolute hx:-mt-20" id="end-to-end-enrollment-flow"&gt;&lt;/span&gt;
+&lt;a href="#end-to-end-enrollment-flow" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-text" data-lang="text"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ┌──────────┐ 1. sign-in: GitHub device flow, OIDC code + PKCE, ┌──────────┐
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ app │ or go-authn device flow (+ key registration) │ IdP │
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ (as you) │◀─────────────────── bearer token ──────────────────│ │
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; └────┬─────┘ └──────────┘
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ 2. socket: connect {server_url, bearer, private key, tenant}
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ▼
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ┌──────────┐ 3. POST /api/v1/enroll ┌─────────────────────────┐
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ helper │ Authorization: Bearer &amp;lt;token&amp;gt; │ claimward-vpn-server │
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ (root) │ {public_key, device, tenant} ───▶ │ verify the bearer │
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ │ │ choose the tenant │
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ │ ◀─── 4. {assigned_ip, │ allocate an address │
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ │ server_public_key, endpoint, │ wgctrl: add the peer │
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ │ allowed_ips, dns, │ (AllowedIPs = ip/32) │
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ │ grpc_endpoint, keepalive, └───────────┬─────────────┘
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ │ lease_expires_at} │ RouteService
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ │ ◀═════════════ 6. gRPC Watch (TLS) ═══════════════╛ (live routes)
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ │
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; │ │ 5. wireguard-go: utunN / Wintun &amp;#34;Claimward&amp;#34;, address, routes
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; └────┬─────┘
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; ╚═══════════════════ WireGuard tunnel ════════════════════▶ private network&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;ol&gt;
+&lt;li&gt;Die App meldet die Person mit dem konfigurierten Anbieter an: standardmäßig &lt;strong&gt;GitHub&lt;/strong&gt;
+(OAuth Device Flow), ein beliebiger &lt;strong&gt;OpenID-Connect&lt;/strong&gt;-Issuer (Authorization
+Code mit PKCE, im Browser) oder ein &lt;strong&gt;go-authn&lt;/strong&gt;-Anbieter (Device Flow).
+Das Bearer-Token, das sie erhält, ist ein GitHub-Access-Token, ein OIDC-ID-Token oder ein go-authn-Access-Token.
+Bei go-authn wird zuerst der &lt;strong&gt;öffentliche&lt;/strong&gt; Schlüssel des Geräts beim Anbieter
+registriert, und das Bearer-Token ist das Token, das diese Registrierung
+zurückgibt.&lt;/li&gt;
+&lt;li&gt;Die App erzeugt das WireGuard-Schlüsselpaar des Geräts bei der ersten Anmeldung und
+bewahrt es in ihrer verschlüsselten Sitzungsdatei auf (&lt;code&gt;session.enc&lt;/code&gt;, deren Schlüssel in der Keychain oder im Secret Service liegt; &lt;code&gt;session.dpapi&lt;/code&gt; unter Windows), bis sich die Person abmeldet, sodass das Gerät
+seinen öffentlichen Schlüssel über Verbindungen hinweg behält (und seine Adresse, solange es registriert ist). Zum Verbinden übergibt sie dem Helper die Server-URL, das Bearer-Token, den
+privaten Schlüssel und den für die Sitzung gewählten Mandanten, über den Socket des Helpers.&lt;/li&gt;
+&lt;li&gt;Der Helper prüft, dass der Server &lt;strong&gt;einer der in seiner eigenen Konfiguration genannten&lt;/strong&gt; ist,
+und ruft dann &lt;code&gt;POST /api/v1/enroll&lt;/code&gt; mit dem öffentlichen Schlüssel des Geräts und dem
+Bearer-Token auf.&lt;/li&gt;
+&lt;li&gt;Der Server &lt;strong&gt;prüft&lt;/strong&gt; das Bearer-Token (ein Aufruf der GitHub-API, ein OIDC-ID-Token oder
+ein go-authn-Access-Token, dessen Subject den Schlüssel besitzen muss), wendet eine etwaige
+Allowlist für Organisationen oder E-Mail-Domains an, wählt den &lt;strong&gt;Mandanten&lt;/strong&gt;, &lt;strong&gt;vergibt&lt;/strong&gt; eine
+VPN-Adresse und &lt;strong&gt;programmiert das Gateway&lt;/strong&gt; (&lt;code&gt;wgctrl&lt;/code&gt;) mit einem Peer, dessen einzige
+erlaubte IP dieses &lt;code&gt;/32&lt;/code&gt; ist. Er antwortet mit den Tunnelparametern: der Adresse,
+seinem eigenen öffentlichen Schlüssel, dem Endpunkt, den Routen und DNS-Servern des Mandanten, dem
+Keepalive, dem Endpunkt des RouteService und dem Ende der Lease.&lt;/li&gt;
+&lt;li&gt;Der Helper baut mit &lt;code&gt;wireguard-go&lt;/code&gt; einen Tunnel im Userspace auf, gibt der
+Schnittstelle ihre Adresse und installiert die Routen.&lt;/li&gt;
+&lt;li&gt;Wenn der Server einen RouteService ankündigt (&lt;code&gt;GRPC_ENDPOINT&lt;/code&gt;), beobachtet der Helper
+ihn über gRPC: Änderungen an den Routen des Mandanten erreichen das Gerät,
+ohne dass es sich erneut registriert.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 data-hextra-search-id="leases"&gt;Leases&lt;span class="hx:absolute hx:-mt-20" id="leases"&gt;&lt;/span&gt;
+&lt;a href="#leases" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Jede Registrierung trägt eine &lt;strong&gt;Lease&lt;/strong&gt; von &lt;code&gt;LEASE_TTL&lt;/code&gt; (standardmäßig 24 Stunden). Ein
+Hintergrundprozess auf dem Server entfernt jede Minute die Peers, deren Lease
+abgelaufen ist, sodass ein verlorenes oder gesperrtes Gerät von selbst vom Gateway verschwindet. Bei
+go-authn überdauert eine Lease nie die Registrierung des Schlüssels beim Anbieter.&lt;/p&gt;
+&lt;p&gt;Der Server erneuert eine Lease bei &lt;code&gt;POST /api/v1/heartbeat&lt;/code&gt; und entfernt einen Peer
+sofort bei &lt;code&gt;POST /api/v1/deregister&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Ab &lt;strong&gt;claimward-vpn-client v0.3.1&lt;/strong&gt;, also ab den App-Releases, die diese Version
+enthalten (die macOS-, Linux- und Windows-Apps ab v0.2.0), hält der Helper die Lease selbst aufrecht, solange
+der Tunnel steht. Er erneuert sie, wenn die Hälfte der Restlaufzeit der Lease verstrichen ist, nie früher
+als nach 30 Sekunden und nie später als nach 10 Minuten, und handelt nach der Antwort:&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Der Server antwortet&lt;/th&gt;
+&lt;th&gt;Der Helper&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;eine erneuerte Lease&lt;/td&gt;
+&lt;td&gt;erneuert wieder nach der Hälfte davon&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;404 not_enrolled&lt;/code&gt;: Er hat das Gerät vergessen (die Lease ist abgelaufen, oder der Server wurde neu gestartet)&lt;/td&gt;
+&lt;td&gt;registriert sich erneut mit demselben Schlüssel und Mandanten und baut den Tunnel anhand dieser Antwort auf; schlägt auch das fehl, baut er den Tunnel ab&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;403&lt;/code&gt; (&lt;code&gt;not_a_member&lt;/code&gt;, &lt;code&gt;key_not_registered&lt;/code&gt;): Zugang entzogen&lt;/td&gt;
+&lt;td&gt;baut den Tunnel ab und meldet den Grund (&lt;code&gt;last_error&lt;/code&gt;)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;401&lt;/code&gt;, ein &lt;code&gt;5xx&lt;/code&gt; oder nichts&lt;/td&gt;
+&lt;td&gt;versucht es innerhalb einer Minute erneut, bevor die Lease endet&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Der Helper erneuert mit dem letzten Bearer-Token, das er erhalten hat. Das genügt für ein
+GitHub-Token, nicht aber für ein go-authn-Access-Token, das nach Minuten abläuft und
+das nur die App auffrischen kann. Solange die App läuft, übergibt &lt;code&gt;pkg/appcore&lt;/code&gt; dem
+Helper daher ein frisches Bearer-Token (die Aktion &lt;code&gt;renew&lt;/code&gt; des Helpers), wenn 40 % der Restlaufzeit der Lease
+verstrichen sind (höchstens 8 Minuten auseinander), bevor die eigene Erneuerung des Helpers fällig ist. Eine App, die unter einem
+laufenden Tunnel neu gestartet wird, beginnt damit bei ihrer ersten Statusabfrage.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Disconnect&lt;/em&gt; (die Aktion &lt;code&gt;down&lt;/code&gt; des Helpers) &lt;strong&gt;meldet&lt;/strong&gt; den Peer &lt;strong&gt;ab&lt;/strong&gt; und gibt seine
+Adresse sofort zurück. Ein Helper, der beendet wird (sein Dienstmanager stoppt
+ihn, oder die Maschine fährt herunter), baut den Tunnel ab, ohne sich abzumelden,
+sodass ein neu gestarteter Helper die Lease noch vorfindet und die Lease einer gestoppten Maschine
+auf dem Server abläuft.&lt;/p&gt;
+&lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-blue-200 hx:bg-blue-100 hx:text-blue-900 hx:dark:border-blue-200/30 hx:dark:bg-blue-900/30 hx:dark:text-blue-200"&gt;
+&lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2"&gt;&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"&gt;&lt;path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/&gt;&lt;/svg&gt;&lt;/div&gt;
+&lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;Die Apps in v0.1.0 bauen auf früheren Client-Versionen auf, die nichts davon tun:
+Sie erneuern eine Lease nur durch erneutes Verbinden und lassen den Peer nach
+&lt;em&gt;Disconnect&lt;/em&gt; auf dem Gateway, bis seine Lease endet.&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;h2 data-hextra-search-id="trust-boundaries"&gt;Vertrauensgrenzen&lt;span class="hx:absolute hx:-mt-20" id="trust-boundaries"&gt;&lt;/span&gt;
+&lt;a href="#trust-boundaries" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;Der &lt;strong&gt;Server&lt;/strong&gt; ist die einzige Komponente, die mit dem Identitätsanbieter spricht, um
+eine Anmeldung zu prüfen, und die einzige mit dem Recht, die Peers des Gateways zu ändern.&lt;/li&gt;
+&lt;li&gt;Auf dem Gerät ist der &lt;strong&gt;Helper&lt;/strong&gt; der einzige privilegierte Prozess. Alles, was
+seinen Socket erreichen kann, kann ihn zum Handeln auffordern, daher handelt er im Rahmen seiner eigenen
+Konfiguration: Er registriert sich nur bei den Servern, die diese Konfiguration nennt, und
+übernimmt keine Tunnelkonfiguration aus einer Anfrage. Siehe
+&lt;a href="https://claimward.github.io/docs/v0.9.2/de/components/helper/"&gt;Privilegierter Helper&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;Die &lt;strong&gt;App&lt;/strong&gt; läuft unter dem Benutzer der Person. Sie hält die Sitzung (Bearer-Token und Geräteschlüssel)
+in einer verschlüsselten Datei, nie im Klartext auf der Platte: versiegelt mit einem Schlüssel
+aus der macOS-Keychain oder dem Linux-Secret-Service, oder mit Windows-DPAPI. Ohne nutzbaren Speicher schlägt die Anmeldung fehl.&lt;/li&gt;
+&lt;li&gt;Eine Beobachtung der Routen überträgt das Bearer-Token, daher läuft sie über &lt;strong&gt;TLS&lt;/strong&gt;, außer zu einer
+Loopback-Adresse.&lt;/li&gt;
+&lt;li&gt;Der Wire-Vertrag liegt an einer einzigen Stelle,
+&lt;a href="https://github.com/claimward/claimward-vpn-client/tree/main/pkg/protocol" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-client/pkg/protocol&lt;/code&gt;&lt;/a&gt;
+und &lt;code&gt;pkg/routespb&lt;/code&gt;, importiert sowohl von den Clients als auch vom Server.&lt;/li&gt;
+&lt;/ul&gt;</description></item><item><title>Betrieb</title><link>https://claimward.github.io/docs/v0.9.2/de/operations/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/v0.9.2/de/operations/</guid><description>
+&lt;h2 data-hextra-search-id="tls"&gt;TLS&lt;span class="hx:absolute hx:-mt-20" id="tls"&gt;&lt;/span&gt;
+&lt;a href="#tls" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Der Server spricht unverschlüsseltes HTTP, sofern &lt;code&gt;TLS_CERT&lt;/code&gt;/&lt;code&gt;TLS_KEY&lt;/code&gt; nicht gesetzt sind. Bearer-Tokens
+sind Zugangsdaten, stellen Sie die API also &lt;strong&gt;immer&lt;/strong&gt; hinter TLS, direkt oder über einen
+Reverse Proxy (nginx, Caddy, einen Load Balancer).&lt;/p&gt;
+&lt;p&gt;Dasselbe Zertifikat bedient den gRPC-RouteService. Eine Beobachtung der Routen überträgt das
+Bearer-Token, und die Clients lehnen eine unverschlüsselte Beobachtung ab, außer über Loopback: Ein
+Server ohne &lt;code&gt;TLS_CERT&lt;/code&gt;/&lt;code&gt;TLS_KEY&lt;/code&gt; (etwa hinter einem Proxy, der nur
+HTTPS terminiert) registriert Geräte, diese erhalten aber keine Live-Aktualisierungen der Routen, und er
+protokolliert beim Start eine Warnung. Setzen Sie &lt;code&gt;GRPC_ENDPOINT&lt;/code&gt; auf den &lt;code&gt;host:port&lt;/code&gt;, unter dem die Geräte
+den RouteService erreichen, mit einem Namen, den das Zertifikat abdeckt.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="gateway"&gt;Gateway&lt;span class="hx:absolute hx:-mt-20" id="gateway"&gt;&lt;/span&gt;
+&lt;a href="#gateway" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;Bringen Sie &lt;code&gt;wg0&lt;/code&gt; beim Booten mit &lt;code&gt;wg-quick&lt;/code&gt; oder systemd-networkd hoch; Claimward
+verwaltet nur seine Peers. Starten Sie den Server mit den Rechten, die Schnittstelle und die Firewall zu
+konfigurieren: unter Linux root oder &lt;code&gt;CAP_NET_ADMIN&lt;/code&gt; (nftables); unter OpenBSD root,
+für &lt;code&gt;/dev/pf&lt;/code&gt; (siehe &lt;a href="https://claimward.github.io/docs/v0.9.2/de/components/server/#openbsd"&gt;OpenBSD&lt;/a&gt;).&lt;/li&gt;
+&lt;li&gt;Aktivieren Sie unter Linux &lt;code&gt;net.ipv4.ip_forward&lt;/code&gt; sowie NAT- oder Firewall-Regeln, wenn Clients
+über das VPN-Subnetz hinaus routen.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;GET /healthz&lt;/code&gt; ist die Liveness-Probe.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 data-hextra-search-id="leases"&gt;Leases&lt;span class="hx:absolute hx:-mt-20" id="leases"&gt;&lt;/span&gt;
+&lt;a href="#leases" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;LEASE_TTL&lt;/code&gt; (standardmäßig 24 Stunden) wägt Sicherheit gegen Fluktuation ab. Der Hintergrundprozess
+entfernt jede Minute abgelaufene Peers, sodass gesperrte oder offline befindliche Geräte von selbst
+verschwinden. Um eines sofort zu sperren, melden Sie seinen Peer ab oder entfernen Sie ihn mit
+&lt;code&gt;wg set wg0 peer &amp;lt;key&amp;gt; remove&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Ab claimward-vpn-client v0.3.1 (die Apps ab v0.2.0) erneuert der Helper
+die Lease, solange der Tunnel steht, nach der Hälfte der Restlaufzeit (zwischen 30 Sekunden
+und 10 Minuten), und meldet sich bei &lt;em&gt;Disconnect&lt;/em&gt; ab. Eine kürzere &lt;code&gt;LEASE_TTL&lt;/code&gt; kostet daher
+mehr Heartbeats, nicht abgebrochene Tunnel: Eine Entfernung aus einem Mandanten oder ein Schlüssel,
+den der go-authn-Anbieter zurückzieht, beendet den Tunnel bei der nächsten Erneuerung (der
+Server antwortet &lt;code&gt;403&lt;/code&gt;). Ein Server, der ein Gerät vergessen hat (&lt;code&gt;404&lt;/code&gt;), lässt es
+sich erneut registrieren. Siehe &lt;a href="https://claimward.github.io/docs/v0.9.2/de/architecture/#leases"&gt;Leases&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Die Apps in v0.1.0 erneuern nur durch erneutes Verbinden und lassen den Peer nach &lt;em&gt;Disconnect&lt;/em&gt; bestehen, bis seine
+Lease endet: Bei ihnen verliert ein Gerät, das länger als &lt;code&gt;LEASE_TTL&lt;/code&gt; verbunden bleibt,
+seinen Tunnel, wenn sein Peer entfernt wird.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="state"&gt;Zustand&lt;span class="hx:absolute hx:-mt-20" id="state"&gt;&lt;/span&gt;
+&lt;a href="#state" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Der Server hält die registrierten Peers, den Adresspool und die Mandanten
+&lt;strong&gt;im Arbeitsspeicher&lt;/strong&gt;. Ein Neustart vergisst sie:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;die Mandanten sind wieder allein &lt;code&gt;default&lt;/code&gt;, aus &lt;code&gt;PUSH_ROUTES&lt;/code&gt; und &lt;code&gt;DNS&lt;/code&gt;;&lt;/li&gt;
+&lt;li&gt;ab Server &lt;strong&gt;v0.2.0&lt;/strong&gt; werden die Peers, die ein vorheriger Lauf auf &lt;code&gt;wg0&lt;/code&gt; hinterlassen hat,
+&lt;strong&gt;beim Start entfernt&lt;/strong&gt;: jeder Peer, dessen einzige erlaubte IP ein &lt;code&gt;/32&lt;/code&gt; innerhalb von
+&lt;code&gt;VPN_CIDR&lt;/code&gt; ist, die Form, die der Server jedem Peer gibt. Jeder andere Peer
+(von Hand konfiguriert, eine Site-to-Site-Verbindung) bleibt unberührt. Behalten, würden diese Peers
+niemandem gehören: nie entfernt, nie gegen die Liste des Anbieters geprüft,
+sodass eine vor dem Neustart deaktivierte Person einen funktionierenden Tunnel behielte. Geräte
+stellen bei ihrer nächsten Erneuerung der Lease fest, dass sie unbekannt sind, und registrieren sich erneut (Apps,
+die auf claimward-vpn-client v0.3.1 aufbauen); bis dahin überträgt ihr Tunnel
+nichts. Der Helper erneuert höchstens im Abstand von 10 Minuten, daher kann nach einem Neustart ein
+Gerät bis zu 10 Minuten abgeschnitten sein. Ein erneutes Verbinden stellt es sofort
+wieder her.&lt;/li&gt;
+&lt;li&gt;der Server in &lt;strong&gt;v0.1.0&lt;/strong&gt; lässt diese Peers auf &lt;code&gt;wg0&lt;/code&gt;: Er entfernt sie nie, und
+er kann ihre Adressen an neue Geräte vergeben (WireGuard leitet die
+Adresse dann an den neuen Peer). Leeren Sie nach seinem Neustart die Peers
+(&lt;code&gt;wg-quick down wg0 &amp;amp;&amp;amp; wg-quick up wg0&lt;/code&gt; oder &lt;code&gt;wg set … remove&lt;/code&gt;) und lassen Sie die
+Geräte sich erneut verbinden.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Für mehrere Gateways oder einen dauerhaften Audit-Trail benötigen die Pakete &lt;code&gt;store&lt;/code&gt;, &lt;code&gt;ipam&lt;/code&gt; und
+&lt;code&gt;tenant&lt;/code&gt; eine Datenbank dahinter.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="identity-provider"&gt;Identitätsanbieter&lt;span class="hx:absolute hx:-mt-20" id="identity-provider"&gt;&lt;/span&gt;
+&lt;a href="#identity-provider" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Standardmäßig meldet Claimward Personen mit &lt;strong&gt;GitHub&lt;/strong&gt; an (Device Flow): Legen Sie eine
+GitHub-OAuth-App mit aktiviertem &lt;strong&gt;Device Flow&lt;/strong&gt; an und beschränken Sie den Zugang mit
+&lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;. Für &lt;strong&gt;OIDC&lt;/strong&gt; setzen Sie &lt;code&gt;AUTH_PROVIDER=oidc&lt;/code&gt; mit einem
+nativen/öffentlichen PKCE-Client und beschränken mit &lt;code&gt;OIDC_ALLOWED_DOMAINS&lt;/code&gt;. Für
+&lt;strong&gt;go-authn&lt;/strong&gt; setzen Sie &lt;code&gt;AUTH_PROVIDER=go-authn&lt;/code&gt; mit dem eigenen Client des Gateways: Der
+Anbieter entscheidet dann, welche Schlüssel sich verbinden dürfen, und ein Gateway, das
+seine Liste nicht abrufen kann, lässt niemanden Neues zu. Siehe
+&lt;a href="https://claimward.github.io/docs/v0.9.2/de/identity-providers/"&gt;Identitätsanbieter&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="admin-api-and-webui"&gt;Admin-API und WebUI&lt;span class="hx:absolute hx:-mt-20" id="admin-api-and-webui"&gt;&lt;/span&gt;
+&lt;a href="#admin-api-and-webui" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Wenn die Credential &lt;code&gt;admin-token&lt;/code&gt; vorhanden ist (eine Datei in
+&lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt;, siehe &lt;a href="https://claimward.github.io/docs/v0.9.2/de/components/server/#credentials"&gt;Credentials&lt;/a&gt;),
+stellt der Server eine eingebettete Svelte-WebUI unter
+&lt;code&gt;/admin/&lt;/code&gt; und eine API unter &lt;code&gt;/admin/api/&lt;/code&gt; bereit, geschützt durch
+&lt;code&gt;Authorization: Bearer &amp;lt;Inhalt von admin-token&amp;gt;&lt;/code&gt; (in konstanter Zeit verglichen). Ohne die Datei
+antwortet &lt;code&gt;/admin/&lt;/code&gt; mit &lt;code&gt;503&lt;/code&gt;. Die Dateien der WebUI werden ohne Authentifizierung ausgeliefert;
+sie fragt nach dem Token und sendet es bei jedem Aufruf mit.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Methode &amp;amp; Pfad&lt;/th&gt;
+&lt;th&gt;&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GET /admin/api/overview&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Anzahlen &lt;code&gt;{&amp;quot;tenants&amp;quot;, &amp;quot;peers&amp;quot;, &amp;quot;watchers&amp;quot;}&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GET /admin/api/tenants&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;alle Mandanten&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;POST /admin/api/tenants&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;einen anlegen: &lt;code&gt;id&lt;/code&gt; (oder ein Slug von &lt;code&gt;name&lt;/code&gt;), &lt;code&gt;name&lt;/code&gt;, &lt;code&gt;domains&lt;/code&gt;, &lt;code&gt;groups&lt;/code&gt;, &lt;code&gt;idps&lt;/code&gt;, &lt;code&gt;members&lt;/code&gt; (Logins; &lt;code&gt;pinned&lt;/code&gt; ist schreibgeschützt, &lt;code&gt;400&lt;/code&gt;, wenn ein Login nicht aufgelöst wird), &lt;code&gt;allowed_ips&lt;/code&gt;, &lt;code&gt;dns&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;GET /admin/api/tenants/{id}&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;ein Mandant&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;PUT /admin/api/tenants/{id}&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;ersetzt seinen Namen, seine Mitgliedschaftslisten und Routen; erhöht &lt;code&gt;serial&lt;/code&gt; und pusht die Routen an seine Beobachter&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;DELETE /admin/api/tenants/{id}&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;löscht ihn (nicht &lt;code&gt;default&lt;/code&gt;); beendet seine Beobachtungen&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Stellen Sie &lt;code&gt;/admin/&lt;/code&gt; nur dort bereit, wo Administratoren es erreichen: Das Token ist ein statisches
+gemeinsames Geheimnis.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="metrics"&gt;Metriken&lt;span class="hx:absolute hx:-mt-20" id="metrics"&gt;&lt;/span&gt;
+&lt;a href="#metrics" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;GET /metrics&lt;/code&gt; liefert Prometheus-Metriken aus, ohne Authentifizierung, auf einem
+eigenen Listener: &lt;code&gt;METRICS_ADDR&lt;/code&gt;, die keinen Standardwert hat, es gibt also keine
+Metriken, solange sie nicht gesetzt ist (nie auf dem Registrierungsport). Sie nennen
+jeden Mandanten: halten Sie diesen Listener auf Loopback oder in einem privaten Netz.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Metrik&lt;/th&gt;
+&lt;th&gt;&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;claimward_enrollments_total{tenant}&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;erfolgreiche Registrierungen&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;claimward_active_peers&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;registrierte Peers&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;claimward_tenants&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;konfigurierte Mandanten&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;claimward_route_watchers&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;aktive Beobachtungen des RouteService&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;claimward_tenant_route_serial{tenant}&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;die Routen-Seriennummer jedes Mandanten&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;</description></item></channel></rss>
