@@ -36,6 +36,13 @@ de saisie et sa correction orthographique ; les choix du fournisseur et du locat
 des menus locaux. Le [helper]({{< relref "/components/helper.md" >}}) s'enrôle auprès du
 serveur et détient le tunnel. Fermer la fenêtre quitte l'application, comme sous Linux et Windows.
 
+La fenêtre a un en-tête (le logo Claimward, le titre et **Settings**), une barre latérale
+**Servers** à gauche avec **+** et **−** sous la liste, et à droite le panneau de détail du
+serveur sélectionné : son nom, le menu local **Tenant** avec **Refresh**, l'état de la
+session, la connexion, Connect et Disconnect, et le journal de connexion. Le formulaire de
+réglages s'ouvre dans une fenêtre à part, pour que l'état reste visible ; il s'affiche dans
+la fenêtre principale là où une seconde fenêtre ne peut pas s'ouvrir.
+
 ## Compilation {#build}
 
 Avec [go-task](https://taskfile.dev) :
@@ -58,7 +65,7 @@ CGO_ENABLED=0 go build -o bin/claimward-helper ./cmd/claimward-helper
 ## Configuration {#configure}
 
 `~/Library/Application Support/Claimward/config.json`, également modifiable depuis la
-page **Settings** de la fenêtre (GitHub est la valeur par défaut) :
+fenêtre **Settings** (GitHub est la valeur par défaut) :
 
 ```json
 {
@@ -89,8 +96,8 @@ Le socket du helper est `/var/run/claimward-helper.sock`, `0660`,
 
 ## Locataires {#tenants}
 
-Une personne appartenant à plusieurs locataires en choisit un dans la fenêtre (« Choose a tenant… »),
-qui les propose dès que le serveur indique qu'un choix est possible, ou sur demande. Le
+Une personne appartenant à plusieurs locataires en choisit un dans le menu local **Tenant** du panneau de détail,
+qui les liste dès que le serveur les a proposés ; **Refresh** les redemande. Le
 choix vaut pour la session ; une nouvelle connexion l'oublie. Un **Connect** depuis la
 barre des menus que le serveur refuse faute de choix ouvre la fenêtre.
 
