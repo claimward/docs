@@ -30,7 +30,7 @@ sudo sysctl -w net.ipv4.ip_forward=1   # if you route beyond the VPN subnet
 ## 2. Run the control plane
 
 ```sh
-go install github.com/claimward/claimward-vpn-server/cmd/claimward-server@v0.10.0
+go install github.com/claimward/claimward-vpn-server/cmd/claimward-server@v0.13.0
 
 export AUTH_PROVIDER=github                     # the default
 export GITHUB_ALLOWED_ORGS=claimward            # an org allowlist, or name tenant `members` instead (the server refuses to start with neither)
