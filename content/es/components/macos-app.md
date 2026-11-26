@@ -36,6 +36,13 @@ método de entrada y su corrector ortográfico; las elecciones de proveedor e in
 menús emergentes. El [helper]({{< relref "/components/helper.md" >}}) se registra en el
 servidor y gestiona el túnel. Cerrar la ventana cierra la aplicación, como en Linux y Windows.
 
+La ventana tiene una cabecera (la marca Claimward, el título y **Settings**), una barra
+lateral **Servers** a la izquierda con **+** y **−** bajo la lista, y a la derecha el panel
+de detalle del servidor seleccionado: su nombre, el menú emergente **Tenant** con
+**Refresh**, el estado de la sesión, el inicio de sesión, Connect y Disconnect, y el
+registro de conexión. El formulario de ajustes se abre en una ventana propia, para que el
+estado siga visible; se muestra en la ventana principal donde no se puede abrir una segunda.
+
 ## Compilación {#build}
 
 Con [go-task](https://taskfile.dev):
@@ -58,7 +65,7 @@ CGO_ENABLED=0 go build -o bin/claimward-helper ./cmd/claimward-helper
 ## Configuración {#configure}
 
 `~/Library/Application Support/Claimward/config.json`, también editable desde la
-página **Settings** de la ventana (GitHub es el valor predeterminado):
+ventana **Settings** (GitHub es el valor predeterminado):
 
 ```json
 {
@@ -89,8 +96,8 @@ El socket del helper es `/var/run/claimward-helper.sock`, `0660`,
 
 ## Inquilinos {#tenants}
 
-Una persona que pertenece a varios inquilinos elige uno en la ventana ("Choose a tenant…"),
-que los ofrece en cuanto el servidor indica que hay que elegir, o a petición. La
+Una persona que pertenece a varios inquilinos elige uno en el menú emergente **Tenant** del panel de detalle,
+que los lista en cuanto el servidor los ha ofrecido; **Refresh** vuelve a pedirlos. La
 elección se mantiene durante la sesión; un nuevo inicio de sesión la olvida. Un **Connect** desde la
 barra de menús que el servidor rechaza a falta de elección abre la ventana.
 

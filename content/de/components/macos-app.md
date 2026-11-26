@@ -36,6 +36,13 @@ Popup-Menüs. Der [Helper]({{< relref "/components/helper.md" >}}) registriert s
 Server und besitzt den Tunnel. Das Schließen des Fensters beendet die App, wie unter Linux
 und Windows.
 
+Das Fenster hat eine Kopfzeile (das Claimward-Zeichen, den Titel und **Settings**), links
+eine Seitenleiste **Servers** mit **+** und **−** unter der Liste und rechts den
+Detailbereich des gewählten Servers: Name, das Popup-Menü **Tenant** mit **Refresh**, den
+Sitzungsstatus, Anmeldung, Connect und Disconnect sowie das Verbindungsprotokoll. Das
+Einstellungsformular öffnet sich in einem eigenen Fenster, damit der Status sichtbar bleibt;
+wo kein zweites Fenster geöffnet werden kann, erscheint es im Hauptfenster.
+
 ## Build {#build}
 
 Mit [go-task](https://taskfile.dev):
@@ -58,7 +65,7 @@ CGO_ENABLED=0 go build -o bin/claimward-helper ./cmd/claimward-helper
 ## Konfiguration {#configure}
 
 `~/Library/Application Support/Claimward/config.json`, auch bearbeitbar über die
-Seite **Settings** des Fensters (GitHub ist der Standard):
+Fenster **Settings** (GitHub ist der Standard):
 
 ```json
 {
@@ -89,8 +96,8 @@ Der Socket des Helpers ist `/var/run/claimward-helper.sock`, `0660`,
 
 ## Mandanten {#tenants}
 
-Eine Person in mehreren Mandanten wählt einen im Fenster aus („Choose a tenant…“),
-das sie anbietet, sobald der Server meldet, dass eine Wahl besteht, oder auf Anfrage. Die
+Eine Person in mehreren Mandanten wählt einen im Popup-Menü **Tenant** des Detailbereichs aus,
+das sie auflistet, sobald der Server sie angeboten hat; **Refresh** fragt erneut. Die
 Wahl gilt für die Sitzung; eine neue Anmeldung vergisst sie. Ein **Connect** aus der
 Menüleiste, das der Server mangels Auswahl ablehnt, öffnet das Fenster.
 
