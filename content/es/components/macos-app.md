@@ -37,11 +37,13 @@ menús emergentes. El [helper]({{< relref "/components/helper.md" >}}) se regist
 servidor y gestiona el túnel. Cerrar la ventana cierra la aplicación, como en Linux y Windows.
 
 La ventana tiene una cabecera (la marca Claimward, el título y **Settings**), una barra
-lateral **Servers** a la izquierda con **+** y **−** bajo la lista, y a la derecha el panel
+lateral **Servers** a la izquierda con **+**, **−** y un engranaje (**Edit server**) bajo la lista, y a la derecha el panel
 de detalle del servidor seleccionado: su nombre, el menú emergente **Tenant** con
 **Refresh**, el estado de la sesión, el inicio de sesión, Connect y Disconnect, y el
 registro de conexión. El formulario de ajustes se abre en una ventana propia, para que el
 estado siga visible; se muestra en la ventana principal donde no se puede abrir una segunda.
+El engranaje abre ese formulario para el servidor seleccionado; está desactivado, con el
+motivo en su etiqueta de accesibilidad, mientras no haya ningún servidor seleccionado.
 
 ## Compilación {#build}
 

@@ -37,11 +37,13 @@ Server und besitzt den Tunnel. Das Schließen des Fensters beendet die App, wie 
 und Windows.
 
 Das Fenster hat eine Kopfzeile (das Claimward-Zeichen, den Titel und **Settings**), links
-eine Seitenleiste **Servers** mit **+** und **−** unter der Liste und rechts den
+eine Seitenleiste **Servers** mit **+**, **−** und einem Zahnrad (**Edit server**) unter der Liste und rechts den
 Detailbereich des gewählten Servers: Name, das Popup-Menü **Tenant** mit **Refresh**, den
 Sitzungsstatus, Anmeldung, Connect und Disconnect sowie das Verbindungsprotokoll. Das
 Einstellungsformular öffnet sich in einem eigenen Fenster, damit der Status sichtbar bleibt;
 wo kein zweites Fenster geöffnet werden kann, erscheint es im Hauptfenster.
+Das Zahnrad öffnet dieses Formular für den gewählten Server; ist kein Server gewählt, ist es
+deaktiviert, und der Grund steht in seiner Bedienungshilfe-Beschriftung.
 
 ## Build {#build}
 
