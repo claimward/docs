@@ -857,57 +857,108 @@ et une nouvelle connexion démarre un nouveau bail. Voir
 &lt;a href="https://claimward.github.io/docs/dev/fr/architecture/#leases"&gt;Baux&lt;/a&gt;.&lt;/div&gt;
 &lt;/div&gt;
 &lt;/div&gt;</description></item><item><title>Fournisseurs d'identité</title><link>https://claimward.github.io/docs/dev/fr/identity-providers/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/fr/identity-providers/</guid><description>
-&lt;p&gt;Le serveur et les applications choisissent chacun un fournisseur par son nom, et doivent être d&amp;rsquo;accord :
-&lt;code&gt;AUTH_PROVIDER&lt;/code&gt; sur le serveur, &lt;code&gt;&amp;quot;provider&amp;quot;&lt;/code&gt; dans le &lt;code&gt;config.json&lt;/code&gt; de l&amp;rsquo;application (ou
-&lt;code&gt;CLAIMWARD_AUTH_PROVIDER&lt;/code&gt;). Le jeton porteur (bearer) qu&amp;rsquo;obtient l&amp;rsquo;application est opaque sur le réseau ;
+&lt;p&gt;Depuis le serveur v0.14.0 (&lt;strong&gt;rupture de compatibilité&lt;/strong&gt;), le serveur accepte &lt;strong&gt;plusieurs&lt;/strong&gt; fournisseurs
+d&amp;rsquo;identité à la fois, listés dans un fichier JSON désigné par &lt;code&gt;PROVIDERS_FILE&lt;/code&gt;. Les anciennes
+variables à fournisseur unique (&lt;code&gt;AUTH_PROVIDER&lt;/code&gt;, &lt;code&gt;OIDC_ISSUER&lt;/code&gt;, &lt;code&gt;OIDC_CLIENT_ID&lt;/code&gt;,
+&lt;code&gt;OIDC_ALLOWED_DOMAINS&lt;/code&gt;, &lt;code&gt;GITHUB_CLIENT_ID&lt;/code&gt;, &lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;,
+&lt;code&gt;GOAUTHN_GATEWAY_CLIENT_ID&lt;/code&gt;) ne sont plus lues, et le serveur refuse de
+démarrer tant que l&amp;rsquo;une d&amp;rsquo;elles est définie. Le jeton porteur (bearer) qu&amp;rsquo;obtient l&amp;rsquo;application est opaque sur le réseau ;
 la façon dont le serveur le vérifie dépend du fournisseur.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="le-fichier-des-fournisseurs"&gt;Le fichier des fournisseurs&lt;span class="hx:absolute hx:-mt-20" id="le-fichier-des-fournisseurs"&gt;&lt;/span&gt;
+&lt;a href="#le-fichier-des-fournisseurs" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;PROVIDERS_FILE&lt;/code&gt; est un objet JSON avec une liste &lt;code&gt;providers&lt;/code&gt;. Les champs inconnus sont
+refusés, et le fichier fait 1 Mio au plus :&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;providers&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:[&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;campus&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;kind&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;oidc&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;name&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;Campus&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;oidc_issuer&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;https://idp.example.org&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;oidc_client_id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;claimward&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;allowed_domains&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:[&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;example.org&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;]},&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;hub&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;kind&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;github&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;name&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;GitHub&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;github_client_id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;Iv1.0123456789abcdef&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;allowed_orgs&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:[&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;my-org&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;]},&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;renater&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;kind&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;go-authn&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;name&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;RENATER&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;oidc_issuer&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;https://login.example.org&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;oidc_client_id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;claimward&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;gateway_client_id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;claimward-gw&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;]}&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copier le code"
+aria-label="Copier le code"
+data-copied-label="Copié !"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;Chaque fournisseur a un &lt;code&gt;id&lt;/code&gt; (le nom par lequel une requête le désigne), un &lt;code&gt;kind&lt;/code&gt; et un
+&lt;code&gt;name&lt;/code&gt; (montré à la personne). Les autres champs dépendent du &lt;code&gt;kind&lt;/code&gt; :&lt;/p&gt;
 &lt;table&gt;
 &lt;thead&gt;
 &lt;tr&gt;
-&lt;th&gt;Fournisseur&lt;/th&gt;
+&lt;th&gt;&lt;code&gt;kind&lt;/code&gt;&lt;/th&gt;
 &lt;th&gt;Connexion sur l&amp;rsquo;appareil&lt;/th&gt;
 &lt;th&gt;Jeton porteur envoyé au serveur&lt;/th&gt;
-&lt;th&gt;Comment le serveur le vérifie&lt;/th&gt;
+&lt;th&gt;Champs en plus de &lt;code&gt;id&lt;/code&gt;, &lt;code&gt;kind&lt;/code&gt;, &lt;code&gt;name&lt;/code&gt;&lt;/th&gt;
+&lt;th&gt;Fichier secret&lt;/th&gt;
 &lt;/tr&gt;
 &lt;/thead&gt;
 &lt;tbody&gt;
 &lt;tr&gt;
-&lt;td&gt;&lt;code&gt;github&lt;/code&gt; (par défaut)&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;github&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;flux d&amp;rsquo;appareil OAuth (device flow)&lt;/td&gt;
 &lt;td&gt;jeton d&amp;rsquo;accès OAuth GitHub&lt;/td&gt;
-&lt;td&gt;API GitHub (&lt;code&gt;/user&lt;/code&gt;, &lt;code&gt;/user/orgs&lt;/code&gt;), liste d&amp;rsquo;organisations autorisées facultative&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;github_client_id&lt;/code&gt;, &lt;code&gt;api_url&lt;/code&gt; (GitHub Enterprise), &lt;code&gt;allowed_orgs&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;provider-&amp;lt;id&amp;gt;-secret&lt;/code&gt;&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;oidc&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;code d&amp;rsquo;autorisation + PKCE, dans le navigateur&lt;/td&gt;
 &lt;td&gt;jeton d&amp;rsquo;identité (ID token) OIDC&lt;/td&gt;
-&lt;td&gt;signature, émetteur, audience ; liste de domaines de messagerie autorisés facultative&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;oidc_issuer&lt;/code&gt;, &lt;code&gt;oidc_client_id&lt;/code&gt;, &lt;code&gt;allowed_domains&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;aucun&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;flux d&amp;rsquo;appareil, puis enregistrement de la clé&lt;/td&gt;
 &lt;td&gt;jeton d&amp;rsquo;accès go-authn (&lt;code&gt;at+jwt&lt;/code&gt;)&lt;/td&gt;
-&lt;td&gt;signature, émetteur, audience, &lt;code&gt;typ&lt;/code&gt; ; la clé doit avoir été enregistrée par le même sujet&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;oidc_issuer&lt;/code&gt;, &lt;code&gt;oidc_client_id&lt;/code&gt;, &lt;code&gt;gateway_client_id&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;provider-&amp;lt;id&amp;gt;-gateway-secret&lt;/code&gt;&lt;/td&gt;
 &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
+&lt;p&gt;Les fichiers secrets sont des identifiants, des fichiers de &lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt;, jamais des
+variables (voir &lt;a href="https://claimward.github.io/docs/dev/fr/components/server/#credentials"&gt;Identifiants&lt;/a&gt;).
+Ils s&amp;rsquo;appelaient &lt;code&gt;github-client-secret&lt;/code&gt; et &lt;code&gt;goauthn-gateway-secret&lt;/code&gt; avant la v0.14.0.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;La requête désigne son fournisseur.&lt;/strong&gt; Chaque appel d&amp;rsquo;API porte l&amp;rsquo;en-tête
+&lt;code&gt;Claimward-Provider: &amp;lt;id&amp;gt;&lt;/code&gt; (gRPC : la métadonnée &lt;code&gt;claimward-provider&lt;/code&gt;), et son
+jeton est vérifié par ce fournisseur &lt;strong&gt;seul&lt;/strong&gt; : un jeton du fournisseur A est refusé
+quand la requête désigne B. Sans en-tête, c&amp;rsquo;est &lt;code&gt;401 missing_provider&lt;/code&gt; ; un identifiant que le serveur
+ne liste pas donne &lt;code&gt;401 unknown_provider&lt;/code&gt;. Le
+&lt;a href="https://claimward.github.io/docs/dev/fr/reference/protocol/#discovery"&gt;document de découverte&lt;/a&gt; (version
+2) liste les fournisseurs, sans aucun secret : un client n&amp;rsquo;a donc besoin que de l&amp;rsquo;URL du serveur.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Une identité par émetteur et par &lt;code&gt;sub&lt;/code&gt;.&lt;/strong&gt; L&amp;rsquo;identité est &lt;code&gt;issuer#sub&lt;/code&gt; pour &lt;code&gt;oidc&lt;/code&gt;
+et &lt;code&gt;go-authn&lt;/code&gt;, et &lt;code&gt;github:&amp;lt;id&amp;gt;&lt;/code&gt; pour &lt;code&gt;github&lt;/code&gt; : le même &lt;code&gt;sub&lt;/code&gt; chez deux émetteurs est
+deux personnes, et la seconde ne peut pas prendre l&amp;rsquo;appareil de la première.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Locataires.&lt;/strong&gt; Un locataire gagne un champ &lt;code&gt;providers&lt;/code&gt;, et ses groupes s&amp;rsquo;écrivent
+&lt;code&gt;&amp;lt;id du fournisseur&amp;gt;:&amp;lt;groupe&amp;gt;&lt;/code&gt;. Avec plusieurs fournisseurs, un locataire qui utilise &lt;code&gt;domains&lt;/code&gt; ou
+&lt;code&gt;idps&lt;/code&gt; doit nommer &lt;code&gt;providers&lt;/code&gt;, sinon le serveur échoue en mode fermé. Voir les
+&lt;a href="https://claimward.github.io/docs/dev/fr/tenants/"&gt;locataires&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Logo.&lt;/strong&gt; &lt;code&gt;SERVER_LOGO_FILE&lt;/code&gt; (un SVG, 64 Kio au plus, validé au démarrage) est
+servi sur &lt;code&gt;/.well-known/claimward-logo.svg&lt;/code&gt;, et le document de découverte donne
+son &lt;code&gt;path&lt;/code&gt; et son &lt;code&gt;sha256&lt;/code&gt; sous &lt;code&gt;logo&lt;/code&gt;.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="github"&gt;GitHub&lt;span class="hx:absolute hx:-mt-20" id="github"&gt;&lt;/span&gt;
-&lt;a href="#github" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Le fournisseur par défaut. L&amp;rsquo;application déroule le &lt;strong&gt;flux d&amp;rsquo;appareil&lt;/strong&gt; (device flow) de GitHub : elle affiche un code et la
+&lt;a href="#github" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;L&amp;rsquo;application déroule le &lt;strong&gt;flux d&amp;rsquo;appareil&lt;/strong&gt; (device flow) de GitHub : elle affiche un code et la
 page où le saisir, et ouvre cette page dans le navigateur. Seul un identifiant client
-est nécessaire, sans secret : créez donc une &lt;strong&gt;OAuth App&lt;/strong&gt; GitHub avec &lt;strong&gt;Device Flow&lt;/strong&gt;
-activé. L&amp;rsquo;application demande &lt;code&gt;read:user&lt;/code&gt;, &lt;code&gt;user:email&lt;/code&gt; et &lt;code&gt;read:org&lt;/code&gt;.&lt;/p&gt;
-&lt;p&gt;Le serveur identifie la personne via l&amp;rsquo;API GitHub avec son jeton : son
-identifiant numérique est le sujet (&lt;code&gt;github:&amp;lt;id&amp;gt;&lt;/code&gt;), ses organisations
+est nécessaire sur l&amp;rsquo;appareil : créez donc une &lt;strong&gt;OAuth App&lt;/strong&gt; GitHub avec &lt;strong&gt;Device Flow&lt;/strong&gt;
+activé, mettez son identifiant dans &lt;code&gt;github_client_id&lt;/code&gt; et son secret client dans le fichier
+&lt;code&gt;provider-&amp;lt;id&amp;gt;-secret&lt;/code&gt;. L&amp;rsquo;application demande &lt;code&gt;read:user&lt;/code&gt;, &lt;code&gt;user:email&lt;/code&gt; et &lt;code&gt;read:org&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Le serveur demande d&amp;rsquo;abord à GitHub, avec ce secret, si le jeton a été émis par
+&lt;strong&gt;cette OAuth App&lt;/strong&gt; (seuls ceux-là sont admis), puis identifie la personne via l&amp;rsquo;API GitHub :
+son identifiant numérique est le sujet (&lt;code&gt;github:&amp;lt;id&amp;gt;&lt;/code&gt;), ses organisations
 (&lt;code&gt;/user/orgs&lt;/code&gt;) sont ses groupes pour les &lt;a href="https://claimward.github.io/docs/dev/fr/tenants/"&gt;locataires&lt;/a&gt;, et
 son adresse électronique publique, lorsqu&amp;rsquo;elle en a une, est considérée comme vérifiée. Avec
-&lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;, l&amp;rsquo;appartenance active à l&amp;rsquo;une de ces organisations
+&lt;code&gt;allowed_orgs&lt;/code&gt;, l&amp;rsquo;appartenance active à l&amp;rsquo;une de ces organisations
 l&amp;rsquo;admet, de même qu&amp;rsquo;une entrée &lt;code&gt;members&lt;/code&gt; nommée d&amp;rsquo;un locataire (épinglée à
 l&amp;rsquo;identifiant du compte, voir les &lt;a href="https://claimward.github.io/docs/dev/fr/tenants/#members"&gt;locataires&lt;/a&gt;). La
 liste n&amp;rsquo;est facultative que si un locataire a des membres : sans l&amp;rsquo;un ni l&amp;rsquo;autre,
-le serveur refuse de démarrer. Définissez &lt;code&gt;GITHUB_API_URL&lt;/code&gt; pour GitHub Enterprise.&lt;/p&gt;
+le serveur refuse de démarrer, de même sans identifiant client ou sans fichier secret.
+Définissez &lt;code&gt;api_url&lt;/code&gt; pour GitHub Enterprise.&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
-&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;AUTH_PROVIDER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;github
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;GITHUB_ALLOWED_ORGS&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;my-org,my-other-org&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;hub&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;kind&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;github&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;name&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;GitHub&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;github_client_id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;Iv1.0123456789abcdef&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;allowed_orgs&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:[&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;my-org&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;my-other-org&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;]}&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
 &lt;button
 class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
 title="Copier le code"
@@ -920,19 +971,34 @@ data-copied-label="Copié !"
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;h2 data-hextra-search-id="openid-connect"&gt;OpenID Connect&lt;span class="hx:absolute hx:-mt-20" id="openid-connect"&gt;&lt;/span&gt;
-&lt;a href="#openid-connect" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;AUTH_PROVIDER=oidc&lt;/code&gt; avec &lt;code&gt;OIDC_ISSUER&lt;/code&gt; (découvert via
-&lt;code&gt;/.well-known/openid-configuration&lt;/code&gt;) et &lt;code&gt;OIDC_CLIENT_ID&lt;/code&gt;, l&amp;rsquo;audience que le jeton
+&lt;a href="#openid-connect" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;kind&lt;/code&gt; &lt;code&gt;oidc&lt;/code&gt; avec &lt;code&gt;oidc_issuer&lt;/code&gt; (découvert via
+&lt;code&gt;/.well-known/openid-configuration&lt;/code&gt;) et &lt;code&gt;oidc_client_id&lt;/code&gt;, l&amp;rsquo;audience que le jeton
 d&amp;rsquo;identité doit porter. L&amp;rsquo;application déroule le flux du code d&amp;rsquo;autorisation avec PKCE : elle ouvre
 le navigateur et reçoit la redirection sur &lt;code&gt;http://127.0.0.1:&amp;lt;port&amp;gt;/callback&lt;/code&gt;,
-avec un port choisi à chaque connexion. Elle demande &lt;code&gt;openid profile email offline_access&lt;/code&gt;. Enregistrez un client &lt;strong&gt;public/natif&lt;/strong&gt;, sans secret.&lt;/p&gt;
+avec un port choisi à chaque connexion. Elle demande &lt;code&gt;openid profile email offline_access&lt;/code&gt;. Enregistrez un client &lt;strong&gt;public/natif&lt;/strong&gt;, sans secret : ce type
+n&amp;rsquo;a donc pas de fichier secret.&lt;/p&gt;
 &lt;p&gt;Le serveur prend le sujet, l&amp;rsquo;adresse électronique et &lt;code&gt;email_verified&lt;/code&gt;, le
 &lt;code&gt;preferred_username&lt;/code&gt; et la revendication &lt;code&gt;groups&lt;/code&gt; (une liste, ou une chaîne unique). Avec
-&lt;code&gt;OIDC_ALLOWED_DOMAINS&lt;/code&gt;, le domaine de l&amp;rsquo;adresse électronique doit être l&amp;rsquo;un de ceux-là.&lt;/p&gt;
+&lt;code&gt;allowed_domains&lt;/code&gt;, le domaine de l&amp;rsquo;adresse électronique doit être l&amp;rsquo;un de ceux-là, et l&amp;rsquo;adresse
+doit être vérifiée.&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;campus&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;kind&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;oidc&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;name&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;Campus&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;oidc_issuer&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;https://idp.example.org&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;oidc_client_id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;claimward&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;allowed_domains&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:[&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;example.org&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;]}&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copier le code"
+aria-label="Copier le code"
+data-copied-label="Copié !"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
 &lt;h2 data-hextra-search-id="go-authn"&gt;go-authn&lt;span class="hx:absolute hx:-mt-20" id="go-authn"&gt;&lt;/span&gt;
 &lt;a href="#go-authn" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;a href="https://github.com/go-authn/bridge" target="_blank" rel="noopener"&gt;go-authn/bridge&lt;/a&gt; est un fournisseur OpenID Connect
 placé devant une fédération SAML (RENATER, eduGAIN). Il sait aussi
 &lt;strong&gt;à qui appartient chaque clé WireGuard&lt;/strong&gt;, si bien qu&amp;rsquo;un jeton valide ne suffit plus pour
-enrôler un appareil :&lt;/p&gt;
+enrôler un appareil. Au plus un fournisseur du fichier est de ce type.&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;L&amp;rsquo;application se connecte avec le &lt;strong&gt;flux d&amp;rsquo;appareil&lt;/strong&gt; du fournisseur, portée
 &lt;code&gt;openid wireguard&lt;/code&gt;. Ce jeton ouvre le registre de clés du fournisseur et
@@ -944,15 +1010,16 @@ puis rafraîchit pour &lt;code&gt;scope=openid&lt;/code&gt; seul. On obtient ain
 adressé au serveur VPN. Le fournisseur fait tourner les jetons de rafraîchissement, et
 l&amp;rsquo;application conserve le nouveau. La clé privée ne quitte jamais l&amp;rsquo;appareil.&lt;/li&gt;
 &lt;li&gt;Le serveur n&amp;rsquo;accepte qu&amp;rsquo;un jeton d&amp;rsquo;accès (&lt;code&gt;typ: at+jwt&lt;/code&gt;, RFC 9068) dont
-l&amp;rsquo;audience est &lt;code&gt;OIDC_CLIENT_ID&lt;/code&gt;, jamais un jeton d&amp;rsquo;identité. Il n&amp;rsquo;enrôle la clé que si
+l&amp;rsquo;audience est l&amp;rsquo;&lt;code&gt;oidc_client_id&lt;/code&gt; du fournisseur, jamais un jeton d&amp;rsquo;identité. Il n&amp;rsquo;enrôle la clé que si
 la liste du fournisseur l&amp;rsquo;indique &lt;strong&gt;enregistrée par le même sujet&lt;/strong&gt; ; sinon il
 répond &lt;code&gt;403 key_not_registered&lt;/code&gt;. Un bail ne survit jamais à l&amp;rsquo;enregistrement
 de la clé.&lt;/li&gt;
 &lt;/ol&gt;
 &lt;p&gt;La liste provient de &lt;a href="https://github.com/go-authn/wireguard" target="_blank" rel="noopener"&gt;go-authn/wireguard&lt;/a&gt; :&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;elle est &lt;strong&gt;récupérée avec le client propre de la passerelle&lt;/strong&gt; (&lt;code&gt;client_credentials&lt;/code&gt;, portée
-&lt;code&gt;wireguard_peers&lt;/code&gt;) et signée par le fournisseur pour cette seule passerelle
+&lt;li&gt;elle est &lt;strong&gt;récupérée avec le client propre de la passerelle&lt;/strong&gt; (&lt;code&gt;gateway_client_id&lt;/code&gt;,
+&lt;code&gt;client_credentials&lt;/code&gt;, portée &lt;code&gt;wireguard_peers&lt;/code&gt;, son secret dans
+&lt;code&gt;provider-&amp;lt;id&amp;gt;-gateway-secret&lt;/code&gt;) et signée par le fournisseur pour cette seule passerelle
 (&lt;code&gt;typ: wireguard-peers+jwt&lt;/code&gt;) ;&lt;/li&gt;
 &lt;li&gt;elle est récupérée de nouveau toutes les &lt;code&gt;GOAUTHN_PEER_LIST_INTERVAL&lt;/code&gt; (30 secondes par
 défaut). Une clé que le fournisseur reprend (la personne ou son établissement
@@ -973,14 +1040,33 @@ décision, si bien qu&amp;rsquo;un événement forgé n&amp;rsquo;obtient qu&amp
 &lt;code&gt;idp&lt;/code&gt; (l&amp;rsquo;entity ID de l&amp;rsquo;établissement qui s&amp;rsquo;est porté garant), et sur le domaine
 de l&amp;rsquo;adresse électronique uniquement lorsque le fournisseur a vérifié l&amp;rsquo;adresse.&lt;/p&gt;
 &lt;h3 data-hextra-search-id="configuration"&gt;Configuration&lt;span class="hx:absolute hx:-mt-20" id="configuration"&gt;&lt;/span&gt;
-&lt;a href="#configuration" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;Sur le serveur :&lt;/p&gt;
+&lt;a href="#configuration" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;Sur le serveur, dans &lt;code&gt;PROVIDERS_FILE&lt;/code&gt; :&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
-&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;AUTH_PROVIDER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;go-authn
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;OIDC_ISSUER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;https://login.example.org
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;OIDC_CLIENT_ID&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;claimward &lt;span class="c1"&gt;# the audience of the access tokens&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;GOAUTHN_GATEWAY_CLIENT_ID&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;claimward-gw &lt;span class="c1"&gt;# the gateway&amp;#39;s own client&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;CREDENTIALS_DIRECTORY&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;/etc/claimward/credentials &lt;span class="c1"&gt;# contient wg-private-key et goauthn-gateway-secret (le secret de la passerelle, uniquement en fichier)&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;GOAUTHN_SSF&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nb"&gt;true&lt;/span&gt; &lt;span class="c1"&gt;# optional&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;providers&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:[&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;renater&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;kind&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;go-authn&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;name&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;RENATER&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;oidc_issuer&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;https://login.example.org&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;oidc_client_id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;claimward&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;gateway_client_id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;claimward-gw&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;]}&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copier le code"
+aria-label="Copier le code"
+data-copied-label="Copié !"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;code&gt;oidc_client_id&lt;/code&gt; est l&amp;rsquo;audience des jetons d&amp;rsquo;accès, &lt;code&gt;gateway_client_id&lt;/code&gt; le client propre
+de la passerelle. L&amp;rsquo;environnement ajoute le répertoire des identifiants, qui contient
+&lt;code&gt;wg-private-key&lt;/code&gt; et &lt;code&gt;provider-renater-gateway-secret&lt;/code&gt; (le secret de la passerelle,
+uniquement en fichier), et éventuellement le flux Shared Signals :&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;PROVIDERS_FILE&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;/etc/claimward/providers.json
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;CREDENTIALS_DIRECTORY&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;/etc/claimward/credentials
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;GOAUTHN_SSF&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nb"&gt;true&lt;/span&gt; &lt;span class="c1"&gt;# facultatif&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
 &lt;button
 class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
 title="Copier le code"
@@ -1021,13 +1107,12 @@ data-copied-label="Copié !"
 &lt;/button&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;p&gt;Dans le &lt;code&gt;config.json&lt;/code&gt; de l&amp;rsquo;application :&lt;/p&gt;
+&lt;p&gt;L&amp;rsquo;application (v0.9.0 ou ultérieure) lit les fournisseurs dans le document de découverte
+du serveur : son &lt;code&gt;config.json&lt;/code&gt; n&amp;rsquo;a donc besoin que de l&amp;rsquo;URL du serveur, et elle envoie
+l&amp;rsquo;&lt;code&gt;id&lt;/code&gt; du fournisseur choisi dans &lt;code&gt;Claimward-Provider&lt;/code&gt; :&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;server_url&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;https://vpn.example.com&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;provider&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;go-authn&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;oidc_issuer&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;https://login.example.org&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;oidc_client_id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;claimward&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;server_url&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;https://vpn.example.com&amp;#34;&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
 &lt;button
 class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"

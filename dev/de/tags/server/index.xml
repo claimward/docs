@@ -1293,57 +1293,107 @@ Loopback-Adresse.&lt;/li&gt;
 &lt;a href="https://github.com/claimward/claimward-vpn-client/tree/main/pkg/protocol" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-client/pkg/protocol&lt;/code&gt;&lt;/a&gt;
 und &lt;code&gt;pkg/routespb&lt;/code&gt;, importiert sowohl von den Clients als auch vom Server.&lt;/li&gt;
 &lt;/ul&gt;</description></item><item><title>Identitätsanbieter</title><link>https://claimward.github.io/docs/dev/de/identity-providers/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/de/identity-providers/</guid><description>
-&lt;p&gt;Der Server und die Apps wählen jeweils einen Anbieter über seinen Namen, und sie müssen übereinstimmen:
-&lt;code&gt;AUTH_PROVIDER&lt;/code&gt; auf dem Server, &lt;code&gt;&amp;quot;provider&amp;quot;&lt;/code&gt; in der &lt;code&gt;config.json&lt;/code&gt; der App (oder
-&lt;code&gt;CLAIMWARD_AUTH_PROVIDER&lt;/code&gt;). Das Bearer-Token, das die App erhält, ist auf der Leitung opak;
+&lt;p&gt;Seit Server v0.14.0 (&lt;strong&gt;inkompatible Änderung&lt;/strong&gt;) akzeptiert der Server &lt;strong&gt;mehrere&lt;/strong&gt; Identitätsanbieter
+gleichzeitig, aufgeführt in einer JSON-Datei, die &lt;code&gt;PROVIDERS_FILE&lt;/code&gt; benennt. Die alten
+Variablen für einen einzelnen Anbieter (&lt;code&gt;AUTH_PROVIDER&lt;/code&gt;, &lt;code&gt;OIDC_ISSUER&lt;/code&gt;, &lt;code&gt;OIDC_CLIENT_ID&lt;/code&gt;,
+&lt;code&gt;OIDC_ALLOWED_DOMAINS&lt;/code&gt;, &lt;code&gt;GITHUB_CLIENT_ID&lt;/code&gt;, &lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;,
+&lt;code&gt;GOAUTHN_GATEWAY_CLIENT_ID&lt;/code&gt;) werden nicht mehr gelesen, und der Server startet
+nicht, solange eine davon gesetzt ist. Das Bearer-Token, das die App erhält, ist auf der Leitung opak;
 wie der Server es prüft, hängt vom Anbieter ab.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="die-anbieter-datei"&gt;Die Anbieter-Datei&lt;span class="hx:absolute hx:-mt-20" id="die-anbieter-datei"&gt;&lt;/span&gt;
+&lt;a href="#die-anbieter-datei" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;PROVIDERS_FILE&lt;/code&gt; ist ein JSON-Objekt mit einer Liste &lt;code&gt;providers&lt;/code&gt;. Unbekannte Felder werden
+abgelehnt, und die Datei ist höchstens 1 MiB groß:&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;providers&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:[&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;campus&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;kind&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;oidc&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;name&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;Campus&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;oidc_issuer&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;https://idp.example.org&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;oidc_client_id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;claimward&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;allowed_domains&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:[&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;example.org&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;]},&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;hub&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;kind&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;github&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;name&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;GitHub&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;github_client_id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;Iv1.0123456789abcdef&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;allowed_orgs&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:[&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;my-org&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;]},&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;renater&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;kind&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;go-authn&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;name&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;RENATER&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;oidc_issuer&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;https://login.example.org&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;oidc_client_id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;claimward&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;gateway_client_id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;claimward-gw&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;]}&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;Jeder Anbieter hat eine &lt;code&gt;id&lt;/code&gt; (unter der eine Anfrage ihn benennt), ein &lt;code&gt;kind&lt;/code&gt; und einen
+&lt;code&gt;name&lt;/code&gt; (der Person angezeigt). Die übrigen Felder hängen vom &lt;code&gt;kind&lt;/code&gt; ab:&lt;/p&gt;
 &lt;table&gt;
 &lt;thead&gt;
 &lt;tr&gt;
-&lt;th&gt;Anbieter&lt;/th&gt;
+&lt;th&gt;&lt;code&gt;kind&lt;/code&gt;&lt;/th&gt;
 &lt;th&gt;Anmeldung auf dem Gerät&lt;/th&gt;
 &lt;th&gt;An den Server gesendetes Bearer-Token&lt;/th&gt;
-&lt;th&gt;Wie der Server es prüft&lt;/th&gt;
+&lt;th&gt;Felder außer &lt;code&gt;id&lt;/code&gt;, &lt;code&gt;kind&lt;/code&gt;, &lt;code&gt;name&lt;/code&gt;&lt;/th&gt;
+&lt;th&gt;Secret-Datei&lt;/th&gt;
 &lt;/tr&gt;
 &lt;/thead&gt;
 &lt;tbody&gt;
 &lt;tr&gt;
-&lt;td&gt;&lt;code&gt;github&lt;/code&gt; (Standard)&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;github&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;OAuth Device Flow&lt;/td&gt;
 &lt;td&gt;GitHub-OAuth-Access-Token&lt;/td&gt;
-&lt;td&gt;GitHub-API (&lt;code&gt;/user&lt;/code&gt;, &lt;code&gt;/user/orgs&lt;/code&gt;), optionale Allowlist für Organisationen&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;github_client_id&lt;/code&gt;, &lt;code&gt;api_url&lt;/code&gt; (GitHub Enterprise), &lt;code&gt;allowed_orgs&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;provider-&amp;lt;id&amp;gt;-secret&lt;/code&gt;&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;oidc&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;Authorization Code + PKCE, im Browser&lt;/td&gt;
 &lt;td&gt;OIDC-ID-Token&lt;/td&gt;
-&lt;td&gt;Signatur, Issuer, Audience; optionale Allowlist für E-Mail-Domains&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;oidc_issuer&lt;/code&gt;, &lt;code&gt;oidc_client_id&lt;/code&gt;, &lt;code&gt;allowed_domains&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;keine&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;go-authn&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;Device Flow, dann Registrierung des Schlüssels&lt;/td&gt;
 &lt;td&gt;go-authn-Access-Token (&lt;code&gt;at+jwt&lt;/code&gt;)&lt;/td&gt;
-&lt;td&gt;Signatur, Issuer, Audience, &lt;code&gt;typ&lt;/code&gt;; der Schlüssel muss vom selben Subject registriert sein&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;oidc_issuer&lt;/code&gt;, &lt;code&gt;oidc_client_id&lt;/code&gt;, &lt;code&gt;gateway_client_id&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;provider-&amp;lt;id&amp;gt;-gateway-secret&lt;/code&gt;&lt;/td&gt;
 &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
+&lt;p&gt;Die Secret-Dateien sind Zugangsdaten, Dateien in &lt;code&gt;CREDENTIALS_DIRECTORY&lt;/code&gt;, niemals
+Variablen (siehe &lt;a href="https://claimward.github.io/docs/dev/de/components/server/#credentials"&gt;Zugangsdaten&lt;/a&gt;).
+Vor v0.14.0 hießen sie &lt;code&gt;github-client-secret&lt;/code&gt; und &lt;code&gt;goauthn-gateway-secret&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Die Anfrage benennt ihren Anbieter.&lt;/strong&gt; Jeder API-Aufruf trägt den Header
+&lt;code&gt;Claimward-Provider: &amp;lt;id&amp;gt;&lt;/code&gt; (gRPC: die Metadaten &lt;code&gt;claimward-provider&lt;/code&gt;), und sein
+Token wird von diesem Anbieter &lt;strong&gt;allein&lt;/strong&gt; geprüft: Ein Token des Anbieters A wird abgelehnt,
+wenn die Anfrage B benennt. Ohne Header gibt es &lt;code&gt;401 missing_provider&lt;/code&gt;, eine ID, die der Server
+nicht führt, ergibt &lt;code&gt;401 unknown_provider&lt;/code&gt;. Das
+&lt;a href="https://claimward.github.io/docs/dev/de/reference/protocol/#discovery"&gt;Discovery-Dokument&lt;/a&gt; (Version
+2) listet die Anbieter ohne jedes Secret auf, ein Client braucht also nur die URL des Servers.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Eine Identität je Issuer und &lt;code&gt;sub&lt;/code&gt;.&lt;/strong&gt; Die Identität ist &lt;code&gt;issuer#sub&lt;/code&gt; für &lt;code&gt;oidc&lt;/code&gt;
+und &lt;code&gt;go-authn&lt;/code&gt; und &lt;code&gt;github:&amp;lt;id&amp;gt;&lt;/code&gt; für &lt;code&gt;github&lt;/code&gt;: Dasselbe &lt;code&gt;sub&lt;/code&gt; bei zwei Issuern sind
+zwei Personen, und die zweite kann das Gerät der ersten nicht übernehmen.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Mandanten.&lt;/strong&gt; Ein Mandant erhält ein Feld &lt;code&gt;providers&lt;/code&gt;, und seine Gruppen werden
+&lt;code&gt;&amp;lt;Anbieter-ID&amp;gt;:&amp;lt;Gruppe&amp;gt;&lt;/code&gt; geschrieben. Bei mehreren Anbietern muss ein Mandant, der &lt;code&gt;domains&lt;/code&gt; oder
+&lt;code&gt;idps&lt;/code&gt; verwendet, &lt;code&gt;providers&lt;/code&gt; benennen, sonst schlägt der Server geschlossen fehl (fail closed). Siehe
+&lt;a href="https://claimward.github.io/docs/dev/de/tenants/"&gt;Mandanten&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Logo.&lt;/strong&gt; &lt;code&gt;SERVER_LOGO_FILE&lt;/code&gt; (eine SVG, höchstens 64 KiB, beim Start validiert) wird
+unter &lt;code&gt;/.well-known/claimward-logo.svg&lt;/code&gt; ausgeliefert, und das Discovery-Dokument nennt
+unter &lt;code&gt;logo&lt;/code&gt; seinen &lt;code&gt;path&lt;/code&gt; und seinen &lt;code&gt;sha256&lt;/code&gt;.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="github"&gt;GitHub&lt;span class="hx:absolute hx:-mt-20" id="github"&gt;&lt;/span&gt;
-&lt;a href="#github" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Der Standard. Die App führt den GitHub-&lt;strong&gt;Device Flow&lt;/strong&gt; aus: Sie zeigt einen Code und die
-Seite an, auf der er einzugeben ist, und öffnet diese Seite im Browser. Es wird nur eine Client-ID
-benötigt, kein Secret; legen Sie also eine GitHub-&lt;strong&gt;OAuth App&lt;/strong&gt; mit aktiviertem &lt;strong&gt;Device Flow&lt;/strong&gt;
-an. Die App fordert &lt;code&gt;read:user&lt;/code&gt;, &lt;code&gt;user:email&lt;/code&gt; und &lt;code&gt;read:org&lt;/code&gt; an.&lt;/p&gt;
-&lt;p&gt;Der Server ermittelt die Person über die GitHub-API mit deren Token: Ihre
-numerische ID ist das Subject (&lt;code&gt;github:&amp;lt;id&amp;gt;&lt;/code&gt;), ihre Organisationen
+&lt;a href="#github" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Die App führt den GitHub-&lt;strong&gt;Device Flow&lt;/strong&gt; aus: Sie zeigt einen Code und die
+Seite an, auf der er einzugeben ist, und öffnet diese Seite im Browser. Auf dem Gerät wird nur eine Client-ID
+benötigt; legen Sie also eine GitHub-&lt;strong&gt;OAuth App&lt;/strong&gt; mit aktiviertem &lt;strong&gt;Device Flow&lt;/strong&gt;
+an, tragen Sie ihre ID in &lt;code&gt;github_client_id&lt;/code&gt; ein und ihr Client-Secret in die Datei
+&lt;code&gt;provider-&amp;lt;id&amp;gt;-secret&lt;/code&gt;. Die App fordert &lt;code&gt;read:user&lt;/code&gt;, &lt;code&gt;user:email&lt;/code&gt; und &lt;code&gt;read:org&lt;/code&gt; an.&lt;/p&gt;
+&lt;p&gt;Der Server fragt zuerst mit diesem Secret bei GitHub nach, ob das Token von
+&lt;strong&gt;dieser OAuth App&lt;/strong&gt; ausgestellt wurde (nur diese werden zugelassen), und ermittelt dann die Person über die GitHub-API:
+Ihre numerische ID ist das Subject (&lt;code&gt;github:&amp;lt;id&amp;gt;&lt;/code&gt;), ihre Organisationen
 (&lt;code&gt;/user/orgs&lt;/code&gt;) sind ihre Gruppen für die &lt;a href="https://claimward.github.io/docs/dev/de/tenants/"&gt;Mandanten&lt;/a&gt;, und
 ihre öffentliche E-Mail-Adresse, sofern sie eine hat, gilt als verifiziert. Mit
-&lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt; lässt eine aktive Mitgliedschaft in einer dieser Organisationen
+&lt;code&gt;allowed_orgs&lt;/code&gt; lässt eine aktive Mitgliedschaft in einer dieser Organisationen
 zu, ebenso ein benannter &lt;code&gt;members&lt;/code&gt;-Eintrag eines Mandanten (an die Konto-ID
 gebunden, siehe &lt;a href="https://claimward.github.io/docs/dev/de/tenants/#members"&gt;Mandanten&lt;/a&gt;). Die Liste ist nur
-optional, wenn ein Mandant Mitglieder hat: Ohne beides startet der Server nicht.
-Setzen Sie &lt;code&gt;GITHUB_API_URL&lt;/code&gt; für GitHub Enterprise.&lt;/p&gt;
+optional, wenn ein Mandant Mitglieder hat: Ohne beides startet der Server nicht, ebenso
+ohne Client-ID oder ohne Secret-Datei. Setzen Sie &lt;code&gt;api_url&lt;/code&gt; für GitHub Enterprise.&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
-&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;AUTH_PROVIDER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;github
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;GITHUB_ALLOWED_ORGS&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;my-org,my-other-org&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;hub&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;kind&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;github&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;name&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;GitHub&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;github_client_id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;Iv1.0123456789abcdef&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;allowed_orgs&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:[&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;my-org&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;my-other-org&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;]}&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
 &lt;button
 class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
 title="Code kopieren"
@@ -1356,19 +1406,34 @@ data-copied-label="Kopiert!"
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;h2 data-hextra-search-id="openid-connect"&gt;OpenID Connect&lt;span class="hx:absolute hx:-mt-20" id="openid-connect"&gt;&lt;/span&gt;
-&lt;a href="#openid-connect" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;AUTH_PROVIDER=oidc&lt;/code&gt; mit &lt;code&gt;OIDC_ISSUER&lt;/code&gt; (ermittelt über
-&lt;code&gt;/.well-known/openid-configuration&lt;/code&gt;) und &lt;code&gt;OIDC_CLIENT_ID&lt;/code&gt;, der Audience, die das ID-Token
+&lt;a href="#openid-connect" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;kind&lt;/code&gt; &lt;code&gt;oidc&lt;/code&gt; mit &lt;code&gt;oidc_issuer&lt;/code&gt; (ermittelt über
+&lt;code&gt;/.well-known/openid-configuration&lt;/code&gt;) und &lt;code&gt;oidc_client_id&lt;/code&gt;, der Audience, die das ID-Token
 tragen muss. Die App führt den Authorization Code Flow mit PKCE aus: Sie öffnet
 den Browser und empfängt die Weiterleitung auf &lt;code&gt;http://127.0.0.1:&amp;lt;port&amp;gt;/callback&lt;/code&gt;,
-mit einem bei jeder Anmeldung gewählten Port. Sie fordert &lt;code&gt;openid profile email offline_access&lt;/code&gt; an. Registrieren Sie einen &lt;strong&gt;öffentlichen/nativen&lt;/strong&gt; Client, ohne Secret.&lt;/p&gt;
+mit einem bei jeder Anmeldung gewählten Port. Sie fordert &lt;code&gt;openid profile email offline_access&lt;/code&gt; an. Registrieren Sie einen &lt;strong&gt;öffentlichen/nativen&lt;/strong&gt; Client, ohne Secret; diese
+Art hat daher keine Secret-Datei.&lt;/p&gt;
 &lt;p&gt;Der Server übernimmt das Subject, die E-Mail-Adresse und &lt;code&gt;email_verified&lt;/code&gt;, den
 &lt;code&gt;preferred_username&lt;/code&gt; und den Claim &lt;code&gt;groups&lt;/code&gt; (eine Liste oder eine einzelne Zeichenkette). Mit
-&lt;code&gt;OIDC_ALLOWED_DOMAINS&lt;/code&gt; muss die Domain der E-Mail-Adresse eine davon sein.&lt;/p&gt;
+&lt;code&gt;allowed_domains&lt;/code&gt; muss die Domain der E-Mail-Adresse eine davon sein, und die Adresse
+muss verifiziert sein.&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;campus&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;kind&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;oidc&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;name&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;Campus&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;oidc_issuer&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;https://idp.example.org&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;oidc_client_id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;claimward&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;allowed_domains&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:[&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;example.org&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;]}&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
 &lt;h2 data-hextra-search-id="go-authn"&gt;go-authn&lt;span class="hx:absolute hx:-mt-20" id="go-authn"&gt;&lt;/span&gt;
 &lt;a href="#go-authn" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;a href="https://github.com/go-authn/bridge" target="_blank" rel="noopener"&gt;go-authn/bridge&lt;/a&gt; ist ein OpenID-Connect-Anbieter
 vor einer SAML-Föderation (RENATER, eduGAIN). Er hält außerdem fest,
 &lt;strong&gt;wem jeder WireGuard-Schlüssel gehört&lt;/strong&gt;, sodass ein gültiges Token nicht mehr genügt, um
-ein Gerät zu registrieren:&lt;/p&gt;
+ein Gerät zu registrieren. Höchstens ein Anbieter der Datei ist von dieser Art.&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;Die App meldet sich mit dem &lt;strong&gt;Device Flow&lt;/strong&gt; des Anbieters an, Scope
 &lt;code&gt;openid wireguard&lt;/code&gt;. Dieses Token öffnet das Schlüsselregister des Anbieters und
@@ -1380,15 +1445,16 @@ und frischt dann für &lt;code&gt;scope=openid&lt;/code&gt; allein auf. Das ergi
 das an den VPN-Server adressiert ist. Der Anbieter rotiert die Refresh-Tokens, und die
 App bewahrt das neue auf. Der private Schlüssel verlässt nie das Gerät.&lt;/li&gt;
 &lt;li&gt;Der Server akzeptiert nur ein Access-Token (&lt;code&gt;typ: at+jwt&lt;/code&gt;, RFC 9068), dessen
-Audience &lt;code&gt;OIDC_CLIENT_ID&lt;/code&gt; ist, niemals ein ID-Token. Er registriert den Schlüssel nur, wenn
+Audience der &lt;code&gt;oidc_client_id&lt;/code&gt; des Anbieters ist, niemals ein ID-Token. Er registriert den Schlüssel nur, wenn
 die Liste des Anbieters ihn als &lt;strong&gt;vom selben Subject registriert&lt;/strong&gt; führt; andernfalls
 antwortet er &lt;code&gt;403 key_not_registered&lt;/code&gt;. Eine Lease überdauert nie die
 Registrierung des Schlüssels.&lt;/li&gt;
 &lt;/ol&gt;
 &lt;p&gt;Die Liste stammt von &lt;a href="https://github.com/go-authn/wireguard" target="_blank" rel="noopener"&gt;go-authn/wireguard&lt;/a&gt;:&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;sie wird &lt;strong&gt;mit dem eigenen Client des Gateways abgerufen&lt;/strong&gt; (&lt;code&gt;client_credentials&lt;/code&gt;, Scope
-&lt;code&gt;wireguard_peers&lt;/code&gt;) und vom Anbieter allein für dieses Gateway signiert
+&lt;li&gt;sie wird &lt;strong&gt;mit dem eigenen Client des Gateways abgerufen&lt;/strong&gt; (&lt;code&gt;gateway_client_id&lt;/code&gt;,
+&lt;code&gt;client_credentials&lt;/code&gt;, Scope &lt;code&gt;wireguard_peers&lt;/code&gt;, sein Secret in
+&lt;code&gt;provider-&amp;lt;id&amp;gt;-gateway-secret&lt;/code&gt;) und vom Anbieter allein für dieses Gateway signiert
 (&lt;code&gt;typ: wireguard-peers+jwt&lt;/code&gt;);&lt;/li&gt;
 &lt;li&gt;sie wird alle &lt;code&gt;GOAUTHN_PEER_LIST_INTERVAL&lt;/code&gt; (standardmäßig 30 Sekunden)
 erneut abgerufen. Ein Schlüssel, den der Anbieter zurückzieht (die Person oder ihre Einrichtung
@@ -1409,13 +1475,32 @@ Entscheidung, sodass ein gefälschtes Ereignis einen zusätzlichen Abruf bewirkt
 &lt;code&gt;idp&lt;/code&gt; (der Entity-ID der Einrichtung, die gebürgt hat) zugeordnet, und anhand der Domain der E-Mail-Adresse
 nur dann, wenn der Anbieter die Adresse verifiziert hat.&lt;/p&gt;
 &lt;h3 data-hextra-search-id="configuration"&gt;Konfiguration&lt;span class="hx:absolute hx:-mt-20" id="configuration"&gt;&lt;/span&gt;
-&lt;a href="#configuration" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;Auf dem Server:&lt;/p&gt;
+&lt;a href="#configuration" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h3&gt;&lt;p&gt;Auf dem Server, in &lt;code&gt;PROVIDERS_FILE&lt;/code&gt;:&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
-&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;AUTH_PROVIDER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;go-authn
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;OIDC_ISSUER&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;https://login.example.org
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;OIDC_CLIENT_ID&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;claimward &lt;span class="c1"&gt;# the audience of the access tokens&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;GOAUTHN_GATEWAY_CLIENT_ID&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;claimward-gw &lt;span class="c1"&gt;# the gateway&amp;#39;s own client&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;CREDENTIALS_DIRECTORY&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;/etc/claimward/credentials &lt;span class="c1"&gt;# enthält wg-private-key und goauthn-gateway-secret (das Secret des Gateways, nur als Datei)&lt;/span&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;providers&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:[&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;renater&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;kind&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;go-authn&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="nt"&gt;&amp;#34;name&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;RENATER&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;oidc_issuer&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;https://login.example.org&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;oidc_client_id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;claimward&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;gateway_client_id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;claimward-gw&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;]}&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Code kopieren"
+aria-label="Code kopieren"
+data-copied-label="Kopiert!"
+&gt;
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4"&gt;&lt;/div&gt;
+&lt;/button&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;code&gt;oidc_client_id&lt;/code&gt; ist die Audience der Access-Tokens, &lt;code&gt;gateway_client_id&lt;/code&gt; der eigene Client
+des Gateways. Die Umgebung ergänzt das Zugangsdaten-Verzeichnis, das &lt;code&gt;wg-private-key&lt;/code&gt; und
+&lt;code&gt;provider-renater-gateway-secret&lt;/code&gt; enthält (das Secret des Gateways, nur als Datei),
+sowie optional den Shared-Signals-Stream:&lt;/p&gt;
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
+&lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;PROVIDERS_FILE&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;/etc/claimward/providers.json
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;CREDENTIALS_DIRECTORY&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;/etc/claimward/credentials
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nv"&gt;GOAUTHN_SSF&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nb"&gt;true&lt;/span&gt; &lt;span class="c1"&gt;# optional&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
 &lt;button
 class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
@@ -1457,13 +1542,12 @@ data-copied-label="Kopiert!"
 &lt;/button&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;p&gt;In der &lt;code&gt;config.json&lt;/code&gt; der App:&lt;/p&gt;
+&lt;p&gt;Die App (ab v0.9.0) liest die Anbieter aus dem Discovery-Dokument des Servers; ihre
+&lt;code&gt;config.json&lt;/code&gt; braucht daher nur die URL des Servers, und sie sendet die &lt;code&gt;id&lt;/code&gt; des gewählten
+Anbieters im Header &lt;code&gt;Claimward-Provider&lt;/code&gt;:&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;server_url&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;https://vpn.example.com&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;provider&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;go-authn&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;oidc_issuer&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;https://login.example.org&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;oidc_client_id&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;claimward&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;server_url&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;https://vpn.example.com&amp;#34;&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0"&gt;
 &lt;button
 class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
@@ -1716,13 +1800,21 @@ Geräte sich erneut verbinden.&lt;/li&gt;
 &lt;p&gt;Für mehrere Gateways oder einen dauerhaften Audit-Trail benötigen die Pakete &lt;code&gt;store&lt;/code&gt;, &lt;code&gt;ipam&lt;/code&gt; und
 &lt;code&gt;tenant&lt;/code&gt; eine Datenbank dahinter.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="identity-provider"&gt;Identitätsanbieter&lt;span class="hx:absolute hx:-mt-20" id="identity-provider"&gt;&lt;/span&gt;
-&lt;a href="#identity-provider" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Standardmäßig meldet Claimward Personen mit &lt;strong&gt;GitHub&lt;/strong&gt; an (Device Flow): Legen Sie eine
-GitHub-OAuth-App mit aktiviertem &lt;strong&gt;Device Flow&lt;/strong&gt; an und beschränken Sie den Zugang mit
-&lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;. Für &lt;strong&gt;OIDC&lt;/strong&gt; setzen Sie &lt;code&gt;AUTH_PROVIDER=oidc&lt;/code&gt; mit einem
-nativen/öffentlichen PKCE-Client und beschränken mit &lt;code&gt;OIDC_ALLOWED_DOMAINS&lt;/code&gt;. Für
-&lt;strong&gt;go-authn&lt;/strong&gt; setzen Sie &lt;code&gt;AUTH_PROVIDER=go-authn&lt;/code&gt; mit dem eigenen Client des Gateways: Der
-Anbieter entscheidet dann, welche Schlüssel sich verbinden dürfen, und ein Gateway, das
-seine Liste nicht abrufen kann, lässt niemanden Neues zu. Siehe
+&lt;a href="#identity-provider" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Seit v0.14.0 liest der Server &lt;strong&gt;einen oder mehrere&lt;/strong&gt; Anbieter aus der JSON-Datei,
+die &lt;code&gt;PROVIDERS_FILE&lt;/code&gt; benennt (erforderlich, höchstens 1 MiB). Die alten Variablen
+&lt;code&gt;AUTH_PROVIDER&lt;/code&gt;, &lt;code&gt;OIDC_ISSUER&lt;/code&gt;, &lt;code&gt;OIDC_CLIENT_ID&lt;/code&gt;, &lt;code&gt;OIDC_ALLOWED_DOMAINS&lt;/code&gt;,
+&lt;code&gt;GITHUB_CLIENT_ID&lt;/code&gt;, &lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt; und &lt;code&gt;GOAUTHN_GATEWAY_CLIENT_ID&lt;/code&gt; werden
+beim Start abgelehnt. Ein Anbieter &lt;code&gt;github&lt;/code&gt; braucht eine GitHub-OAuth-App mit aktiviertem &lt;strong&gt;Device
+Flow&lt;/strong&gt;, ihr Client-Secret in der Datei &lt;code&gt;provider-&amp;lt;id&amp;gt;-secret&lt;/code&gt; und &lt;code&gt;allowed_orgs&lt;/code&gt;,
+um den Zugang zu beschränken. Ein Anbieter &lt;code&gt;oidc&lt;/code&gt; braucht einen nativen/öffentlichen
+PKCE-Client, und &lt;code&gt;allowed_domains&lt;/code&gt; beschränkt ihn. Ein Anbieter &lt;code&gt;go-authn&lt;/code&gt; nutzt den
+eigenen Client des Gateways (&lt;code&gt;gateway_client_id&lt;/code&gt;, Secret in
+&lt;code&gt;provider-&amp;lt;id&amp;gt;-gateway-secret&lt;/code&gt;): Der Anbieter entscheidet dann, welche Schlüssel sich
+verbinden dürfen, und ein Gateway, das seine Liste nicht abrufen kann, lässt niemanden
+Neues zu. Jede Anfrage benennt ihren Anbieter im Header &lt;code&gt;Claimward-Provider&lt;/code&gt;
+(&lt;code&gt;401 missing_provider&lt;/code&gt;, &lt;code&gt;401 unknown_provider&lt;/code&gt;). &lt;code&gt;SERVER_LOGO_FILE&lt;/code&gt; veröffentlicht ein
+Logo unter &lt;code&gt;/.well-known/claimward-logo.svg&lt;/code&gt;. Starten Sie den Server nach einer Änderung
+der Datei neu. Siehe
 &lt;a href="https://claimward.github.io/docs/dev/de/identity-providers/"&gt;Identitätsanbieter&lt;/a&gt;.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="admin-api-and-webui"&gt;Admin-API und WebUI&lt;span class="hx:absolute hx:-mt-20" id="admin-api-and-webui"&gt;&lt;/span&gt;
 &lt;a href="#admin-api-and-webui" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Wenn die Credential &lt;code&gt;admin-token&lt;/code&gt; vorhanden ist (eine Datei in

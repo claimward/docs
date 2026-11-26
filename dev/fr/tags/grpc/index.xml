@@ -1589,13 +1589,21 @@ se reconnecter les appareils.&lt;/li&gt;
 &lt;p&gt;Pour plusieurs passerelles ou une piste d&amp;rsquo;audit durable, les paquets &lt;code&gt;store&lt;/code&gt;, &lt;code&gt;ipam&lt;/code&gt; et
 &lt;code&gt;tenant&lt;/code&gt; ont besoin d&amp;rsquo;une base de données derrière eux.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="identity-provider"&gt;Fournisseur d&amp;rsquo;identité&lt;span class="hx:absolute hx:-mt-20" id="identity-provider"&gt;&lt;/span&gt;
-&lt;a href="#identity-provider" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Par défaut, Claimward connecte les personnes avec &lt;strong&gt;GitHub&lt;/strong&gt; (device flow) : créez une
-GitHub OAuth App avec &lt;strong&gt;Device Flow&lt;/strong&gt; activé et restreignez l&amp;rsquo;accès avec
-&lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;. Pour &lt;strong&gt;OIDC&lt;/strong&gt;, définissez &lt;code&gt;AUTH_PROVIDER=oidc&lt;/code&gt; avec un
-client PKCE natif/public, et restreignez avec &lt;code&gt;OIDC_ALLOWED_DOMAINS&lt;/code&gt;. Pour
-&lt;strong&gt;go-authn&lt;/strong&gt;, définissez &lt;code&gt;AUTH_PROVIDER=go-authn&lt;/code&gt; avec le client propre à la passerelle : le
-fournisseur décide alors quelles clés peuvent se connecter, et une passerelle qui ne peut pas récupérer
-sa liste n&amp;rsquo;admet aucun nouvel appareil. Voir
+&lt;a href="#identity-provider" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Depuis la v0.14.0, le serveur lit &lt;strong&gt;un ou plusieurs&lt;/strong&gt; fournisseurs dans le fichier JSON
+désigné par &lt;code&gt;PROVIDERS_FILE&lt;/code&gt; (obligatoire, 1 Mio au plus). Les anciennes variables
+&lt;code&gt;AUTH_PROVIDER&lt;/code&gt;, &lt;code&gt;OIDC_ISSUER&lt;/code&gt;, &lt;code&gt;OIDC_CLIENT_ID&lt;/code&gt;, &lt;code&gt;OIDC_ALLOWED_DOMAINS&lt;/code&gt;,
+&lt;code&gt;GITHUB_CLIENT_ID&lt;/code&gt;, &lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt; et &lt;code&gt;GOAUTHN_GATEWAY_CLIENT_ID&lt;/code&gt; sont
+refusées au démarrage. Un fournisseur &lt;code&gt;github&lt;/code&gt; demande une GitHub OAuth App avec &lt;strong&gt;Device
+Flow&lt;/strong&gt; activé, son secret client dans le fichier &lt;code&gt;provider-&amp;lt;id&amp;gt;-secret&lt;/code&gt;, et
+&lt;code&gt;allowed_orgs&lt;/code&gt; pour restreindre l&amp;rsquo;accès. Un fournisseur &lt;code&gt;oidc&lt;/code&gt; demande un client
+PKCE natif/public, et &lt;code&gt;allowed_domains&lt;/code&gt; le restreint. Un fournisseur &lt;code&gt;go-authn&lt;/code&gt; utilise le
+client propre à la passerelle (&lt;code&gt;gateway_client_id&lt;/code&gt;, secret dans
+&lt;code&gt;provider-&amp;lt;id&amp;gt;-gateway-secret&lt;/code&gt;) : le fournisseur décide alors quelles clés peuvent
+se connecter, et une passerelle qui ne peut pas récupérer sa liste n&amp;rsquo;admet aucun
+nouvel appareil. Chaque requête désigne son fournisseur dans l&amp;rsquo;en-tête
+&lt;code&gt;Claimward-Provider&lt;/code&gt; (&lt;code&gt;401 missing_provider&lt;/code&gt;, &lt;code&gt;401 unknown_provider&lt;/code&gt;).
+&lt;code&gt;SERVER_LOGO_FILE&lt;/code&gt; publie un logo sur &lt;code&gt;/.well-known/claimward-logo.svg&lt;/code&gt;. Après une
+modification du fichier, redémarrez le serveur. Voir
 &lt;a href="https://claimward.github.io/docs/dev/fr/identity-providers/"&gt;Fournisseurs d&amp;rsquo;identité&lt;/a&gt;.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="admin-api-and-webui"&gt;API d&amp;rsquo;administration et WebUI&lt;span class="hx:absolute hx:-mt-20" id="admin-api-and-webui"&gt;&lt;/span&gt;
 &lt;a href="#admin-api-and-webui" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Lorsque l&amp;rsquo;identifiant &lt;code&gt;admin-token&lt;/code&gt; est présent (un fichier de

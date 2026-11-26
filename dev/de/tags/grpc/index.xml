@@ -1594,13 +1594,21 @@ Geräte sich erneut verbinden.&lt;/li&gt;
 &lt;p&gt;Für mehrere Gateways oder einen dauerhaften Audit-Trail benötigen die Pakete &lt;code&gt;store&lt;/code&gt;, &lt;code&gt;ipam&lt;/code&gt; und
 &lt;code&gt;tenant&lt;/code&gt; eine Datenbank dahinter.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="identity-provider"&gt;Identitätsanbieter&lt;span class="hx:absolute hx:-mt-20" id="identity-provider"&gt;&lt;/span&gt;
-&lt;a href="#identity-provider" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Standardmäßig meldet Claimward Personen mit &lt;strong&gt;GitHub&lt;/strong&gt; an (Device Flow): Legen Sie eine
-GitHub-OAuth-App mit aktiviertem &lt;strong&gt;Device Flow&lt;/strong&gt; an und beschränken Sie den Zugang mit
-&lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt;. Für &lt;strong&gt;OIDC&lt;/strong&gt; setzen Sie &lt;code&gt;AUTH_PROVIDER=oidc&lt;/code&gt; mit einem
-nativen/öffentlichen PKCE-Client und beschränken mit &lt;code&gt;OIDC_ALLOWED_DOMAINS&lt;/code&gt;. Für
-&lt;strong&gt;go-authn&lt;/strong&gt; setzen Sie &lt;code&gt;AUTH_PROVIDER=go-authn&lt;/code&gt; mit dem eigenen Client des Gateways: Der
-Anbieter entscheidet dann, welche Schlüssel sich verbinden dürfen, und ein Gateway, das
-seine Liste nicht abrufen kann, lässt niemanden Neues zu. Siehe
+&lt;a href="#identity-provider" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Seit v0.14.0 liest der Server &lt;strong&gt;einen oder mehrere&lt;/strong&gt; Anbieter aus der JSON-Datei,
+die &lt;code&gt;PROVIDERS_FILE&lt;/code&gt; benennt (erforderlich, höchstens 1 MiB). Die alten Variablen
+&lt;code&gt;AUTH_PROVIDER&lt;/code&gt;, &lt;code&gt;OIDC_ISSUER&lt;/code&gt;, &lt;code&gt;OIDC_CLIENT_ID&lt;/code&gt;, &lt;code&gt;OIDC_ALLOWED_DOMAINS&lt;/code&gt;,
+&lt;code&gt;GITHUB_CLIENT_ID&lt;/code&gt;, &lt;code&gt;GITHUB_ALLOWED_ORGS&lt;/code&gt; und &lt;code&gt;GOAUTHN_GATEWAY_CLIENT_ID&lt;/code&gt; werden
+beim Start abgelehnt. Ein Anbieter &lt;code&gt;github&lt;/code&gt; braucht eine GitHub-OAuth-App mit aktiviertem &lt;strong&gt;Device
+Flow&lt;/strong&gt;, ihr Client-Secret in der Datei &lt;code&gt;provider-&amp;lt;id&amp;gt;-secret&lt;/code&gt; und &lt;code&gt;allowed_orgs&lt;/code&gt;,
+um den Zugang zu beschränken. Ein Anbieter &lt;code&gt;oidc&lt;/code&gt; braucht einen nativen/öffentlichen
+PKCE-Client, und &lt;code&gt;allowed_domains&lt;/code&gt; beschränkt ihn. Ein Anbieter &lt;code&gt;go-authn&lt;/code&gt; nutzt den
+eigenen Client des Gateways (&lt;code&gt;gateway_client_id&lt;/code&gt;, Secret in
+&lt;code&gt;provider-&amp;lt;id&amp;gt;-gateway-secret&lt;/code&gt;): Der Anbieter entscheidet dann, welche Schlüssel sich
+verbinden dürfen, und ein Gateway, das seine Liste nicht abrufen kann, lässt niemanden
+Neues zu. Jede Anfrage benennt ihren Anbieter im Header &lt;code&gt;Claimward-Provider&lt;/code&gt;
+(&lt;code&gt;401 missing_provider&lt;/code&gt;, &lt;code&gt;401 unknown_provider&lt;/code&gt;). &lt;code&gt;SERVER_LOGO_FILE&lt;/code&gt; veröffentlicht ein
+Logo unter &lt;code&gt;/.well-known/claimward-logo.svg&lt;/code&gt;. Starten Sie den Server nach einer Änderung
+der Datei neu. Siehe
 &lt;a href="https://claimward.github.io/docs/dev/de/identity-providers/"&gt;Identitätsanbieter&lt;/a&gt;.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="admin-api-and-webui"&gt;Admin-API und WebUI&lt;span class="hx:absolute hx:-mt-20" id="admin-api-and-webui"&gt;&lt;/span&gt;
 &lt;a href="#admin-api-and-webui" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Wenn die Credential &lt;code&gt;admin-token&lt;/code&gt; vorhanden ist (eine Datei in
