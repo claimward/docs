@@ -36,11 +36,13 @@ de saisie et sa correction orthographique ; les choix du fournisseur et du locat
 des menus locaux. Le &lt;a href="https://claimward.github.io/docs/dev/fr/components/helper/"&gt;helper&lt;/a&gt; s&amp;rsquo;enrôle auprès du
 serveur et détient le tunnel. Fermer la fenêtre quitte l&amp;rsquo;application, comme sous Linux et Windows.&lt;/p&gt;
 &lt;p&gt;La fenêtre a un en-tête (le logo Claimward, le titre et &lt;strong&gt;Settings&lt;/strong&gt;), une barre latérale
-&lt;strong&gt;Servers&lt;/strong&gt; à gauche avec &lt;strong&gt;+&lt;/strong&gt; et &lt;strong&gt;−&lt;/strong&gt; sous la liste, et à droite le panneau de détail du
+&lt;strong&gt;Servers&lt;/strong&gt; à gauche avec &lt;strong&gt;+&lt;/strong&gt;, &lt;strong&gt;−&lt;/strong&gt; et un engrenage (&lt;strong&gt;Edit server&lt;/strong&gt;) sous la liste, et à droite le panneau de détail du
 serveur sélectionné : son nom, le menu local &lt;strong&gt;Tenant&lt;/strong&gt; avec &lt;strong&gt;Refresh&lt;/strong&gt;, l&amp;rsquo;état de la
 session, la connexion, Connect et Disconnect, et le journal de connexion. Le formulaire de
 réglages s&amp;rsquo;ouvre dans une fenêtre à part, pour que l&amp;rsquo;état reste visible ; il s&amp;rsquo;affiche dans
-la fenêtre principale là où une seconde fenêtre ne peut pas s&amp;rsquo;ouvrir.&lt;/p&gt;
+la fenêtre principale là où une seconde fenêtre ne peut pas s&amp;rsquo;ouvrir.
+L&amp;rsquo;engrenage ouvre ce formulaire pour le serveur sélectionné ; il est désactivé, avec la
+raison dans son libellé d&amp;rsquo;accessibilité, tant qu&amp;rsquo;aucun serveur n&amp;rsquo;est sélectionné.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="build"&gt;Compilation&lt;span class="hx:absolute hx:-mt-20" id="build"&gt;&lt;/span&gt;
 &lt;a href="#build" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Avec &lt;a href="https://taskfile.dev" target="_blank" rel="noopener"&gt;go-task&lt;/a&gt; :&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;

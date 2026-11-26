@@ -36,11 +36,13 @@ Popup-Menüs. Der &lt;a href="https://claimward.github.io/docs/dev/de/components
 Server und besitzt den Tunnel. Das Schließen des Fensters beendet die App, wie unter Linux
 und Windows.&lt;/p&gt;
 &lt;p&gt;Das Fenster hat eine Kopfzeile (das Claimward-Zeichen, den Titel und &lt;strong&gt;Settings&lt;/strong&gt;), links
-eine Seitenleiste &lt;strong&gt;Servers&lt;/strong&gt; mit &lt;strong&gt;+&lt;/strong&gt; und &lt;strong&gt;−&lt;/strong&gt; unter der Liste und rechts den
+eine Seitenleiste &lt;strong&gt;Servers&lt;/strong&gt; mit &lt;strong&gt;+&lt;/strong&gt;, &lt;strong&gt;−&lt;/strong&gt; und einem Zahnrad (&lt;strong&gt;Edit server&lt;/strong&gt;) unter der Liste und rechts den
 Detailbereich des gewählten Servers: Name, das Popup-Menü &lt;strong&gt;Tenant&lt;/strong&gt; mit &lt;strong&gt;Refresh&lt;/strong&gt;, den
 Sitzungsstatus, Anmeldung, Connect und Disconnect sowie das Verbindungsprotokoll. Das
 Einstellungsformular öffnet sich in einem eigenen Fenster, damit der Status sichtbar bleibt;
-wo kein zweites Fenster geöffnet werden kann, erscheint es im Hauptfenster.&lt;/p&gt;
+wo kein zweites Fenster geöffnet werden kann, erscheint es im Hauptfenster.
+Das Zahnrad öffnet dieses Formular für den gewählten Server; ist kein Server gewählt, ist es
+deaktiviert, und der Grund steht in seiner Bedienungshilfe-Beschriftung.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="build"&gt;Build&lt;span class="hx:absolute hx:-mt-20" id="build"&gt;&lt;/span&gt;
 &lt;a href="#build" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Mit &lt;a href="https://taskfile.dev" target="_blank" rel="noopener"&gt;go-task&lt;/a&gt;:&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
