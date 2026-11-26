@@ -75,13 +75,21 @@ Para varias pasarelas o un registro de auditoría duradero, los paquetes `store`
 
 ## Proveedor de identidad {#identity-provider}
 
-Por defecto, Claimward hace iniciar sesión a las personas con **GitHub** (device flow): cree una
-OAuth App de GitHub con **Device Flow** activado y restrinja el acceso con
-`GITHUB_ALLOWED_ORGS`. Para **OIDC**, establezca `AUTH_PROVIDER=oidc` con un
-cliente PKCE nativo/público, y restrinja con `OIDC_ALLOWED_DOMAINS`. Para
-**go-authn**, establezca `AUTH_PROVIDER=go-authn` con el cliente propio de la pasarela: el
-proveedor decide entonces qué claves pueden conectarse, y una pasarela que no puede obtener
-su lista no admite a nadie nuevo. Consulte
+Desde la v0.14.0, el servidor lee **uno o varios** proveedores del archivo JSON
+indicado por `PROVIDERS_FILE` (obligatorio, 1 MiB como máximo). Las antiguas variables
+`AUTH_PROVIDER`, `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_ALLOWED_DOMAINS`,
+`GITHUB_CLIENT_ID`, `GITHUB_ALLOWED_ORGS` y `GOAUTHN_GATEWAY_CLIENT_ID` se
+rechazan al arrancar. Un proveedor `github` necesita una OAuth App de GitHub con **Device
+Flow** activado, su secreto de cliente en el archivo `provider-<id>-secret`, y
+`allowed_orgs` para restringir el acceso. Un proveedor `oidc` necesita un cliente
+PKCE nativo/público, y `allowed_domains` lo restringe. Un proveedor `go-authn` usa el
+cliente propio de la pasarela (`gateway_client_id`, secreto en
+`provider-<id>-gateway-secret`): el proveedor decide entonces qué claves pueden
+conectarse, y una pasarela que no puede obtener su lista no admite a nadie nuevo.
+Cada petición designa a su proveedor en la cabecera `Claimward-Provider`
+(`401 missing_provider`, `401 unknown_provider`). `SERVER_LOGO_FILE` publica un
+logotipo en `/.well-known/claimward-logo.svg`. Tras modificar el archivo, reinicie
+el servidor. Consulte
 [Proveedores de identidad]({{< relref "/identity-providers.md" >}}).
 
 ## API de administración y WebUI {#admin-api-and-webui}
