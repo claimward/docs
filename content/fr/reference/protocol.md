@@ -87,6 +87,34 @@ appartient à une autre personne.
 
 Réponse `200` : `{ "status": "ok" }`, sans authentification.
 
+## `GET /.well-known/claimward-configuration` {#discovery}
+
+Le document de découverte public (depuis le serveur v0.13.0), sans
+authentification, pour qu'un client apprenne comment se connecter avant de le
+faire. Le chemin suit la section 3 de la
+[RFC 8615](https://www.rfc-editor.org/rfc/rfc8615) ; une valeur absente est
+omise, comme à la section 3.2 de la
+[RFC 8414](https://www.rfc-editor.org/rfc/rfc8414). Valeurs publiques
+uniquement, jamais un secret. Réponse `200`, `application/json`,
+`Cache-Control: public, max-age=300` ; toute autre méthode est refusée avec
+`405`.
+
+```json
+{
+  "version": 1,
+  "server_name": "Lab",
+  "provider": "github",
+  "github_client_id": "Iv1.0123456789abcdef",
+  "exclusive": false
+}
+```
+
+`server_name` n'apparaît que si `SERVER_NAME` est défini. `github_client_id` est
+donné pour le fournisseur `github`, `oidc_issuer` et `oidc_client_id` pour
+`oidc` et `go-authn`. `exclusive` est `SERVER_EXCLUSIVE` : ce serveur refuse de
+partager la machine avec d'autres tunnels Claimward, les clients refusent de le
+connecter avec d'autres, et refusent les autres tant qu'il est connecté.
+
 ## Erreurs {#errors}
 
 Les réponses autres que 2xx portent :

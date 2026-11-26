@@ -21,6 +21,7 @@ enrolled device. It runs on the gateway host, beside an existing `wg0`: Linux
 | | `POST /api/v1/heartbeat` | renew the device's lease |
 | | `POST /api/v1/deregister` | remove the peer |
 | | `GET /healthz` | liveness |
+| | `GET /.well-known/claimward-configuration` | public discovery document, unauthenticated (since v0.13.0), see [the protocol]({{< relref "/reference/protocol.md#discovery" >}}) |
 | | `/admin/` | admin API and WebUI, when the `admin-token` credential exists |
 | `GRPC_ADDR` (`:8444`) | `claimward.routes.v1.RouteService/Watch` | streams the tenant's routes and their updates |
 | `METRICS_ADDR` (no default: off unless set) | `GET /metrics` | Prometheus metrics, on a listener of their own, never on `LISTEN_ADDR` |
@@ -44,6 +45,7 @@ files in a credentials directory, see [Credentials](#credentials) below.
 |----------|----------|---------|-------|
 | `AUTH_PROVIDER` | | `github` | identity provider: `github`, `oidc` or `go-authn` |
 | `GITHUB_ALLOWED_ORGS` | `github` | — | CSV organisation allowlist: an active member of any is allowed, and so is a named tenant member. Since v0.5.0 it is **optional only when at least one tenant has `members`**: with neither the server refuses to start, with no opt-out (before: required since v0.4.0) |
+| `GITHUB_CLIENT_ID` | `github` | — | client ID (public) of Claimward's GitHub OAuth app. Since v0.12.0 (**breaking**) only tokens **that app** minted are admitted: the server asks GitHub ([Check a token](https://docs.github.com/en/rest/apps/oauth-applications#check-a-token)) with the `github-client-secret` file before trusting one, so a token another OAuth app holds cannot enrol a peer. No client ID or no secret file: the server refuses to start, with no opt-out. Existing deployments must add both |
 | `GITHUB_API_URL` | | `https://api.github.com` | set for GitHub Enterprise |
 | `OIDC_ISSUER` | `oidc`, `go-authn` | — | issuer URL (discovery) |
 | `OIDC_CLIENT_ID` | `oidc`, `go-authn` | — | the audience tokens must carry |
@@ -67,6 +69,8 @@ files in a credentials directory, see [Credentials](#credentials) below.
 | `GRPC_ADDR` | | `:8444` | RouteService listen address; `Watch` streams are re-authorised every 15 s and end when the identity is no longer allowed |
 | `METRICS_ADDR` | | — (off) | separate listener for `/metrics`, served **only when set** (since v0.9.0 there is no default port: the old `127.0.0.1:9090` clashed with Prometheus); never on `LISTEN_ADDR`. It names every tenant: keep it on loopback or a private network |
 | `MAX_DEVICES_PER_SUBJECT` | | `5` | devices one identity may enroll |
+| `SERVER_NAME` | | — | display name published in the discovery document (since v0.13.0); at most 100 characters, no control characters; unset, none is published |
+| `SERVER_EXCLUSIVE` | | `false` | published in the discovery document (since v0.13.0): this server refuses to share the machine with other Claimward tunnels; clients refuse to connect it alongside others, and refuse others while it is connected. `true` or `false`, anything else refuses to start |
 | `GRPC_ENDPOINT` | | — | `host:port` of the RouteService advertised to clients; empty, they do not watch |
 | `TLS_CERT` / `TLS_KEY` | | — | HTTPS, and TLS on the RouteService |
 | `DEBUG` | | — | any value: debug logging (one line per request) |
@@ -84,6 +88,7 @@ file names are fixed, and one trailing newline is trimmed.
 | `wg-private-key` | always | the gateway's base64 private key |
 | `admin-token` | no | bearer of the admin API and WebUI; **without the file they are disabled** |
 | `goauthn-gateway-secret` | `AUTH_PROVIDER=go-authn` | the gateway client's secret |
+| `github-client-secret` | `AUTH_PROVIDER=github` | the client secret of Claimward's GitHub OAuth app (see `GITHUB_CLIENT_ID`), since v0.12.0 |
 | `github-token` | when any tenant has `members` | bearer for `GET /users/{login}` (see [Tenants]({{< relref "/tenants.md" >}})) |
 
 A missing required file stops the start and names the file. Before reading, the
