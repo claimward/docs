@@ -38,8 +38,8 @@ puro (sin cgo), la aplicación macOS con los campos de texto y menús emergentes
 
 | Repositorio | Versión | Qué es |
 |------------|---------|------------|
-| [`claimward-vpn-server`](https://github.com/claimward/claimward-vpn-server) | v0.13.0 | Plano de control: verifica el inicio de sesión, asigna direcciones, programa la pasarela WireGuard, transmite las rutas de los inquilinos por gRPC, API de administración y métricas |
-| [`claimward-vpn-client`](https://github.com/claimward/claimward-vpn-client) | v0.8.0 | **Biblioteca** Go compartida por las aplicaciones y el servidor: protocolo de comunicación, proveedores de inicio de sesión, túnel, helper con privilegios, núcleo de la aplicación. No incluye ningún binario |
+| [`claimward-vpn-server`](https://github.com/claimward/claimward-vpn-server) | v0.14.0 | Plano de control: verifica el inicio de sesión, asigna direcciones, programa la pasarela WireGuard, transmite las rutas de los inquilinos por gRPC, API de administración y métricas |
+| [`claimward-vpn-client`](https://github.com/claimward/claimward-vpn-client) | v0.9.0 | **Biblioteca** Go compartida por las aplicaciones y el servidor: protocolo de comunicación, proveedores de inicio de sesión, túnel, helper con privilegios, núcleo de la aplicación. No incluye ningún binario |
 | [`claimward-vpn-app-osx`](https://github.com/claimward/claimward-vpn-app-osx) | v0.7.4 | Aplicación macOS: ventana e icono de la barra de menús nativos (go-widgets), helper LaunchDaemon como root |
 | [`claimward-vpn-app-linux`](https://github.com/claimward/claimward-vpn-app-linux) | v0.8.0 | Aplicación Linux: ventana y bandeja del sistema en Go puro, helper ejecutado por systemd |
 | [`claimward-vpn-app-windows`](https://github.com/claimward/claimward-vpn-app-windows) | v0.8.5 | Aplicación Windows: ventana y bandeja del sistema en Go puro, helper como servicio de Windows, túnel Wintun |
