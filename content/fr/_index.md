@@ -38,11 +38,11 @@ pur (sans cgo), l'application macOS avec les champs de texte et menus locaux du 
 
 | Dépôt | Version | Ce que c'est |
 |------------|---------|------------|
-| [`claimward-vpn-server`](https://github.com/claimward/claimward-vpn-server) | v0.10.0 | Plan de contrôle : vérifie la connexion, alloue les adresses, programme la passerelle WireGuard, diffuse les routes des locataires en gRPC, API d'administration et métriques |
-| [`claimward-vpn-client`](https://github.com/claimward/claimward-vpn-client) | v0.6.0 | **Bibliothèque** Go partagée par les applications et le serveur : protocole réseau, fournisseurs de connexion, tunnel, helper privilégié, cœur des applications. Elle ne fournit aucun binaire |
-| [`claimward-vpn-app-osx`](https://github.com/claimward/claimward-vpn-app-osx) | v0.7.0 | Application macOS : fenêtre et icône de la barre des menus natives (go-widgets), helper LaunchDaemon root |
-| [`claimward-vpn-app-linux`](https://github.com/claimward/claimward-vpn-app-linux) | v0.5.0 | Application Linux : fenêtre et zone de notification en Go pur, helper exécuté par systemd |
-| [`claimward-vpn-app-windows`](https://github.com/claimward/claimward-vpn-app-windows) | v0.6.0 | Application Windows : fenêtre et zone de notification en Go pur, helper sous forme de service Windows, tunnel Wintun |
+| [`claimward-vpn-server`](https://github.com/claimward/claimward-vpn-server) | v0.13.0 | Plan de contrôle : vérifie la connexion, alloue les adresses, programme la passerelle WireGuard, diffuse les routes des locataires en gRPC, API d'administration et métriques |
+| [`claimward-vpn-client`](https://github.com/claimward/claimward-vpn-client) | v0.8.0 | **Bibliothèque** Go partagée par les applications et le serveur : protocole réseau, fournisseurs de connexion, tunnel, helper privilégié, cœur des applications. Elle ne fournit aucun binaire |
+| [`claimward-vpn-app-osx`](https://github.com/claimward/claimward-vpn-app-osx) | v0.7.4 | Application macOS : fenêtre et icône de la barre des menus natives (go-widgets), helper LaunchDaemon root |
+| [`claimward-vpn-app-linux`](https://github.com/claimward/claimward-vpn-app-linux) | v0.8.0 | Application Linux : fenêtre et zone de notification en Go pur, helper exécuté par systemd |
+| [`claimward-vpn-app-windows`](https://github.com/claimward/claimward-vpn-app-windows) | v0.8.5 | Application Windows : fenêtre et zone de notification en Go pur, helper sous forme de service Windows, tunnel Wintun |
 
 {{< callout type="info" >}}
 **État d'avancement.** Ce sont des premières versions. Restent à venir, selon chaque
