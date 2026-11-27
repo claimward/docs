@@ -114,10 +114,11 @@ cualquier llamante del socket elevado en Windows.&lt;/li&gt;
 &lt;code&gt;renew&lt;/code&gt;, &lt;code&gt;revoke&lt;/code&gt; y un &lt;code&gt;connect&lt;/code&gt; que lo reemplazaría responden con el
 &lt;code&gt;error_code&lt;/code&gt; &lt;code&gt;tunnel_not_owned&lt;/code&gt;. &lt;code&gt;down&lt;/code&gt; sin servidor baja los túneles del
 llamante. Un &lt;code&gt;connect&lt;/code&gt; rechazado no pregunta nada al servidor.&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Un llamante que el sistema no sabe identificar&lt;/strong&gt; se rechaza. En Windows, un
-sistema que no responde a la pregunta del proceso par deja al llamante sin
-identificar: solo ve los túneles que crearon llamantes sin identificar, nunca
-los de un usuario identificado.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Un llamante que el sistema no sabe identificar se rechaza&lt;/strong&gt; (desde v0.12.2;
+v0.12.1 los agrupaba). Toda acción, &lt;code&gt;connect&lt;/code&gt;, &lt;code&gt;down&lt;/code&gt; y &lt;code&gt;status&lt;/code&gt; incluidos,
+responde con el &lt;code&gt;error_code&lt;/code&gt; &lt;code&gt;caller_not_identified&lt;/code&gt;: el helper falla cerrando.
+Ocurre en un Windows que no responde a la pregunta del proceso par, y en una
+plataforma sin llamada para identificar al par.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;Límite:&lt;/strong&gt; un &lt;code&gt;connect&lt;/code&gt; exclusivo rechazado porque otro túnel ocupa la máquina
 sigue nombrando ese servidor (&lt;code&gt;blocked_by&lt;/code&gt;), pues la exclusividad es de toda la
 máquina.&lt;/li&gt;

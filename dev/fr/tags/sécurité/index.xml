@@ -114,10 +114,11 @@ appelant de la socket élevée sous Windows.&lt;/li&gt;
 &lt;code&gt;renew&lt;/code&gt;, &lt;code&gt;revoke&lt;/code&gt; et un &lt;code&gt;connect&lt;/code&gt; qui le remplacerait répondent par l&amp;rsquo;&lt;code&gt;error_code&lt;/code&gt;
 &lt;code&gt;tunnel_not_owned&lt;/code&gt;. &lt;code&gt;down&lt;/code&gt; sans serveur démonte les tunnels de l&amp;rsquo;appelant. Un
 &lt;code&gt;connect&lt;/code&gt; refusé ne demande rien au serveur.&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Un appelant que le système ne sait pas identifier&lt;/strong&gt; est refusé. Sous Windows,
-un système qui ne répond pas à la question du processus pair laisse l&amp;rsquo;appelant
-non identifié : il ne voit que les tunnels montés par des appelants non
-identifiés, jamais ceux d&amp;rsquo;un utilisateur identifié.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Un appelant que le système ne sait pas identifier est refusé&lt;/strong&gt; (depuis
+v0.12.2 ; v0.12.1 les regroupait). Toute action, &lt;code&gt;connect&lt;/code&gt;, &lt;code&gt;down&lt;/code&gt; et &lt;code&gt;status&lt;/code&gt;
+compris, répond par l&amp;rsquo;&lt;code&gt;error_code&lt;/code&gt; &lt;code&gt;caller_not_identified&lt;/code&gt; : le helper échoue
+en fermant. Cela arrive sous un Windows qui ne répond pas à la question du
+processus pair, et sur une plateforme sans appel d&amp;rsquo;identification du pair.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;Limite :&lt;/strong&gt; un &lt;code&gt;connect&lt;/code&gt; exclusif refusé parce qu&amp;rsquo;un autre tunnel tient la
 machine nomme encore ce serveur (&lt;code&gt;blocked_by&lt;/code&gt;), l&amp;rsquo;exclusivité étant valable pour
 toute la machine.&lt;/li&gt;

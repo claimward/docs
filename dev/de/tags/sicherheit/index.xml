@@ -114,11 +114,12 @@ jeder Aufrufer des erhöhten Sockets unter Windows.&lt;/li&gt;
 genannten Servers, &lt;code&gt;renew&lt;/code&gt;, &lt;code&gt;revoke&lt;/code&gt; und ein &lt;code&gt;connect&lt;/code&gt;, der ihn ersetzen würde,
 antworten mit dem &lt;code&gt;error_code&lt;/code&gt; &lt;code&gt;tunnel_not_owned&lt;/code&gt;. &lt;code&gt;down&lt;/code&gt; ohne Server baut die
 Tunnel des Aufrufers ab. Ein abgelehntes &lt;code&gt;connect&lt;/code&gt; fragt den Server nichts.&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Ein Aufrufer, den das System nicht identifizieren kann,&lt;/strong&gt; wird abgelehnt.
-Unter Windows bleibt der Aufrufer unidentifiziert, wenn das System die Frage
-nach dem Peer-Prozess nicht beantwortet: Er sieht nur Tunnel, die
-unidentifizierte Aufrufer aufgebaut haben, nie die eines identifizierten
-Benutzers.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Ein Aufrufer, den das System nicht identifizieren kann, wird abgelehnt&lt;/strong&gt;
+(seit v0.12.2; v0.12.1 fasste solche Aufrufer zusammen). Jede Aktion,
+&lt;code&gt;connect&lt;/code&gt;, &lt;code&gt;down&lt;/code&gt; und &lt;code&gt;status&lt;/code&gt; eingeschlossen, antwortet mit dem &lt;code&gt;error_code&lt;/code&gt;
+&lt;code&gt;caller_not_identified&lt;/code&gt;: Der Helper schlägt geschlossen fehl. Das geschieht
+unter einem Windows, das die Frage nach dem Peer-Prozess nicht beantwortet,
+und auf einer Plattform ohne Aufruf zur Peer-Identifikation.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;Grenze:&lt;/strong&gt; Ein exklusives &lt;code&gt;connect&lt;/code&gt;, das abgelehnt wird, weil ein anderer
 Tunnel die Maschine belegt, nennt diesen Server weiterhin (&lt;code&gt;blocked_by&lt;/code&gt;), da die
 Exklusivität maschinenweit gilt.&lt;/li&gt;

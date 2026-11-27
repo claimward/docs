@@ -112,10 +112,11 @@ Administrator and any caller of the elevated socket on Windows.&lt;/li&gt;
 &lt;code&gt;renew&lt;/code&gt;, &lt;code&gt;revoke&lt;/code&gt;, and a &lt;code&gt;connect&lt;/code&gt; that would replace it answer with the
 &lt;code&gt;error_code&lt;/code&gt; &lt;code&gt;tunnel_not_owned&lt;/code&gt;. &lt;code&gt;down&lt;/code&gt; with no server takes down the
 caller&amp;rsquo;s own tunnels. A refused &lt;code&gt;connect&lt;/code&gt; asks the server nothing.&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;A caller the system cannot identify&lt;/strong&gt; is refused. On Windows, a system that
-does not answer the peer-process question leaves the caller unidentified: it
-sees only the tunnels that unidentified callers made, never an identified
-user&amp;rsquo;s.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;A caller the system cannot identify is refused&lt;/strong&gt; (since v0.12.2; v0.12.1
+pooled such callers). Every action, &lt;code&gt;connect&lt;/code&gt;, &lt;code&gt;down&lt;/code&gt; and &lt;code&gt;status&lt;/code&gt; included,
+answers with the &lt;code&gt;error_code&lt;/code&gt; &lt;code&gt;caller_not_identified&lt;/code&gt;: the helper fails
+closed. It happens on a Windows that does not answer the peer-process
+question, and on a platform with no peer-credential call.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;Limit:&lt;/strong&gt; an exclusive &lt;code&gt;connect&lt;/code&gt; that is refused because another tunnel
 holds the machine still names that server (&lt;code&gt;blocked_by&lt;/code&gt;), as exclusivity is
 machine-wide.&lt;/li&gt;
