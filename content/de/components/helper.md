@@ -77,11 +77,12 @@ Adresse oder Zähler eines anderen.
   genannten Servers, `renew`, `revoke` und ein `connect`, der ihn ersetzen würde,
   antworten mit dem `error_code` `tunnel_not_owned`. `down` ohne Server baut die
   Tunnel des Aufrufers ab. Ein abgelehntes `connect` fragt den Server nichts.
-- **Ein Aufrufer, den das System nicht identifizieren kann,** wird abgelehnt.
-  Unter Windows bleibt der Aufrufer unidentifiziert, wenn das System die Frage
-  nach dem Peer-Prozess nicht beantwortet: Er sieht nur Tunnel, die
-  unidentifizierte Aufrufer aufgebaut haben, nie die eines identifizierten
-  Benutzers.
+- **Ein Aufrufer, den das System nicht identifizieren kann, wird abgelehnt**
+  (seit v0.12.2; v0.12.1 fasste solche Aufrufer zusammen). Jede Aktion,
+  `connect`, `down` und `status` eingeschlossen, antwortet mit dem `error_code`
+  `caller_not_identified`: Der Helper schlägt geschlossen fehl. Das geschieht
+  unter einem Windows, das die Frage nach dem Peer-Prozess nicht beantwortet,
+  und auf einer Plattform ohne Aufruf zur Peer-Identifikation.
 - **Grenze:** Ein exklusives `connect`, das abgelehnt wird, weil ein anderer
   Tunnel die Maschine belegt, nennt diesen Server weiterhin (`blocked_by`), da die
   Exklusivität maschinenweit gilt.

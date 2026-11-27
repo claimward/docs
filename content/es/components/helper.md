@@ -77,10 +77,11 @@ contadores de otro.
   `renew`, `revoke` y un `connect` que lo reemplazaría responden con el
   `error_code` `tunnel_not_owned`. `down` sin servidor baja los túneles del
   llamante. Un `connect` rechazado no pregunta nada al servidor.
-- **Un llamante que el sistema no sabe identificar** se rechaza. En Windows, un
-  sistema que no responde a la pregunta del proceso par deja al llamante sin
-  identificar: solo ve los túneles que crearon llamantes sin identificar, nunca
-  los de un usuario identificado.
+- **Un llamante que el sistema no sabe identificar se rechaza** (desde v0.12.2;
+  v0.12.1 los agrupaba). Toda acción, `connect`, `down` y `status` incluidos,
+  responde con el `error_code` `caller_not_identified`: el helper falla cerrando.
+  Ocurre en un Windows que no responde a la pregunta del proceso par, y en una
+  plataforma sin llamada para identificar al par.
 - **Límite:** un `connect` exclusivo rechazado porque otro túnel ocupa la máquina
   sigue nombrando ese servidor (`blocked_by`), pues la exclusividad es de toda la
   máquina.

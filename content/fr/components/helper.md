@@ -77,10 +77,11 @@ l'adresse ni les compteurs d'un autre.
   `renew`, `revoke` et un `connect` qui le remplacerait répondent par l'`error_code`
   `tunnel_not_owned`. `down` sans serveur démonte les tunnels de l'appelant. Un
   `connect` refusé ne demande rien au serveur.
-- **Un appelant que le système ne sait pas identifier** est refusé. Sous Windows,
-  un système qui ne répond pas à la question du processus pair laisse l'appelant
-  non identifié : il ne voit que les tunnels montés par des appelants non
-  identifiés, jamais ceux d'un utilisateur identifié.
+- **Un appelant que le système ne sait pas identifier est refusé** (depuis
+  v0.12.2 ; v0.12.1 les regroupait). Toute action, `connect`, `down` et `status`
+  compris, répond par l'`error_code` `caller_not_identified` : le helper échoue
+  en fermant. Cela arrive sous un Windows qui ne répond pas à la question du
+  processus pair, et sur une plateforme sans appel d'identification du pair.
 - **Limite :** un `connect` exclusif refusé parce qu'un autre tunnel tient la
   machine nomme encore ce serveur (`blocked_by`), l'exclusivité étant valable pour
   toute la machine.

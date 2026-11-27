@@ -75,10 +75,11 @@ user no longer sees another's endpoint, routes, address or counters.
   `renew`, `revoke`, and a `connect` that would replace it answer with the
   `error_code` `tunnel_not_owned`. `down` with no server takes down the
   caller's own tunnels. A refused `connect` asks the server nothing.
-- **A caller the system cannot identify** is refused. On Windows, a system that
-  does not answer the peer-process question leaves the caller unidentified: it
-  sees only the tunnels that unidentified callers made, never an identified
-  user's.
+- **A caller the system cannot identify is refused** (since v0.12.2; v0.12.1
+  pooled such callers). Every action, `connect`, `down` and `status` included,
+  answers with the `error_code` `caller_not_identified`: the helper fails
+  closed. It happens on a Windows that does not answer the peer-process
+  question, and on a platform with no peer-credential call.
 - **Limit:** an exclusive `connect` that is refused because another tunnel
   holds the machine still names that server (`blocked_by`), as exclusivity is
   machine-wide.
