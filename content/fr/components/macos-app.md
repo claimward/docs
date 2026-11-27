@@ -7,7 +7,7 @@ tags: [macos, application, helper, go-widgets]
 ---
 
 [`claimward-vpn-app-osx`](https://github.com/claimward/claimward-vpn-app-osx)
-**v0.8.0** est une application native écrite en Go : une fenêtre et une icône de la
+**v0.10.0** est une application native écrite en Go : une fenêtre et une icône de la
 barre des menus, dessinées par [go-widgets](https://github.com/go-widgets), avec les
 `NSTextField` et `NSPopUpButton` du système pour les saisies. Il n'y a ni webview, ni
 serveur web local, ni JavaScript (avant v0.7.0, la fenêtre était une page Svelte dans
@@ -30,20 +30,42 @@ vue est `pkg/appvm`, le même que celui des applications Linux et Windows.
    enrolls with the server, wireguard-go: utunN, route pushes
 ```
 
-L'application est un seul processus non privilégié qui détient tout l'état. Les saisies
-(URL du serveur, identifiants client) sont les champs de texte du système, avec sa méthode
+L'application est un seul processus non privilégié qui détient tout l'état. La saisie
+(l'URL du serveur) est le champ de texte du système, avec sa méthode
 de saisie et sa correction orthographique ; les choix du fournisseur et du locataire sont
 des menus locaux. Le [helper]({{< relref "/components/helper.md" >}}) s'enrôle auprès du
-serveur et détient le tunnel. Fermer la fenêtre quitte l'application, comme sous Linux et Windows.
+serveur et détient le tunnel. Fermer la fenêtre la masque : l'application continue de
+tourner dans l'icône de la barre des menus et se quitte par son élément **Quit**.
 
-La fenêtre a un en-tête (le logo Claimward, le titre et **Settings**), une barre latérale
-**Servers** à gauche avec **+**, **−** et un engrenage (**Edit server**) sous la liste, et à droite le panneau de détail du
-serveur sélectionné : son nom, le menu local **Tenant** avec **Refresh**, l'état de la
-session, la connexion, Connect et Disconnect, et le journal de connexion. Le formulaire de
-réglages s'ouvre dans une fenêtre à part, pour que l'état reste visible ; il s'affiche dans
-la fenêtre principale là où une seconde fenêtre ne peut pas s'ouvrir.
-L'engrenage ouvre ce formulaire pour le serveur sélectionné ; il est désactivé, avec la
-raison dans son libellé d'accessibilité, tant qu'aucun serveur n'est sélectionné.
+La fenêtre s'ouvre à 800 x 480 points (la taille du gestionnaire macOS de WireGuard).
+La barre latérale **Servers** à gauche liste les serveurs, chacun avec son logo (une
+marque neutre s'il n'en a pas), son nom et son état ; **+**, **−** et un engrenage
+sont sous la liste. Plusieurs serveurs peuvent être connectés à la fois, et chaque ligne
+affiche son propre état.
+
+Le panneau de détail à droite est un tableau clé/valeur avec des titres de section, à la
+manière du panneau de tunnel de WireGuard. Il masque tous les champs vides sauf **Status**
+et s'actualise chaque seconde. **Server** contient le nom et le logo, l'URL, le
+fournisseur d'identité et l'identité connectée, le locataire, si le serveur est
+*exclusif*, et si le helper l'a approuvé. **Status** a une icône et les boutons
+**Connect** / **Disconnect**. **Interface** contient l'adresse et
+l'expiration du bail en temps relatif. **Edit** est en bas à droite. Lorsque le
+serveur liste plusieurs fournisseurs d'identité, la connexion affiche un bouton par fournisseur.
+
+**+** ouvre une fenêtre à part avec seulement un champ URL. **Next** demande au serveur
+son document de découverte public et affiche un aperçu de son nom, de son logo, de ses
+fournisseurs et de son caractère exclusif ; la personne confirme avant l'ajout du serveur,
+et un serveur qui ne répond pas comme un serveur Claimward en est informé en termes
+simples. L'engrenage (ou **Edit**) ouvre la même fenêtre sur le serveur sélectionné,
+préremplie, et peut changer son fournisseur d'identité ; il est désactivé, avec la raison
+dans son libellé d'accessibilité, tant qu'aucun serveur n'est sélectionné.
+
+**Connect** sur un serveur que le helper n'a pas approuvé demande à macOS l'autorisation
+d'un administrateur, en nommant l'hôte du serveur, puis approuve le serveur et se connecte
+(voir [l'approbation du serveur]({{< relref "/components/helper.md" >}})).
+Un refus est affiché comme tel. **−** propose de révoquer l'approbation avec la
+suppression. Un serveur *exclusif*, ou une connexion qui bloque les autres, désactive
+**Connect** et en donne la raison, par exemple « Alpha is connected and exclusive ».
 
 ## Compilation {#build}
 
@@ -66,8 +88,9 @@ CGO_ENABLED=0 go build -o bin/claimward-helper ./cmd/claimward-helper
 
 ## Configuration {#configure}
 
-`~/Library/Application Support/Claimward/config.json`, pour les versions fondées sur le
-client v0.10.0 ou ultérieur (le format est décrit sur la page du client) :
+Rien n'est à écrire à la main : **+** ajoute un serveur par son URL. L'application garde
+la liste dans `~/Library/Application Support/Claimward/config.json` (application v0.10.0
+et ultérieure, client v0.11.0 ; le format est décrit sur la page du client) :
 
 ```json
 {
@@ -82,7 +105,8 @@ Seule l'URL du serveur est configurée ; les fournisseurs viennent du serveur. A
 GitHub et go-authn, un clic sur **Connect** affiche un code à saisir sur la page
 indiquée ; avec OIDC, le navigateur ouvre la page de connexion du fournisseur. Les
 versions plus anciennes (client v0.9.0 et antérieur) lisaient `server_url`, `provider`,
-`github_client_id`, `oidc_issuer` et `oidc_client_id`.
+`github_client_id`, `oidc_issuer` et `oidc_client_id` ; un fichier de ce format est migré
+une fois, au premier démarrage, et sa session est reprise par le serveur correspondant.
 
 ## Installer le helper et lancer l'application {#install-the-helper-and-run}
 

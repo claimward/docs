@@ -7,7 +7,7 @@ tags: [macos, app, helper, go-widgets]
 ---
 
 [`claimward-vpn-app-osx`](https://github.com/claimward/claimward-vpn-app-osx)
-**v0.8.0** is a native app written in Go: one window and a menu-bar status
+**v0.10.0** is a native app written in Go: one window and a menu-bar status
 item, drawn by [go-widgets](https://github.com/go-widgets), with the system's
 own `NSTextField` and `NSPopUpButton` for the inputs. There is no webview, no
 local web server and no JavaScript (before v0.7.0 the window was a Svelte page
@@ -29,20 +29,42 @@ the view model is `pkg/appvm`, the same one the Linux and Windows apps use.
    enrolls with the server, wireguard-go: utunN, route pushes
 ```
 
-The app is one unprivileged process that owns all state. The text inputs (server
-URL, client IDs) are the system's text fields, with its input method and spell
+The app is one unprivileged process that owns all state. The text input (the
+server URL) is the system's text field, with its input method and spell
 checking; the provider and tenant choices are pop-up buttons. The
 [helper]({{< relref "/components/helper.md" >}}) enrolls with the server and
-owns the tunnel. Closing the window quits the app, as on Linux and Windows.
+owns the tunnel. Closing the window hides it: the app keeps running in the
+status item and quits through its **Quit** item.
 
-The window has a header (the Claimward mark, the title and **Settings**), a
-**Servers** sidebar on the left with **+**, **−** and a gear (**Edit server**) under the list, and the
-selected server's detail panel on the right: its name, the **Tenant** pop-up
-with **Refresh**, the session state, sign-in, Connect and Disconnect, and the
-connection log. The settings form opens in a window of its own, so the status
-stays visible; it shows in the main window where a second window cannot open.
-The gear opens that settings form for the selected server; it is disabled, with
-the reason in its accessible label, while no server is selected.
+The window opens at 800 x 480 points (the size of WireGuard's macOS manager).
+The **Servers** sidebar on the left lists the servers, each with its logo (a
+neutral mark when it has none), its name and its state; **+**, **−** and a gear
+are under the list. Several servers may be connected at once, and each row shows
+its own state.
+
+The detail panel on the right is a key/value table with section titles, in the
+manner of WireGuard's tunnel panel. It hides every empty field except **Status**
+and refreshes every second. **Server** holds the name and logo, the URL, the
+identity provider and the signed-in identity, the tenant, whether the server is
+*exclusive*, and whether the helper has approved it. **Status** has an icon and
+the **Connect** / **Disconnect** buttons. **Interface** holds the address and
+the lease expiry in relative time. **Edit** is at the bottom right. When the
+server lists several identity providers, sign-in shows one button per provider.
+
+**+** opens a window of its own with only a URL field. **Next** asks the server
+for its public discovery document and previews its name, logo, providers and
+whether it is exclusive; the person confirms before the server is added, and a
+server that does not answer as a Claimward server is told in plain words. The
+gear (or **Edit**) opens the same window on the selected server, prefilled, and
+can change its identity provider; it is disabled, with the reason in its
+accessible label, while no server is selected.
+
+**Connect** on a server the helper has not approved asks macOS for an
+administrator's authorization, naming the server's host, then approves the
+server and connects (see [server approval]({{< relref "/components/helper.md" >}})).
+A refusal is shown as such. **−** offers to revoke the approval with the
+removal. An *exclusive* server, or a connection that blocks the others, disables
+**Connect** and says why, for instance "Alpha is connected and exclusive".
 
 ## Build
 
@@ -65,8 +87,9 @@ CGO_ENABLED=0 go build -o bin/claimward-helper ./cmd/claimward-helper
 
 ## Configure
 
-`~/Library/Application Support/Claimward/config.json`, for builds on client
-v0.10.0 or later (the format is described on the client page):
+Nothing has to be written by hand: **+** adds a server by its URL. The app keeps
+the list in `~/Library/Application Support/Claimward/config.json` (app v0.10.0
+and later, client v0.11.0; the format is described on the client page):
 
 ```json
 {
@@ -81,7 +104,8 @@ Only the server URL is configured; the providers come from the server. With
 GitHub and go-authn, clicking **Connect** shows a code to enter at the displayed
 page; with OIDC the browser opens the provider's sign-in page. Older builds
 (client v0.9.0 and earlier) read `server_url`, `provider`, `github_client_id`,
-`oidc_issuer` and `oidc_client_id` instead.
+`oidc_issuer` and `oidc_client_id` instead; a file in that format is migrated
+once, on first start, and its session is adopted by the matching server.
 
 ## Install the helper and run
 
