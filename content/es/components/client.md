@@ -7,7 +7,7 @@ tags: [client, go, wireguard, grpc]
 ---
 
 [`claimward-vpn-client`](https://github.com/claimward/claimward-vpn-client)
-**v0.7.0** es una **biblioteca** Go. No incluye ningún binario: los programas ejecutables
+**v0.11.0** es una **biblioteca** Go. No incluye ningún binario: los programas ejecutables
 son los de las aplicaciones (`cmd/claimward-app` y `cmd/claimward-helper` en el repositorio
 de cada aplicación). El servidor también la importa, por los tipos de red y los stubs gRPC.
 
@@ -33,8 +33,9 @@ el módulo que solo contiene la biblioteca es la base sobre la que se construyen
 | `pkg/routeclient` | observa el RouteService del servidor y notifica las actualizaciones de rutas; TLS salvo hacia loopback |
 | `pkg/appcore` | la lógica de las aplicaciones, compartida por las tres: inicio de sesión, el inquilino elegido para la sesión, conexión y desconexión a través del helper, estado para la interfaz |
 | `pkg/appvm` | el modelo de vista de las aplicaciones, sin interfaz: la pantalla que se muestra, lo que puede hacer cada orden, la consulta del estado y los eventos (túnel caído, sesión caducada); cada aplicación lo adapta a sus widgets |
-| `pkg/helper` | el helper con privilegios, compartido por las tres aplicaciones: registra el dispositivo, es dueño del túnel, observa las rutas enviadas |
-| `pkg/hproto`, `pkg/helperclient` | el protocolo de socket del helper, y el cliente de la aplicación para él |
+| `pkg/helper` | el helper con privilegios, compartido por las tres aplicaciones: registra el dispositivo, es dueño del túnel, observa las rutas enviadas y aprueba servidores con el consentimiento del sistema ([Aprobación de servidores](../../server-approval/)) |
+| `pkg/hproto`, `pkg/helperclient` | el protocolo de socket del helper, y el cliente de la aplicación para él: `Approve`, `ApproveElevated`, `Revoke`, `Approved` y los errores tipados `*NotApprovedError` y `ErrApprovalDenied` |
+| `pkg/macauth` | Authorization Services de macOS para la aprobación de servidores: `Obtain(prompt)` en la aplicación, `Verify` en el helper |
 | `pkg/tokenstore` | la sesión (bearer, token de refresco, clave privada del dispositivo, inquilino elegido) en el almacén de secretos del sistema: Keychain de macOS, DPAPI de Windows, Secret Service de Linux; sin alternativa en texto claro |
 
 ## Archivos en el dispositivo {#files-on-the-device}
@@ -75,8 +76,13 @@ Un archivo de la v0.9.0 o anterior (`server_url`, `provider`, `github_client_id`
 `CLAIMWARD_AUTH_PROVIDER`, `CLAIMWARD_GITHUB_CLIENT_ID`, `CLAIMWARD_OIDC_*`) se migra
 una vez en la primera carga. Un servidor **exclusivo** se rechaza mientras haya otro
 conectado, y cualquier otro se rechaza mientras haya uno exclusivo conectado; el
-rechazo nombra el servidor que bloquea. Linux y Windows mantienen por ahora un solo
-túnel a la vez; macOS mantiene uno por servidor.
+rechazo nombra el servidor que bloquea. Desde **v0.11.0** todas las plataformas
+mantienen un túnel por servidor, cada uno en su propia interfaz determinista (abajo).
+
+Desde v0.11.0 el `servers` del helper es opcional (la preaprobación del administrador)
+y un servidor que la persona añade solo es de confianza cuando el sistema ha dado su
+consentimiento: véase [Aprobación de servidores](../../server-approval/). El `helper.json`
+del helper incorpora `approvals`, el archivo de servidores aprobados.
 
 ## Uso en sus propias herramientas {#use-in-your-own-tooling}
 
@@ -141,7 +147,13 @@ Un cliente de larga duración renueva su concesión con `c.Heartbeat` antes de
   los aplica.
 - **Rutas enviadas**: sustituyen las IP permitidas y las rutas; los cambios de DNS de un
   envío no se aplican.
-- **Windows.** El dispositivo es un adaptador Wintun llamado `Claimward`: `wintun.dll`
+- **Nombres de interfaz.** Una interfaz por servidor, nombrada a partir de la URL del
+  servidor por `wgtun.InterfaceName`: macOS `utunN` (numerada por el kernel), Linux `cw-`
+  y diez dígitos hexadecimales del SHA-256 de la URL (13 bytes, dentro de los 15 de
+  `IFNAMSIZ`), Windows `Claimward <host> <6 hex>`. Reconectar sustituye la interfaz; un
+  resto con ese nombre se elimina antes, y un dispositivo TUN de Linux desaparece con su
+  proceso, así que un helper que se cuelga no deja ninguno.
+- **Windows.** El dispositivo es un adaptador Wintun, uno por servidor (véase arriba): `wintun.dll`
   (de <https://www.wintun.net>, firmado por WireGuard LLC) debe estar junto al
   ejecutable que llama a `wgtun.Up`, de lo cual se encarga el empaquetado de la aplicación
   de Windows. La dirección, las rutas, el DNS y la MTU se configuran mediante `winipcfg` (la API IP
