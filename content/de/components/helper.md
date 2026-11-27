@@ -26,8 +26,8 @@ Eine JSON-Anfrage pro Verbindung, eine JSON-Antwort (`pkg/hproto`):
 |---|---|
 | `connect` | registriert sich beim in der Anfrage genannten Server, sofern seine Konfiguration es erlaubt, mit dem übergebenen Bearer-Token, privaten Schlüssel, Gerätenamen und Mandanten; baut den Tunnel auf; beobachtet den RouteService |
 | `tenants` | fragt den Server, mit welchen Mandanten sich das Bearer-Token verbinden darf |
-| `down` | baut den Tunnel ab |
-| `status` | je Tunnel: die Schnittstelle, die Adresse, der Mandant und, seit v0.12.0, seine Live-Daten (siehe unten) |
+| `down` | baut den Tunnel ab: den des genannten Servers oder, ohne Server, die des Aufrufers (siehe [Wem die Tunnel gehören](#whose-tunnels)) |
+| `status` | für jeden Tunnel des Aufrufers: die Schnittstelle, die Adresse, der Mandant und, seit v0.12.0, seine Live-Daten (siehe unten) |
 | `approve` | seit v0.11.0: genehmigt den in der Anfrage genannten Server, wenn das Betriebssystem zustimmt (siehe [Server-Genehmigung](../../server-approval/)) |
 | `revoke` | entfernt einen Server aus den genehmigten |
 | `approved` | listet die genehmigten Server auf |
@@ -55,10 +55,39 @@ Die Live-Werte werden vom WireGuard-Gerät selbst gelesen (die plattformübergre
 UAPI-Operation `get`): Ein wechselnder Endpunkt oder eine neue Route zeigt sich
 sofort; lässt sich das Gerät nicht lesen, werden die Werte der Anmeldung gemeldet
 und die Zähler bleiben bei null. Die Antwort enthält nie einen Schlüssel oder ein
-Token. Wie bisher listet `status` jedem Prozess, der den Socket benutzen darf, alle
-Tunnel der Maschine auf: Es gibt einen Satz Tunnel, keinen pro Benutzer, die neuen
-Felder erweitern also nichts. Die Apps fragen es einmal pro Sekunde ab, solange ein
+Token. Seit v0.12.1 listet `status` nur die Tunnel auf, die dem Aufrufer gehören
+(nächster Abschnitt). Die Apps fragen es einmal pro Sekunde ab, solange ein
 Detailbereich offen ist.
+
+## Wem die Tunnel gehören {#whose-tunnels}
+
+Seit v0.12.1 gehört ein Tunnel dem Benutzer, der ihn aufgebaut hat, und `status`
+(mit seinen `last_errors`) zeigt einem Aufrufer nur dessen eigene Tunnel. Auf
+einer gemeinsam genutzten Maschine sieht ein Benutzer nicht mehr Endpunkt, Routen,
+Adresse oder Zähler eines anderen.
+
+- **Der Eigentümer wird vom Kernel gelesen, nie aus der Anfrage.** Bei `connect`
+  fragt der Helper das Betriebssystem, wer am anderen Ende der Verbindung steht:
+  die uid (`SO_PEERCRED` unter Linux, `LOCAL_PEERCRED` unter macOS und FreeBSD)
+  oder unter Windows die Benutzer-SID des Tokens des aufrufenden Prozesses. Kein
+  Feld einer Anfrage kann einen Eigentümer benennen.
+- **root sieht und darf alles**, ebenso SYSTEM, ein erhöhter Administrator und
+  jeder Aufrufer des erhöhten Sockets unter Windows.
+- **Der Zugriff auf den Tunnel eines anderen wird abgelehnt:** `down` eines
+  genannten Servers, `renew`, `revoke` und ein `connect`, der ihn ersetzen würde,
+  antworten mit dem `error_code` `tunnel_not_owned`. `down` ohne Server baut die
+  Tunnel des Aufrufers ab. Ein abgelehntes `connect` fragt den Server nichts.
+- **Ein Aufrufer, den das System nicht identifizieren kann,** wird abgelehnt.
+  Unter Windows bleibt der Aufrufer unidentifiziert, wenn das System die Frage
+  nach dem Peer-Prozess nicht beantwortet: Er sieht nur Tunnel, die
+  unidentifizierte Aufrufer aufgebaut haben, nie die eines identifizierten
+  Benutzers.
+- **Grenze:** Ein exklusives `connect`, das abgelehnt wird, weil ein anderer
+  Tunnel die Maschine belegt, nennt diesen Server weiterhin (`blocked_by`), da die
+  Exklusivität maschinenweit gilt.
+
+Das Drahtformat ist unverändert: Es wurde kein Feld hinzugefügt, Apps für v0.12.0
+funktionieren also unverändert.
 
 ## Durch die eigene Konfiguration begrenzt {#bounded-by-its-own-configuration}
 

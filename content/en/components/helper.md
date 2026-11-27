@@ -26,8 +26,8 @@ One JSON request per connection, one JSON response (`pkg/hproto`):
 |---|---|
 | `connect` | enrolls with the server named in the request, if its configuration allows it, with the bearer, private key, device name and tenant given; brings the tunnel up; watches the RouteService |
 | `tenants` | asks the server which tenants the bearer may connect to |
-| `down` | takes the tunnel down |
-| `status` | for each tunnel: the interface, the address, the tenant and, since v0.12.0, its live facts (see below) |
+| `down` | takes the tunnel down: the named server's, or, with no server, the caller's own (see [Whose tunnels](#whose-tunnels)) |
+| `status` | for each of the caller's tunnels: the interface, the address, the tenant and, since v0.12.0, its live facts (see below) |
 | `approve` | since v0.11.0: approves the server named in the request, if the operating system consents (see [Server approval](../../server-approval/)) |
 | `revoke` | removes a server from the approved ones |
 | `approved` | lists the approved servers |
@@ -54,10 +54,37 @@ shows (the fields are omitted when empty):
 The live values are read from the WireGuard device itself (the cross-platform
 UAPI `get` operation), so a roaming endpoint or a new route shows at once; if
 the device cannot be read, the enrollment's values are reported and the
-counters stay at zero. The answer never contains a key or a bearer. As before,
-`status` lists every tunnel of the machine to any process allowed to use the
-socket: there is one set of tunnels, not one per user, so the new fields widen
-nothing. The apps poll it, once a second while a detail panel is open.
+counters stay at zero. The answer never contains a key or a bearer. Since
+v0.12.1 `status` lists only the tunnels the caller owns (next section). The
+apps poll it, once a second while a detail panel is open.
+
+## Whose tunnels {#whose-tunnels}
+
+Since v0.12.1 a tunnel belongs to the user who connected it, and `status` (with
+its `last_errors`) shows a caller only its own tunnels. On a shared machine one
+user no longer sees another's endpoint, routes, address or counters.
+
+- **The owner is read from the kernel, never from the request.** At `connect`
+  the helper asks the operating system who is on the other end of that
+  connection: the uid (`SO_PEERCRED` on Linux, `LOCAL_PEERCRED` on macOS and
+  FreeBSD), or on Windows the user SID of the token of the connecting process.
+  No field of a request can name an owner.
+- **root sees and does everything**, and so do SYSTEM, an elevated
+  Administrator and any caller of the elevated socket on Windows.
+- **Acting on another user's tunnel is refused:** `down` of a named server,
+  `renew`, `revoke`, and a `connect` that would replace it answer with the
+  `error_code` `tunnel_not_owned`. `down` with no server takes down the
+  caller's own tunnels. A refused `connect` asks the server nothing.
+- **A caller the system cannot identify** is refused. On Windows, a system that
+  does not answer the peer-process question leaves the caller unidentified: it
+  sees only the tunnels that unidentified callers made, never an identified
+  user's.
+- **Limit:** an exclusive `connect` that is refused because another tunnel
+  holds the machine still names that server (`blocked_by`), as exclusivity is
+  machine-wide.
+
+The wire format is unchanged: no field was added, so apps built against v0.12.0
+work as they are.
 
 ## Bounded by its own configuration
 

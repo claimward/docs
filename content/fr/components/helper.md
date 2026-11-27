@@ -26,8 +26,8 @@ Une requête JSON par connexion, une réponse JSON (`pkg/hproto`) :
 |---|---|
 | `connect` | s'enrôle auprès du serveur nommé dans la requête, si sa configuration l'autorise, avec le bearer, la clé privée, le nom d'appareil et le locataire fournis ; monte le tunnel ; surveille le RouteService |
 | `tenants` | demande au serveur à quels locataires le bearer peut se connecter |
-| `down` | démonte le tunnel |
-| `status` | pour chaque tunnel : l'interface, l'adresse, le locataire et, depuis v0.12.0, ses données en direct (voir plus bas) |
+| `down` | démonte le tunnel : celui du serveur nommé ou, sans serveur, ceux de l'appelant (voir [À qui sont les tunnels](#whose-tunnels)) |
+| `status` | pour chacun des tunnels de l'appelant : l'interface, l'adresse, le locataire et, depuis v0.12.0, ses données en direct (voir plus bas) |
 | `approve` | depuis v0.11.0 : approuve le serveur nommé dans la requête, si le système d'exploitation y consent (voir [Approbation des serveurs](../../server-approval/)) |
 | `revoke` | retire un serveur des serveurs approuvés |
 | `approved` | liste les serveurs approuvés |
@@ -55,11 +55,38 @@ Les valeurs en direct sont lues sur l'appareil WireGuard lui-même (l'opération
 `get` de l'UAPI multiplateforme) : un point d'accès qui change ou une nouvelle
 route se voient aussitôt ; si l'appareil ne peut pas être lu, ce sont les
 valeurs de l'inscription qui sont rapportées et les compteurs restent à zéro.
-La réponse ne contient jamais de clé ni de jeton. Comme avant, `status` liste
-tous les tunnels de la machine à tout processus autorisé à utiliser la socket :
-il y a un seul ensemble de tunnels, pas un par utilisateur, donc les nouveaux
-champs n'élargissent rien. Les applications l'interrogent une fois par seconde
-tant qu'un panneau de détail est ouvert.
+La réponse ne contient jamais de clé ni de jeton. Depuis v0.12.1, `status` ne
+liste que les tunnels de l'appelant (section suivante). Les applications
+l'interrogent une fois par seconde tant qu'un panneau de détail est ouvert.
+
+## À qui sont les tunnels {#whose-tunnels}
+
+Depuis v0.12.1, un tunnel appartient à l'utilisateur qui l'a monté, et `status`
+(avec ses `last_errors`) ne montre à un appelant que ses propres tunnels. Sur une
+machine partagée, un utilisateur ne voit plus le point d'accès, les routes,
+l'adresse ni les compteurs d'un autre.
+
+- **Le propriétaire est lu auprès du noyau, jamais dans la requête.** Au
+  `connect`, le helper demande au système d'exploitation qui se trouve au bout de
+  la connexion : l'uid (`SO_PEERCRED` sous Linux, `LOCAL_PEERCRED` sous macOS et
+  FreeBSD) ou, sous Windows, le SID utilisateur du jeton du processus appelant.
+  Aucun champ d'une requête ne peut désigner un propriétaire.
+- **root voit et fait tout**, ainsi que SYSTEM, un administrateur élevé et tout
+  appelant de la socket élevée sous Windows.
+- **Agir sur le tunnel d'un autre est refusé :** `down` d'un serveur nommé,
+  `renew`, `revoke` et un `connect` qui le remplacerait répondent par l'`error_code`
+  `tunnel_not_owned`. `down` sans serveur démonte les tunnels de l'appelant. Un
+  `connect` refusé ne demande rien au serveur.
+- **Un appelant que le système ne sait pas identifier** est refusé. Sous Windows,
+  un système qui ne répond pas à la question du processus pair laisse l'appelant
+  non identifié : il ne voit que les tunnels montés par des appelants non
+  identifiés, jamais ceux d'un utilisateur identifié.
+- **Limite :** un `connect` exclusif refusé parce qu'un autre tunnel tient la
+  machine nomme encore ce serveur (`blocked_by`), l'exclusivité étant valable pour
+  toute la machine.
+
+Le format sur le fil est inchangé : aucun champ n'a été ajouté, les applications
+construites pour v0.12.0 fonctionnent donc telles quelles.
 
 ## Borné par sa propre configuration {#bounded-by-its-own-configuration}
 
