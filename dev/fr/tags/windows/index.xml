@@ -33,7 +33,7 @@ de la même façon.&lt;/p&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;status&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;connecté ou non, l&amp;rsquo;interface, l&amp;rsquo;adresse, le locataire&lt;/td&gt;
+&lt;td&gt;pour chaque tunnel : l&amp;rsquo;interface, l&amp;rsquo;adresse, le locataire et, depuis v0.12.0, ses données en direct (voir plus bas)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;approve&lt;/code&gt;&lt;/td&gt;
@@ -53,6 +53,52 @@ de la même façon.&lt;/p&gt;
 interface, nommée d&amp;rsquo;après l&amp;rsquo;URL du serveur : sous Windows, l&amp;rsquo;adaptateur ne s&amp;rsquo;appelle plus
 &lt;code&gt;Claimward&lt;/code&gt; mais &lt;code&gt;Claimward &amp;lt;hôte&amp;gt; &amp;lt;6 hex&amp;gt;&lt;/code&gt; (un &lt;strong&gt;changement incompatible&lt;/strong&gt; pour tout ce
 qui cherchait l&amp;rsquo;adaptateur sous son ancien nom).&lt;/p&gt;
+&lt;h2 data-hextra-search-id="ce-que-status-rapporte-par-tunnel"&gt;Ce que &lt;code&gt;status&lt;/code&gt; rapporte par tunnel&lt;span class="hx:absolute hx:-mt-20" id="ce-que-status-rapporte-par-tunnel"&gt;&lt;/span&gt;
+&lt;a href="#ce-que-status-rapporte-par-tunnel" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Depuis v0.12.0, chaque tunnel de la réponse porte, en lecture seule, ce qu&amp;rsquo;un
+panneau de détail affiche (les champs vides sont omis) :&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Champ&lt;/th&gt;
+&lt;th&gt;Sens&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;interface&lt;/code&gt;, &lt;code&gt;assigned_ip&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;le nom de l&amp;rsquo;interface et l&amp;rsquo;adresse, séparément&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;endpoint&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;le &lt;code&gt;hôte:port&lt;/code&gt; du pair, tel que l&amp;rsquo;appareil le tient maintenant&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;allowed_ips&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;les CIDR routés dans le tunnel (ils suivent une poussée de routes)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;dns&lt;/code&gt;, &lt;code&gt;mtu&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;les serveurs DNS attribués par le serveur, et le MTU de l&amp;rsquo;interface&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;rx_bytes&lt;/code&gt;, &lt;code&gt;tx_bytes&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;octets que l&amp;rsquo;appareil a reçus du pair et lui a envoyés depuis l&amp;rsquo;ouverture du tunnel&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;last_handshake&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;la dernière poignée de main achevée (absent tant qu&amp;rsquo;il n&amp;rsquo;y en a pas eu)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Les valeurs en direct sont lues sur l&amp;rsquo;appareil WireGuard lui-même (l&amp;rsquo;opération
+&lt;code&gt;get&lt;/code&gt; de l&amp;rsquo;UAPI multiplateforme) : un point d&amp;rsquo;accès qui change ou une nouvelle
+route se voient aussitôt ; si l&amp;rsquo;appareil ne peut pas être lu, ce sont les
+valeurs de l&amp;rsquo;inscription qui sont rapportées et les compteurs restent à zéro.
+La réponse ne contient jamais de clé ni de jeton. Comme avant, &lt;code&gt;status&lt;/code&gt; liste
+tous les tunnels de la machine à tout processus autorisé à utiliser la socket :
+il y a un seul ensemble de tunnels, pas un par utilisateur, donc les nouveaux
+champs n&amp;rsquo;élargissent rien. Les applications l&amp;rsquo;interrogent une fois par seconde
+tant qu&amp;rsquo;un panneau de détail est ouvert.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="bounded-by-its-own-configuration"&gt;Borné par sa propre configuration&lt;span class="hx:absolute hx:-mt-20" id="bounded-by-its-own-configuration"&gt;&lt;/span&gt;
 &lt;a href="#bounded-by-its-own-configuration" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Tout processus capable d&amp;rsquo;atteindre la socket du helper peut le faire agir ; ce qu&amp;rsquo;il
 fait est donc borné par &lt;strong&gt;sa propre&lt;/strong&gt; configuration, jamais par la requête :&lt;/p&gt;

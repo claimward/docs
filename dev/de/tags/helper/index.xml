@@ -33,7 +33,7 @@ gleich verhalten.&lt;/p&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;status&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;verbunden oder nicht, die Schnittstelle, die Adresse, der Mandant&lt;/td&gt;
+&lt;td&gt;je Tunnel: die Schnittstelle, die Adresse, der Mandant und, seit v0.12.0, seine Live-Daten (siehe unten)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;approve&lt;/code&gt;&lt;/td&gt;
@@ -53,6 +53,51 @@ gleich verhalten.&lt;/p&gt;
 Schnittstelle, benannt nach der URL des Servers: Unter Windows heißt der Adapter nicht mehr
 &lt;code&gt;Claimward&lt;/code&gt;, sondern &lt;code&gt;Claimward &amp;lt;Host&amp;gt; &amp;lt;6 Hex&amp;gt;&lt;/code&gt; (eine &lt;strong&gt;inkompatible Änderung&lt;/strong&gt; für alles, was
 den Adapter unter seinem alten Namen suchte).&lt;/p&gt;
+&lt;h2 data-hextra-search-id="was-status-je-tunnel-meldet"&gt;Was &lt;code&gt;status&lt;/code&gt; je Tunnel meldet&lt;span class="hx:absolute hx:-mt-20" id="was-status-je-tunnel-meldet"&gt;&lt;/span&gt;
+&lt;a href="#was-status-je-tunnel-meldet" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Seit v0.12.0 trägt jeder Tunnel der Antwort schreibgeschützt das, was ein
+Detailbereich anzeigt (leere Felder entfallen):&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feld&lt;/th&gt;
+&lt;th&gt;Bedeutung&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;interface&lt;/code&gt;, &lt;code&gt;assigned_ip&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;der Schnittstellenname und die Adresse, getrennt&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;endpoint&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;das &lt;code&gt;Host:Port&lt;/code&gt; des Peers, wie das Gerät es jetzt hält&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;allowed_ips&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;die in den Tunnel geleiteten CIDRs (sie folgen einer Routen-Übermittlung)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;dns&lt;/code&gt;, &lt;code&gt;mtu&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;die vom Server zugewiesenen DNS-Server und die MTU der Schnittstelle&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;rx_bytes&lt;/code&gt;, &lt;code&gt;tx_bytes&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Bytes, die das Gerät seit dem Aufbau des Tunnels vom Peer empfangen und an ihn gesendet hat&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;last_handshake&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;der letzte abgeschlossene Handshake (fehlt, bis es einen gab)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Die Live-Werte werden vom WireGuard-Gerät selbst gelesen (die plattformübergreifende
+UAPI-Operation &lt;code&gt;get&lt;/code&gt;): Ein wechselnder Endpunkt oder eine neue Route zeigt sich
+sofort; lässt sich das Gerät nicht lesen, werden die Werte der Anmeldung gemeldet
+und die Zähler bleiben bei null. Die Antwort enthält nie einen Schlüssel oder ein
+Token. Wie bisher listet &lt;code&gt;status&lt;/code&gt; jedem Prozess, der den Socket benutzen darf, alle
+Tunnel der Maschine auf: Es gibt einen Satz Tunnel, keinen pro Benutzer, die neuen
+Felder erweitern also nichts. Die Apps fragen es einmal pro Sekunde ab, solange ein
+Detailbereich offen ist.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="bounded-by-its-own-configuration"&gt;Durch die eigene Konfiguration begrenzt&lt;span class="hx:absolute hx:-mt-20" id="bounded-by-its-own-configuration"&gt;&lt;/span&gt;
 &lt;a href="#bounded-by-its-own-configuration" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Jeder Prozess, der den Socket des Helpers erreichen kann, kann ihn zum Handeln bringen, daher ist das, was er
 tut, durch &lt;strong&gt;seine eigene&lt;/strong&gt; Konfiguration begrenzt, niemals durch die Anfrage:&lt;/p&gt;

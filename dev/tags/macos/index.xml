@@ -33,7 +33,7 @@ alike.&lt;/p&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;status&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;connected or not, the interface, the address, the tenant&lt;/td&gt;
+&lt;td&gt;for each tunnel: the interface, the address, the tenant and, since v0.12.0, its live facts (see below)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;approve&lt;/code&gt;&lt;/td&gt;
@@ -53,6 +53,50 @@ alike.&lt;/p&gt;
 interface, named from the server&amp;rsquo;s URL: on Windows the adapter is no longer
 called &lt;code&gt;Claimward&lt;/code&gt; but &lt;code&gt;Claimward &amp;lt;host&amp;gt; &amp;lt;6 hex&amp;gt;&lt;/code&gt; (a &lt;strong&gt;breaking change&lt;/strong&gt; for
 anything that looked the adapter up by its old name).&lt;/p&gt;
+&lt;h2 data-hextra-search-id="what-status-reports-per-tunnel"&gt;What &lt;code&gt;status&lt;/code&gt; reports per tunnel&lt;span class="hx:absolute hx:-mt-20" id="what-status-reports-per-tunnel"&gt;&lt;/span&gt;
+&lt;a href="#what-status-reports-per-tunnel" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Since v0.12.0 each tunnel in the answer carries, read-only, what a detail panel
+shows (the fields are omitted when empty):&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Field&lt;/th&gt;
+&lt;th&gt;Meaning&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;interface&lt;/code&gt;, &lt;code&gt;assigned_ip&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;the interface name and the address, apart from each other&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;endpoint&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;the peer&amp;rsquo;s &lt;code&gt;host:port&lt;/code&gt;, as the device holds it now&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;allowed_ips&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;the CIDRs routed into the tunnel (they follow a route push)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;dns&lt;/code&gt;, &lt;code&gt;mtu&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;the DNS servers the server assigned, and the interface&amp;rsquo;s MTU&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;rx_bytes&lt;/code&gt;, &lt;code&gt;tx_bytes&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;bytes the device received from and sent to the peer since the tunnel came up&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;last_handshake&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;the last completed handshake (absent until there has been one)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;The live values are read from the WireGuard device itself (the cross-platform
+UAPI &lt;code&gt;get&lt;/code&gt; operation), so a roaming endpoint or a new route shows at once; if
+the device cannot be read, the enrollment&amp;rsquo;s values are reported and the
+counters stay at zero. The answer never contains a key or a bearer. As before,
+&lt;code&gt;status&lt;/code&gt; lists every tunnel of the machine to any process allowed to use the
+socket: there is one set of tunnels, not one per user, so the new fields widen
+nothing. The apps poll it, once a second while a detail panel is open.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="bounded-by-its-own-configuration"&gt;Bounded by its own configuration&lt;span class="hx:absolute hx:-mt-20" id="bounded-by-its-own-configuration"&gt;&lt;/span&gt;
 &lt;a href="#bounded-by-its-own-configuration" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Any process that can reach the helper&amp;rsquo;s socket can make it act, so what it
 does is bounded by &lt;strong&gt;its own&lt;/strong&gt; configuration, never by the request:&lt;/p&gt;

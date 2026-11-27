@@ -1,6 +1,6 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Claimward – Client</title><link>https://claimward.github.io/docs/dev/tags/client/</link><description>Recent content in Client on Claimward</description><generator>Hugo -- gohugo.io</generator><language>en</language><atom:link href="https://claimward.github.io/docs/dev/tags/client/index.xml" rel="self" type="application/rss+xml"/><item><title>Client library</title><link>https://claimward.github.io/docs/dev/components/client/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/components/client/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-client" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-client&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.11.0&lt;/strong&gt; is a Go &lt;strong&gt;library&lt;/strong&gt;. It ships no binary: the runnable programs are
+&lt;strong&gt;v0.12.0&lt;/strong&gt; is a Go &lt;strong&gt;library&lt;/strong&gt;. It ships no binary: the runnable programs are
 the apps&amp;rsquo; (&lt;code&gt;cmd/claimward-app&lt;/code&gt; and &lt;code&gt;cmd/claimward-helper&lt;/code&gt; in each app
 repository). The server imports it too, for the wire types and the gRPC stubs.&lt;/p&gt;
 &lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-blue-200 hx:bg-blue-100 hx:text-blue-900 hx:dark:border-blue-200/30 hx:dark:bg-blue-900/30 hx:dark:text-blue-200"&gt;
@@ -66,7 +66,7 @@ the library-only module is what the apps build on.&lt;/div&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;pkg/appvm&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;the apps&amp;rsquo; view model, with no UI in it: the screen to show, what each command may do, the status poll, and the events (tunnel dropped, session expired); each app adapts it to its own widgets&lt;/td&gt;
+&lt;td&gt;the apps&amp;rsquo; view model, with no UI in it: the screen to show, what each command may do, the status poll, the events (tunnel dropped, session expired) and, since v0.12.0, each tunnel&amp;rsquo;s facts (&lt;code&gt;State.Tunnel&lt;/code&gt;: interface, address, endpoint, allowed IPs, DNS, MTU, bytes received and sent, last handshake); each app adapts it to its own widgets&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;pkg/helper&lt;/code&gt;&lt;/td&gt;

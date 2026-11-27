@@ -33,7 +33,7 @@ igual.&lt;/p&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;status&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;conectado o no, la interfaz, la dirección, el inquilino&lt;/td&gt;
+&lt;td&gt;por cada túnel: la interfaz, la dirección, el inquilino y, desde v0.12.0, sus datos en vivo (véase más abajo)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;approve&lt;/code&gt;&lt;/td&gt;
@@ -53,6 +53,51 @@ igual.&lt;/p&gt;
 interfaz, nombrada a partir de la URL del servidor: en Windows el adaptador ya no se llama
 &lt;code&gt;Claimward&lt;/code&gt; sino &lt;code&gt;Claimward &amp;lt;host&amp;gt; &amp;lt;6 hex&amp;gt;&lt;/code&gt; (un &lt;strong&gt;cambio incompatible&lt;/strong&gt; para todo lo que
 buscara el adaptador por su nombre antiguo).&lt;/p&gt;
+&lt;h2 data-hextra-search-id="lo-que-status-informa-por-túnel"&gt;Lo que &lt;code&gt;status&lt;/code&gt; informa por túnel&lt;span class="hx:absolute hx:-mt-20" id="lo-que-status-informa-por-túnel"&gt;&lt;/span&gt;
+&lt;a href="#lo-que-status-informa-por-t%c3%banel" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Desde v0.12.0, cada túnel de la respuesta lleva, de solo lectura, lo que muestra
+un panel de detalle (los campos vacíos se omiten):&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Campo&lt;/th&gt;
+&lt;th&gt;Significado&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;interface&lt;/code&gt;, &lt;code&gt;assigned_ip&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;el nombre de la interfaz y la dirección, por separado&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;endpoint&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;el &lt;code&gt;host:puerto&lt;/code&gt; del par, tal como lo tiene ahora el dispositivo&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;allowed_ips&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;los CIDR enrutados al túnel (siguen un envío de rutas)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;dns&lt;/code&gt;, &lt;code&gt;mtu&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;los servidores DNS asignados por el servidor y la MTU de la interfaz&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;rx_bytes&lt;/code&gt;, &lt;code&gt;tx_bytes&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;bytes que el dispositivo ha recibido del par y le ha enviado desde que el túnel subió&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;last_handshake&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;el último handshake completado (ausente hasta que haya habido uno)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Los valores en vivo se leen del propio dispositivo WireGuard (la operación &lt;code&gt;get&lt;/code&gt;
+de la UAPI multiplataforma): un endpoint que cambia o una ruta nueva se ven al
+instante; si no se puede leer el dispositivo, se informa de los valores de la
+inscripción y los contadores se quedan en cero. La respuesta nunca contiene una
+clave ni un token. Como antes, &lt;code&gt;status&lt;/code&gt; lista todos los túneles de la máquina a
+cualquier proceso autorizado a usar el socket: hay un solo conjunto de túneles,
+no uno por usuario, así que los campos nuevos no amplían nada. Las aplicaciones lo
+consultan una vez por segundo mientras haya un panel de detalle abierto.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="bounded-by-its-own-configuration"&gt;Limitado por su propia configuración&lt;span class="hx:absolute hx:-mt-20" id="bounded-by-its-own-configuration"&gt;&lt;/span&gt;
 &lt;a href="#bounded-by-its-own-configuration" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Cualquier proceso que pueda acceder al socket del helper puede hacerlo actuar, así que lo que
 hace está limitado por &lt;strong&gt;su propia&lt;/strong&gt; configuración, nunca por la solicitud:&lt;/p&gt;
