@@ -26,8 +26,8 @@ Una solicitud JSON por conexión, una respuesta JSON (`pkg/hproto`):
 |---|---|
 | `connect` | registra el dispositivo en el servidor nombrado en la solicitud, si su configuración lo permite, con el bearer, la clave privada, el nombre del dispositivo y el inquilino indicados; levanta el túnel; observa el RouteService |
 | `tenants` | pregunta al servidor a qué inquilinos puede conectarse el bearer |
-| `down` | baja el túnel |
-| `status` | por cada túnel: la interfaz, la dirección, el inquilino y, desde v0.12.0, sus datos en vivo (véase más abajo) |
+| `down` | baja el túnel: el del servidor nombrado o, sin servidor, los del llamante (véase [De quién son los túneles](#whose-tunnels)) |
+| `status` | por cada túnel del llamante: la interfaz, la dirección, el inquilino y, desde v0.12.0, sus datos en vivo (véase más abajo) |
 | `approve` | desde v0.11.0: aprueba el servidor nombrado en la solicitud, si el sistema operativo da su consentimiento (véase [Aprobación de servidores](../../server-approval/)) |
 | `revoke` | quita un servidor de los aprobados |
 | `approved` | lista los servidores aprobados |
@@ -55,10 +55,38 @@ Los valores en vivo se leen del propio dispositivo WireGuard (la operación `get
 de la UAPI multiplataforma): un endpoint que cambia o una ruta nueva se ven al
 instante; si no se puede leer el dispositivo, se informa de los valores de la
 inscripción y los contadores se quedan en cero. La respuesta nunca contiene una
-clave ni un token. Como antes, `status` lista todos los túneles de la máquina a
-cualquier proceso autorizado a usar el socket: hay un solo conjunto de túneles,
-no uno por usuario, así que los campos nuevos no amplían nada. Las aplicaciones lo
-consultan una vez por segundo mientras haya un panel de detalle abierto.
+clave ni un token. Desde v0.12.1, `status` lista solo los túneles del llamante
+(sección siguiente). Las aplicaciones lo consultan una vez por segundo mientras
+haya un panel de detalle abierto.
+
+## De quién son los túneles {#whose-tunnels}
+
+Desde v0.12.1, un túnel pertenece al usuario que lo levantó, y `status` (con sus
+`last_errors`) solo muestra a un llamante sus propios túneles. En una máquina
+compartida, un usuario ya no ve el endpoint, las rutas, la dirección ni los
+contadores de otro.
+
+- **El propietario se lee del kernel, nunca de la solicitud.** En `connect`, el
+  helper pregunta al sistema operativo quién está al otro extremo de la conexión:
+  el uid (`SO_PEERCRED` en Linux, `LOCAL_PEERCRED` en macOS y FreeBSD) o, en
+  Windows, el SID de usuario del token del proceso que llama. Ningún campo de una
+  solicitud puede nombrar un propietario.
+- **root lo ve y lo hace todo**, igual que SYSTEM, un administrador elevado y
+  cualquier llamante del socket elevado en Windows.
+- **Actuar sobre el túnel de otro se rechaza:** `down` de un servidor nombrado,
+  `renew`, `revoke` y un `connect` que lo reemplazaría responden con el
+  `error_code` `tunnel_not_owned`. `down` sin servidor baja los túneles del
+  llamante. Un `connect` rechazado no pregunta nada al servidor.
+- **Un llamante que el sistema no sabe identificar** se rechaza. En Windows, un
+  sistema que no responde a la pregunta del proceso par deja al llamante sin
+  identificar: solo ve los túneles que crearon llamantes sin identificar, nunca
+  los de un usuario identificado.
+- **Límite:** un `connect` exclusivo rechazado porque otro túnel ocupa la máquina
+  sigue nombrando ese servidor (`blocked_by`), pues la exclusividad es de toda la
+  máquina.
+
+El formato en el cable no cambia: no se añadió ningún campo, así que las
+aplicaciones construidas para v0.12.0 funcionan tal cual.
 
 ## Limitado por su propia configuración {#bounded-by-its-own-configuration}
 
