@@ -35,16 +35,35 @@ alike.&lt;/p&gt;
 &lt;td&gt;&lt;code&gt;status&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;connected or not, the interface, the address, the tenant&lt;/td&gt;
 &lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;approve&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;since v0.11.0: approves the server named in the request, if the operating system consents (see &lt;a href="../../server-approval/"&gt;Server approval&lt;/a&gt;)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;revoke&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;removes a server from the approved ones&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;approved&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;lists the approved servers&lt;/td&gt;
+&lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
+&lt;p&gt;Since v0.11.0 the helper holds &lt;strong&gt;one tunnel per server&lt;/strong&gt;, each on its own
+interface, named from the server&amp;rsquo;s URL: on Windows the adapter is no longer
+called &lt;code&gt;Claimward&lt;/code&gt; but &lt;code&gt;Claimward &amp;lt;host&amp;gt; &amp;lt;6 hex&amp;gt;&lt;/code&gt; (a &lt;strong&gt;breaking change&lt;/strong&gt; for
+anything that looked the adapter up by its old name).&lt;/p&gt;
 &lt;h2 data-hextra-search-id="bounded-by-its-own-configuration"&gt;Bounded by its own configuration&lt;span class="hx:absolute hx:-mt-20" id="bounded-by-its-own-configuration"&gt;&lt;/span&gt;
 &lt;a href="#bounded-by-its-own-configuration" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Any process that can reach the helper&amp;rsquo;s socket can make it act, so what it
 does is bounded by &lt;strong&gt;its own&lt;/strong&gt; configuration, never by the request:&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;It enrolls only with a server its configuration names.&lt;/strong&gt; A helper that
-took the server from the request would let any local process point it at a
-server of its own, answering with routes for &lt;code&gt;0.0.0.0/0&lt;/code&gt;: every packet of
-the machine, sent where that process chose.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;It enrolls only with a server its configuration names, or one that was
+approved with the system&amp;rsquo;s consent.&lt;/strong&gt; A helper that took the server from the
+request would let any local process point it at a server of its own,
+answering with routes for &lt;code&gt;0.0.0.0/0&lt;/code&gt;: every packet of the machine, sent
+where that process chose. Approval is the operating system&amp;rsquo;s own prompt
+(macOS Authorization Services, polkit on Linux, an elevated second socket on
+Windows), never a field of the request: see &lt;a href="../../server-approval/"&gt;Server approval&lt;/a&gt;.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;It takes no tunnel configuration from a request.&lt;/strong&gt; The tunnel is what that
 server answered at enrollment. The earlier &lt;code&gt;up&lt;/code&gt; and &lt;code&gt;update-routes&lt;/code&gt; actions,
 which took one, are gone.&lt;/li&gt;
@@ -79,7 +98,11 @@ data-copied-label="Copied!"
 &lt;tbody&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;servers&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;strong&gt;required&lt;/strong&gt;: the servers the helper may enroll with. The app&amp;rsquo;s &lt;code&gt;server_url&lt;/code&gt; must be one of them (compared without a trailing &lt;code&gt;/&lt;/code&gt;)&lt;/td&gt;
+&lt;td&gt;optional since v0.11.0: the servers pre-approved by the administrator (compared without a trailing &lt;code&gt;/&lt;/code&gt;); others need approval&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;approvals&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;optional: where the approved servers are kept (the default per platform is in &lt;a href="../../server-approval/"&gt;Server approval&lt;/a&gt;)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;group&lt;/code&gt;&lt;/td&gt;
@@ -141,6 +164,15 @@ generic write/all to another SID, and a null DACL.&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;The rules (&lt;code&gt;pkg/helper/acl.go&lt;/code&gt;) are pure functions, tested on every platform;
 the Windows CI job applies them to real files and reads them back.&lt;/p&gt;
+&lt;p&gt;Approval has a &lt;strong&gt;second socket&lt;/strong&gt; on Windows, &lt;code&gt;C:\ProgramData\Claimward\approve.sock&lt;/code&gt;
+(&lt;code&gt;helper.ListenElevated&lt;/code&gt;, served by &lt;code&gt;Server.ServeElevated&lt;/code&gt;), whose ACL names
+SYSTEM and Administrators only: a standard user cannot connect without UAC
+elevation, and only an &lt;code&gt;approve&lt;/code&gt; that arrived there counts. The app reaches it
+through &lt;code&gt;Client.ElevatedSocketPath&lt;/code&gt; and &lt;code&gt;ApproveElevated&lt;/code&gt;.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="packaging-the-polkit-policy-linux"&gt;Packaging the polkit policy (Linux)&lt;span class="hx:absolute hx:-mt-20" id="packaging-the-polkit-policy-linux"&gt;&lt;/span&gt;
+&lt;a href="#packaging-the-polkit-policy-linux" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;The Linux package installs &lt;code&gt;packaging/polkit/com.claimward.helper.approve-server.policy&lt;/code&gt;
+of the client repository into &lt;code&gt;/usr/share/polkit-1/actions/&lt;/code&gt;. Without it
+polkit does not know the action and every approval is refused.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="route-watches-over-tls"&gt;Route watches over TLS&lt;span class="hx:absolute hx:-mt-20" id="route-watches-over-tls"&gt;&lt;/span&gt;
 &lt;a href="#route-watches-over-tls" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;A route watch carries the bearer token, so &lt;code&gt;pkg/routeclient&lt;/code&gt; runs it over
 &lt;strong&gt;TLS&lt;/strong&gt;, checked against the system&amp;rsquo;s roots, except to a loopback address.

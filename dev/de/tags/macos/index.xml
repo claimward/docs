@@ -35,16 +35,36 @@ gleich verhalten.&lt;/p&gt;
 &lt;td&gt;&lt;code&gt;status&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;verbunden oder nicht, die Schnittstelle, die Adresse, der Mandant&lt;/td&gt;
 &lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;approve&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;seit v0.11.0: genehmigt den in der Anfrage genannten Server, wenn das Betriebssystem zustimmt (siehe &lt;a href="../../server-approval/"&gt;Server-Genehmigung&lt;/a&gt;)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;revoke&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;entfernt einen Server aus den genehmigten&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;approved&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;listet die genehmigten Server auf&lt;/td&gt;
+&lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
+&lt;p&gt;Seit v0.11.0 hält der Helper &lt;strong&gt;einen Tunnel pro Server&lt;/strong&gt;, jeden auf einer eigenen
+Schnittstelle, benannt nach der URL des Servers: Unter Windows heißt der Adapter nicht mehr
+&lt;code&gt;Claimward&lt;/code&gt;, sondern &lt;code&gt;Claimward &amp;lt;Host&amp;gt; &amp;lt;6 Hex&amp;gt;&lt;/code&gt; (eine &lt;strong&gt;inkompatible Änderung&lt;/strong&gt; für alles, was
+den Adapter unter seinem alten Namen suchte).&lt;/p&gt;
 &lt;h2 data-hextra-search-id="bounded-by-its-own-configuration"&gt;Durch die eigene Konfiguration begrenzt&lt;span class="hx:absolute hx:-mt-20" id="bounded-by-its-own-configuration"&gt;&lt;/span&gt;
 &lt;a href="#bounded-by-its-own-configuration" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Jeder Prozess, der den Socket des Helpers erreichen kann, kann ihn zum Handeln bringen, daher ist das, was er
 tut, durch &lt;strong&gt;seine eigene&lt;/strong&gt; Konfiguration begrenzt, niemals durch die Anfrage:&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;Er registriert sich nur bei einem Server, den seine Konfiguration nennt.&lt;/strong&gt; Ein Helper, der
+&lt;li&gt;&lt;strong&gt;Er registriert sich nur bei einem Server, den seine Konfiguration nennt, oder bei einem,
+der mit Zustimmung des Systems genehmigt wurde.&lt;/strong&gt; Ein Helper, der
 den Server aus der Anfrage übernähme, ließe jeden lokalen Prozess ihn auf einen eigenen
 Server richten, der mit Routen für &lt;code&gt;0.0.0.0/0&lt;/code&gt; antwortet: jedes Paket der
-Maschine, dorthin gesendet, wohin dieser Prozess es wollte.&lt;/li&gt;
+Maschine, dorthin gesendet, wohin dieser Prozess es wollte. Die Genehmigung ist die
+Abfrage des Betriebssystems selbst (Authorization Services unter macOS, polkit unter Linux,
+ein zweiter erhöhter Socket unter Windows), nie ein Feld der Anfrage: siehe
+&lt;a href="../../server-approval/"&gt;Server-Genehmigung&lt;/a&gt;.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;Er übernimmt keine Tunnelkonfiguration aus einer Anfrage.&lt;/strong&gt; Der Tunnel ist das, was dieser
 Server bei der Registrierung geantwortet hat. Die früheren Aktionen &lt;code&gt;up&lt;/code&gt; und &lt;code&gt;update-routes&lt;/code&gt;,
 die eine übernahmen, gibt es nicht mehr.&lt;/li&gt;
@@ -79,7 +99,11 @@ data-copied-label="Kopiert!"
 &lt;tbody&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;servers&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;strong&gt;erforderlich&lt;/strong&gt;: die Server, bei denen sich der Helper registrieren darf. Die &lt;code&gt;server_url&lt;/code&gt; der App muss einer davon sein (verglichen ohne abschließendes &lt;code&gt;/&lt;/code&gt;)&lt;/td&gt;
+&lt;td&gt;seit v0.11.0 optional: die vom Administrator vorab genehmigten Server (verglichen ohne abschließendes &lt;code&gt;/&lt;/code&gt;); andere brauchen eine Genehmigung&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;approvals&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;optional: wo die genehmigten Server gespeichert werden (der Standard je Plattform steht unter &lt;a href="../../server-approval/"&gt;Server-Genehmigung&lt;/a&gt;)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;group&lt;/code&gt;&lt;/td&gt;
@@ -141,6 +165,15 @@ generisches Schreiben/Alles gewährt, ebenso eine Null-DACL.&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;Die Regeln (&lt;code&gt;pkg/helper/acl.go&lt;/code&gt;) sind reine Funktionen, auf jeder Plattform getestet;
 der Windows-Job der CI wendet sie auf echte Dateien an und liest sie zurück.&lt;/p&gt;
+&lt;p&gt;Die Genehmigung hat unter Windows einen &lt;strong&gt;zweiten Socket&lt;/strong&gt;, &lt;code&gt;C:\ProgramData\Claimward\approve.sock&lt;/code&gt;
+(&lt;code&gt;helper.ListenElevated&lt;/code&gt;, bedient von &lt;code&gt;Server.ServeElevated&lt;/code&gt;), dessen ACL nur SYSTEM und
+Administratoren nennt: Ein Standardbenutzer kann sich ohne UAC-Erhöhung nicht verbinden, und
+nur ein dort eingegangenes &lt;code&gt;approve&lt;/code&gt; zählt. Die App erreicht ihn über
+&lt;code&gt;Client.ElevatedSocketPath&lt;/code&gt; und &lt;code&gt;ApproveElevated&lt;/code&gt;.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="packaging-the-polkit-policy"&gt;Die polkit-Policy paketieren (Linux)&lt;span class="hx:absolute hx:-mt-20" id="packaging-the-polkit-policy"&gt;&lt;/span&gt;
+&lt;a href="#packaging-the-polkit-policy" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Das Linux-Paket installiert &lt;code&gt;packaging/polkit/com.claimward.helper.approve-server.policy&lt;/code&gt;
+des Client-Repositorys nach &lt;code&gt;/usr/share/polkit-1/actions/&lt;/code&gt;. Ohne sie kennt polkit die
+Aktion nicht, und jede Genehmigung wird abgelehnt.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="route-watches-over-tls"&gt;Beobachtung der Routen über TLS&lt;span class="hx:absolute hx:-mt-20" id="route-watches-over-tls"&gt;&lt;/span&gt;
 &lt;a href="#route-watches-over-tls" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Eine Beobachtung der Routen überträgt das Bearer-Token, daher führt &lt;code&gt;pkg/routeclient&lt;/code&gt; sie über
 &lt;strong&gt;TLS&lt;/strong&gt; aus, geprüft gegen die Stammzertifikate des Systems, außer zu einer Loopback-Adresse.

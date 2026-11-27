@@ -35,16 +35,36 @@ igual.&lt;/p&gt;
 &lt;td&gt;&lt;code&gt;status&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;conectado o no, la interfaz, la dirección, el inquilino&lt;/td&gt;
 &lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;approve&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;desde v0.11.0: aprueba el servidor nombrado en la solicitud, si el sistema operativo da su consentimiento (véase &lt;a href="../../server-approval/"&gt;Aprobación de servidores&lt;/a&gt;)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;revoke&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;quita un servidor de los aprobados&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;approved&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;lista los servidores aprobados&lt;/td&gt;
+&lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
+&lt;p&gt;Desde v0.11.0 el helper mantiene &lt;strong&gt;un túnel por servidor&lt;/strong&gt;, cada uno en su propia
+interfaz, nombrada a partir de la URL del servidor: en Windows el adaptador ya no se llama
+&lt;code&gt;Claimward&lt;/code&gt; sino &lt;code&gt;Claimward &amp;lt;host&amp;gt; &amp;lt;6 hex&amp;gt;&lt;/code&gt; (un &lt;strong&gt;cambio incompatible&lt;/strong&gt; para todo lo que
+buscara el adaptador por su nombre antiguo).&lt;/p&gt;
 &lt;h2 data-hextra-search-id="bounded-by-its-own-configuration"&gt;Limitado por su propia configuración&lt;span class="hx:absolute hx:-mt-20" id="bounded-by-its-own-configuration"&gt;&lt;/span&gt;
 &lt;a href="#bounded-by-its-own-configuration" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Cualquier proceso que pueda acceder al socket del helper puede hacerlo actuar, así que lo que
 hace está limitado por &lt;strong&gt;su propia&lt;/strong&gt; configuración, nunca por la solicitud:&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;Solo registra el dispositivo en un servidor que nombre su configuración.&lt;/strong&gt; Un helper que
+&lt;li&gt;&lt;strong&gt;Solo registra el dispositivo en un servidor que nombre su configuración, o que se
+aprobó con el consentimiento del sistema.&lt;/strong&gt; Un helper que
 tomara el servidor de la solicitud permitiría a cualquier proceso local dirigirlo a un
 servidor propio, que respondiera con rutas para &lt;code&gt;0.0.0.0/0&lt;/code&gt;: todos los paquetes de
-la máquina, enviados adonde ese proceso eligiera.&lt;/li&gt;
+la máquina, enviados adonde ese proceso eligiera. La aprobación es el aviso del propio
+sistema operativo (Authorization Services en macOS, polkit en Linux, un segundo socket
+elevado en Windows), nunca un campo de la solicitud: véase
+&lt;a href="../../server-approval/"&gt;Aprobación de servidores&lt;/a&gt;.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;No acepta ninguna configuración de túnel de una solicitud.&lt;/strong&gt; El túnel es lo que ese
 servidor respondió en el registro. Las antiguas acciones &lt;code&gt;up&lt;/code&gt; y &lt;code&gt;update-routes&lt;/code&gt;,
 que aceptaban una, ya no existen.&lt;/li&gt;
@@ -79,7 +99,11 @@ data-copied-label="¡Copiado!"
 &lt;tbody&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;servers&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;strong&gt;obligatoria&lt;/strong&gt;: los servidores en los que el helper puede registrar el dispositivo. El &lt;code&gt;server_url&lt;/code&gt; de la aplicación debe ser uno de ellos (comparado sin &lt;code&gt;/&lt;/code&gt; final)&lt;/td&gt;
+&lt;td&gt;opcional desde v0.11.0: los servidores preaprobados por el administrador (comparados sin &lt;code&gt;/&lt;/code&gt; final); los demás necesitan aprobación&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;approvals&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;opcional: dónde se guardan los servidores aprobados (el valor predeterminado por plataforma está en &lt;a href="../../server-approval/"&gt;Aprobación de servidores&lt;/a&gt;)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;group&lt;/code&gt;&lt;/td&gt;
@@ -141,6 +165,15 @@ escritura/todo genéricos a otro SID, así como una DACL nula.&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;Las reglas (&lt;code&gt;pkg/helper/acl.go&lt;/code&gt;) son funciones puras, probadas en todas las plataformas;
 el job de CI de Windows las aplica a archivos reales y las vuelve a leer.&lt;/p&gt;
+&lt;p&gt;La aprobación tiene en Windows un &lt;strong&gt;segundo socket&lt;/strong&gt;, &lt;code&gt;C:\ProgramData\Claimward\approve.sock&lt;/code&gt;
+(&lt;code&gt;helper.ListenElevated&lt;/code&gt;, servido por &lt;code&gt;Server.ServeElevated&lt;/code&gt;), cuya ACL nombra solo a SYSTEM y
+Administradores: un usuario estándar no puede conectarse sin elevación UAC, y solo cuenta un
+&lt;code&gt;approve&lt;/code&gt; que llegó por él. La aplicación lo alcanza con &lt;code&gt;Client.ElevatedSocketPath&lt;/code&gt; y
+&lt;code&gt;ApproveElevated&lt;/code&gt;.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="packaging-the-polkit-policy"&gt;Empaquetar la política de polkit (Linux)&lt;span class="hx:absolute hx:-mt-20" id="packaging-the-polkit-policy"&gt;&lt;/span&gt;
+&lt;a href="#packaging-the-polkit-policy" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;El paquete de Linux instala &lt;code&gt;packaging/polkit/com.claimward.helper.approve-server.policy&lt;/code&gt;
+del repositorio del cliente en &lt;code&gt;/usr/share/polkit-1/actions/&lt;/code&gt;. Sin ella polkit no conoce la
+acción y toda aprobación se rechaza.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="route-watches-over-tls"&gt;Observación de rutas sobre TLS&lt;span class="hx:absolute hx:-mt-20" id="route-watches-over-tls"&gt;&lt;/span&gt;
 &lt;a href="#route-watches-over-tls" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Una observación de rutas lleva el token bearer, por lo que &lt;code&gt;pkg/routeclient&lt;/code&gt; la ejecuta sobre
 &lt;strong&gt;TLS&lt;/strong&gt;, verificado contra las raíces del sistema, salvo hacia una dirección de loopback.

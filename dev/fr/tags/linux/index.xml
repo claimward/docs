@@ -35,16 +35,36 @@ de la même façon.&lt;/p&gt;
 &lt;td&gt;&lt;code&gt;status&lt;/code&gt;&lt;/td&gt;
 &lt;td&gt;connecté ou non, l&amp;rsquo;interface, l&amp;rsquo;adresse, le locataire&lt;/td&gt;
 &lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;approve&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;depuis v0.11.0 : approuve le serveur nommé dans la requête, si le système d&amp;rsquo;exploitation y consent (voir &lt;a href="../../server-approval/"&gt;Approbation des serveurs&lt;/a&gt;)&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;revoke&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;retire un serveur des serveurs approuvés&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;approved&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;liste les serveurs approuvés&lt;/td&gt;
+&lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
+&lt;p&gt;Depuis v0.11.0, le helper tient &lt;strong&gt;un tunnel par serveur&lt;/strong&gt;, chacun sur sa propre
+interface, nommée d&amp;rsquo;après l&amp;rsquo;URL du serveur : sous Windows, l&amp;rsquo;adaptateur ne s&amp;rsquo;appelle plus
+&lt;code&gt;Claimward&lt;/code&gt; mais &lt;code&gt;Claimward &amp;lt;hôte&amp;gt; &amp;lt;6 hex&amp;gt;&lt;/code&gt; (un &lt;strong&gt;changement incompatible&lt;/strong&gt; pour tout ce
+qui cherchait l&amp;rsquo;adaptateur sous son ancien nom).&lt;/p&gt;
 &lt;h2 data-hextra-search-id="bounded-by-its-own-configuration"&gt;Borné par sa propre configuration&lt;span class="hx:absolute hx:-mt-20" id="bounded-by-its-own-configuration"&gt;&lt;/span&gt;
 &lt;a href="#bounded-by-its-own-configuration" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Tout processus capable d&amp;rsquo;atteindre la socket du helper peut le faire agir ; ce qu&amp;rsquo;il
 fait est donc borné par &lt;strong&gt;sa propre&lt;/strong&gt; configuration, jamais par la requête :&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;Il ne s&amp;rsquo;enrôle qu&amp;rsquo;auprès d&amp;rsquo;un serveur que nomme sa configuration.&lt;/strong&gt; Un helper qui
+&lt;li&gt;&lt;strong&gt;Il ne s&amp;rsquo;enrôle qu&amp;rsquo;auprès d&amp;rsquo;un serveur que nomme sa configuration, ou qui a été
+approuvé avec le consentement du système.&lt;/strong&gt; Un helper qui
 prendrait le serveur dans la requête laisserait n&amp;rsquo;importe quel processus local le diriger vers
 un serveur de son choix, répondant avec des routes pour &lt;code&gt;0.0.0.0/0&lt;/code&gt; : chaque paquet de
-la machine, envoyé là où ce processus l&amp;rsquo;aurait décidé.&lt;/li&gt;
+la machine, envoyé là où ce processus l&amp;rsquo;aurait décidé. L&amp;rsquo;approbation est l&amp;rsquo;invite du
+système d&amp;rsquo;exploitation lui-même (Authorization Services sur macOS, polkit sur Linux, une
+seconde socket élevée sous Windows), jamais un champ de la requête : voir
+&lt;a href="../../server-approval/"&gt;Approbation des serveurs&lt;/a&gt;.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;Il n&amp;rsquo;accepte aucune configuration de tunnel venant d&amp;rsquo;une requête.&lt;/strong&gt; Le tunnel est ce que ce
 serveur a répondu lors de l&amp;rsquo;enrôlement. Les anciennes actions &lt;code&gt;up&lt;/code&gt; et &lt;code&gt;update-routes&lt;/code&gt;,
 qui en acceptaient une, ont disparu.&lt;/li&gt;
@@ -79,7 +99,11 @@ data-copied-label="Copié !"
 &lt;tbody&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;servers&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;&lt;strong&gt;obligatoire&lt;/strong&gt; : les serveurs auprès desquels le helper peut s&amp;rsquo;enrôler. Le &lt;code&gt;server_url&lt;/code&gt; de l&amp;rsquo;application doit en faire partie (comparaison sans &lt;code&gt;/&lt;/code&gt; final)&lt;/td&gt;
+&lt;td&gt;facultatif depuis v0.11.0 : les serveurs pré-approuvés par l&amp;rsquo;administrateur (comparaison sans &lt;code&gt;/&lt;/code&gt; final) ; les autres demandent une approbation&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;approvals&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;facultatif : où sont gardés les serveurs approuvés (le défaut par plateforme est dans &lt;a href="../../server-approval/"&gt;Approbation des serveurs&lt;/a&gt;)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;group&lt;/code&gt;&lt;/td&gt;
@@ -141,6 +165,15 @@ l&amp;rsquo;écriture/tous droits génériques à un autre SID, ainsi qu&amp;rsq
 &lt;/ul&gt;
 &lt;p&gt;Les règles (&lt;code&gt;pkg/helper/acl.go&lt;/code&gt;) sont des fonctions pures, testées sur toutes les plateformes ;
 le job de CI Windows les applique à de vrais fichiers et les relit.&lt;/p&gt;
+&lt;p&gt;L&amp;rsquo;approbation a sous Windows une &lt;strong&gt;seconde socket&lt;/strong&gt;, &lt;code&gt;C:\ProgramData\Claimward\approve.sock&lt;/code&gt;
+(&lt;code&gt;helper.ListenElevated&lt;/code&gt;, servie par &lt;code&gt;Server.ServeElevated&lt;/code&gt;), dont l&amp;rsquo;ACL ne nomme que SYSTEM et
+les Administrateurs : un utilisateur standard ne peut s&amp;rsquo;y connecter sans élévation UAC, et
+seul compte un &lt;code&gt;approve&lt;/code&gt; arrivé par là. L&amp;rsquo;application l&amp;rsquo;atteint par
+&lt;code&gt;Client.ElevatedSocketPath&lt;/code&gt; et &lt;code&gt;ApproveElevated&lt;/code&gt;.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="packaging-the-polkit-policy"&gt;Livrer la politique polkit (Linux)&lt;span class="hx:absolute hx:-mt-20" id="packaging-the-polkit-policy"&gt;&lt;/span&gt;
+&lt;a href="#packaging-the-polkit-policy" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Le paquet Linux installe &lt;code&gt;packaging/polkit/com.claimward.helper.approve-server.policy&lt;/code&gt;
+du dépôt du client dans &lt;code&gt;/usr/share/polkit-1/actions/&lt;/code&gt;. Sans elle, polkit ne connaît pas
+l&amp;rsquo;action et toute approbation est refusée.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="route-watches-over-tls"&gt;Surveillance des routes sur TLS&lt;span class="hx:absolute hx:-mt-20" id="route-watches-over-tls"&gt;&lt;/span&gt;
 &lt;a href="#route-watches-over-tls" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Une surveillance des routes transporte le jeton porteur ; &lt;code&gt;pkg/routeclient&lt;/code&gt; l&amp;rsquo;exécute donc sur
 &lt;strong&gt;TLS&lt;/strong&gt;, vérifié par rapport aux autorités racines du système, sauf vers une adresse de boucle locale.
