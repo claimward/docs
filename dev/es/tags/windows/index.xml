@@ -276,4 +276,110 @@ establece y comprueba se describen en
 &lt;div class="hx:w-full hx:min-w-0 hx:leading-7"&gt;
 &lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0"&gt;&lt;strong&gt;Pendiente:&lt;/strong&gt; un instalador MSI.&lt;/div&gt;
 &lt;/div&gt;
-&lt;/div&gt;</description></item></channel></rss>
+&lt;/div&gt;</description></item><item><title>Aprobación de servidores</title><link>https://claimward.github.io/docs/dev/es/server-approval/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/es/server-approval/</guid><description>
+&lt;p&gt;El helper se ejecuta como root (SYSTEM en Windows) y un servidor con el que se registra
+elige las rutas y el par del túnel de la máquina: un servidor hostil es cada paquete de
+la máquina, enviado allí. Desde el &lt;strong&gt;cliente v0.11.0&lt;/strong&gt; el helper acepta un servidor de la
+aplicación solo si se cumple una de estas condiciones:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;la configuración del administrador lo nombra (&lt;code&gt;servers&lt;/code&gt; en &lt;code&gt;helper.json&lt;/code&gt;, ahora
+opcional: la &lt;strong&gt;preaprobación&lt;/strong&gt;);&lt;/li&gt;
+&lt;li&gt;fue &lt;strong&gt;aprobado&lt;/strong&gt; antes, y sigue diciendo lo mismo que entonces;&lt;/li&gt;
+&lt;li&gt;se aprueba &lt;strong&gt;ahora&lt;/strong&gt;, con el consentimiento del sistema operativo, obtenido por el
+propio helper.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Un indicador de la aplicación, un campo de la petición o una afirmación de cualquier tipo
+nunca es consentimiento.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="qué-se-pide-al-sistema"&gt;Qué se pide al sistema&lt;span class="hx:absolute hx:-mt-20" id="qué-se-pide-al-sistema"&gt;&lt;/span&gt;
+&lt;a href="#qu%c3%a9-se-pide-al-sistema" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Plataforma&lt;/th&gt;
+&lt;th&gt;Consentimiento&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;macOS&lt;/td&gt;
+&lt;td&gt;derecho de Authorization Services &lt;code&gt;com.claimward.helper.approve-server&lt;/code&gt;, regla &lt;code&gt;authenticate-admin-nonshared&lt;/code&gt;: nombre y contraseña de un administrador, cada vez. La aplicación obtiene la autorización (&lt;code&gt;macauth.Obtain&lt;/code&gt;) y envía su forma externa de 32 bytes; el helper hace que el sistema la verifique y la destruye, así que un token compra una aprobación. Un token falsificado no nombra nada en el sistema y se rechaza&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Linux&lt;/td&gt;
+&lt;td&gt;acción polkit &lt;code&gt;com.claimward.helper.approve-server&lt;/code&gt; (&lt;code&gt;auth_admin&lt;/code&gt;), consultada al bus del sistema para el proceso que está tras el socket: su pid de &lt;code&gt;SO_PEERCRED&lt;/code&gt; y su hora de inicio de &lt;code&gt;/proc/&amp;lt;pid&amp;gt;/stat&lt;/code&gt;, lo que impide la reutilización de pids. El archivo de política está en &lt;code&gt;packaging/polkit/&lt;/code&gt; y va en &lt;code&gt;/usr/share/polkit-1/actions/&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Windows&lt;/td&gt;
+&lt;td&gt;un segundo socket, &lt;code&gt;C:\ProgramData\Claimward\approve.sock&lt;/code&gt;, cuya ACL nombra solo a SYSTEM y Administradores: un usuario estándar no puede conectarse sin elevación UAC. Solo cuenta una petición que llegó por él&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Sin autorizador configurado, el helper rechaza toda aprobación: falla cerrado. Una
+petición rechazada, o que el sistema no puede responder, no cambia nada.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="qué-se-recuerda"&gt;Qué se recuerda&lt;span class="hx:absolute hx:-mt-20" id="qué-se-recuerda"&gt;&lt;/span&gt;
+&lt;a href="#qu%c3%a9-se-recuerda" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;El helper guarda los servidores aprobados en un archivo que solo root puede escribir:&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Plataforma&lt;/th&gt;
+&lt;th&gt;Archivo&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;macOS&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;/var/db/claimward/approved-servers.json&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Linux&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;/var/lib/claimward/approved-servers.json&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Windows&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;C:\ProgramData\Claimward\approved-servers.json&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Cada entrada es la URL canónica del servidor y el SHA-256 de su &lt;strong&gt;identidad de
+descubrimiento&lt;/strong&gt;: su nombre y sus proveedores de identidad (id, tipo, emisor, ids de
+cliente). Un servidor que cambia alguno de ellos no es el que se aprobó: el helper lo
+rechaza (&lt;code&gt;server_identity_changed&lt;/code&gt;) hasta que se apruebe de nuevo. Que el servidor sea
+exclusivo, su logotipo y los nombres visibles de los proveedores no forman parte de la
+identidad, ni tampoco su certificado TLS, que se renueva cada pocas semanas (la conexión
+se verifica contra la PKI web en cada uso).&lt;/p&gt;
+&lt;p&gt;El archivo se lee de nuevo en cada uso, así que &lt;strong&gt;borrarlo, o quitar una línea, revoca de
+inmediato&lt;/strong&gt;; la acción &lt;code&gt;revoke&lt;/code&gt; hace lo mismo para un servidor. El helper nunca edita la
+lista &lt;code&gt;servers&lt;/code&gt; del administrador.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="errores-que-ve-la-aplicación"&gt;Errores que ve la aplicación&lt;span class="hx:absolute hx:-mt-20" id="errores-que-ve-la-aplicación"&gt;&lt;/span&gt;
+&lt;a href="#errores-que-ve-la-aplicaci%c3%b3n" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Código&lt;/th&gt;
+&lt;th&gt;Significado&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;server_not_approved&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;el servidor no está ni preaprobado ni aprobado: pedir a la persona que lo apruebe&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;server_identity_changed&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;estaba aprobado y ya no dice lo mismo: aprobarlo de nuevo&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;approval_denied&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;no se dio el consentimiento del sistema&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 data-hextra-search-id="límites-dichos-con-claridad"&gt;Límites, dichos con claridad&lt;span class="hx:absolute hx:-mt-20" id="límites-dichos-con-claridad"&gt;&lt;/span&gt;
+&lt;a href="#l%c3%admites-dichos-con-claridad" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;En macOS el &lt;strong&gt;texto del aviso lo aporta la aplicación&lt;/strong&gt; que pregunta, así que un
+proceso hostil del grupo del socket puede lograr que el sistema pida a un
+administrador aprobar su propio servidor, y un administrador distraído puede decir que
+sí. La credencial es la de un administrador, nunca se guarda en caché y vale para una
+aprobación.&lt;/li&gt;
+&lt;li&gt;En Windows, un proceso elevado puede aprobar cualquier cosa, pues un administrador
+puede editar el archivo de todos modos.&lt;/li&gt;
+&lt;li&gt;Linux tampoco tiene caché: &lt;code&gt;auth_admin&lt;/code&gt; pregunta cada vez.&lt;/li&gt;
+&lt;/ul&gt;</description></item></channel></rss>

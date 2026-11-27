@@ -1,0 +1,107 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Claimward – Security</title><link>https://claimward.github.io/docs/dev/fr/tags/security/</link><description>Recent content in Security on Claimward</description><generator>Hugo -- gohugo.io</generator><language>fr</language><atom:link href="https://claimward.github.io/docs/dev/fr/tags/security/index.xml" rel="self" type="application/rss+xml"/><item><title>Approbation des serveurs</title><link>https://claimward.github.io/docs/dev/fr/server-approval/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/fr/server-approval/</guid><description>
+&lt;p&gt;Le helper s&amp;rsquo;exécute en root (SYSTEM sous Windows) et un serveur auprès duquel il
+s&amp;rsquo;enrôle choisit les routes et le pair du tunnel de la machine : un serveur hostile est
+chaque paquet de la machine, envoyé là-bas. Depuis le &lt;strong&gt;client v0.11.0&lt;/strong&gt;, le helper ne
+prend un serveur de l&amp;rsquo;application que si l&amp;rsquo;une de ces conditions est remplie :&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;la configuration de l&amp;rsquo;administrateur le nomme (&lt;code&gt;servers&lt;/code&gt; dans &lt;code&gt;helper.json&lt;/code&gt;,
+désormais facultatif : la &lt;strong&gt;pré-approbation&lt;/strong&gt;) ;&lt;/li&gt;
+&lt;li&gt;il a été &lt;strong&gt;approuvé&lt;/strong&gt; auparavant, et dit toujours ce qu&amp;rsquo;il disait alors ;&lt;/li&gt;
+&lt;li&gt;il est approuvé &lt;strong&gt;maintenant&lt;/strong&gt;, avec le consentement du système d&amp;rsquo;exploitation,
+obtenu par le helper lui-même.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Un indicateur de l&amp;rsquo;application, un champ de la requête ou une affirmation de quelque
+sorte n&amp;rsquo;est jamais un consentement.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="ce-qui-est-demandé-au-système"&gt;Ce qui est demandé au système&lt;span class="hx:absolute hx:-mt-20" id="ce-qui-est-demandé-au-système"&gt;&lt;/span&gt;
+&lt;a href="#ce-qui-est-demand%c3%a9-au-syst%c3%a8me" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Plateforme&lt;/th&gt;
+&lt;th&gt;Consentement&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;macOS&lt;/td&gt;
+&lt;td&gt;droit Authorization Services &lt;code&gt;com.claimward.helper.approve-server&lt;/code&gt;, règle &lt;code&gt;authenticate-admin-nonshared&lt;/code&gt; : nom et mot de passe d&amp;rsquo;un administrateur, à chaque fois. L&amp;rsquo;application obtient l&amp;rsquo;autorisation (&lt;code&gt;macauth.Obtain&lt;/code&gt;) et envoie sa forme externe de 32 octets ; le helper la fait vérifier par le système et la détruit, donc un jeton achète une approbation. Un jeton forgé ne nomme rien dans le système et est refusé&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Linux&lt;/td&gt;
+&lt;td&gt;action polkit &lt;code&gt;com.claimward.helper.approve-server&lt;/code&gt; (&lt;code&gt;auth_admin&lt;/code&gt;), demandée au bus système pour le processus derrière le socket : son pid via &lt;code&gt;SO_PEERCRED&lt;/code&gt; et son heure de démarrage via &lt;code&gt;/proc/&amp;lt;pid&amp;gt;/stat&lt;/code&gt;, ce qui déjoue la réutilisation des pid. Le fichier de politique est livré dans &lt;code&gt;packaging/polkit/&lt;/code&gt; et va dans &lt;code&gt;/usr/share/polkit-1/actions/&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Windows&lt;/td&gt;
+&lt;td&gt;un second socket, &lt;code&gt;C:\ProgramData\Claimward\approve.sock&lt;/code&gt;, dont l&amp;rsquo;ACL ne nomme que SYSTEM et les Administrateurs : un utilisateur standard ne peut s&amp;rsquo;y connecter sans élévation UAC. Seule compte une requête arrivée par là&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Sans autorisateur configuré, le helper refuse toute approbation : il échoue fermé. Une
+requête refusée, ou à laquelle le système ne peut répondre, ne change rien.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="ce-qui-est-retenu"&gt;Ce qui est retenu&lt;span class="hx:absolute hx:-mt-20" id="ce-qui-est-retenu"&gt;&lt;/span&gt;
+&lt;a href="#ce-qui-est-retenu" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Le helper garde les serveurs approuvés dans un fichier que seul root peut écrire :&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Plateforme&lt;/th&gt;
+&lt;th&gt;Fichier&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;macOS&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;/var/db/claimward/approved-servers.json&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Linux&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;/var/lib/claimward/approved-servers.json&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Windows&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;C:\ProgramData\Claimward\approved-servers.json&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Chaque entrée est l&amp;rsquo;URL canonique du serveur et le SHA-256 de son &lt;strong&gt;identité de
+découverte&lt;/strong&gt; : son nom et ses fournisseurs d&amp;rsquo;identité (id, genre, émetteur, identifiants
+client). Un serveur qui change l&amp;rsquo;un d&amp;rsquo;eux n&amp;rsquo;est pas celui qui a été approuvé : le helper
+le refuse (&lt;code&gt;server_identity_changed&lt;/code&gt;) jusqu&amp;rsquo;à nouvelle approbation. Que le serveur soit
+exclusif, son logo et les noms d&amp;rsquo;affichage des fournisseurs ne font pas partie de
+l&amp;rsquo;identité, pas plus que son certificat TLS, renouvelé toutes les quelques semaines (la
+connexion est vérifiée contre la PKI web à chaque usage).&lt;/p&gt;
+&lt;p&gt;Le fichier est relu à chaque usage, donc &lt;strong&gt;le supprimer, ou retirer une ligne, révoque
+aussitôt&lt;/strong&gt; ; l&amp;rsquo;action &lt;code&gt;revoke&lt;/code&gt; fait de même pour un serveur. La liste &lt;code&gt;servers&lt;/code&gt; de
+l&amp;rsquo;administrateur n&amp;rsquo;est jamais modifiée par le helper.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="erreurs-vues-par-lapplication"&gt;Erreurs vues par l&amp;rsquo;application&lt;span class="hx:absolute hx:-mt-20" id="erreurs-vues-par-lapplication"&gt;&lt;/span&gt;
+&lt;a href="#erreurs-vues-par-lapplication" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Code&lt;/th&gt;
+&lt;th&gt;Sens&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;server_not_approved&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;le serveur n&amp;rsquo;est ni pré-approuvé ni approuvé : demander à la personne de l&amp;rsquo;approuver&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;server_identity_changed&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;il était approuvé et ne dit plus la même chose : l&amp;rsquo;approuver à nouveau&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;approval_denied&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;le consentement du système n&amp;rsquo;a pas été donné&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 data-hextra-search-id="limites-énoncées"&gt;Limites, énoncées&lt;span class="hx:absolute hx:-mt-20" id="limites-énoncées"&gt;&lt;/span&gt;
+&lt;a href="#limites-%c3%a9nonc%c3%a9es" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;Sous macOS, le &lt;strong&gt;texte de l&amp;rsquo;invite est fourni par l&amp;rsquo;application&lt;/strong&gt; qui demande : un
+processus hostile du groupe du socket peut donc faire demander par le système à un
+administrateur d&amp;rsquo;approuver son propre serveur, et un administrateur distrait peut dire
+oui. Le justificatif est celui d&amp;rsquo;un administrateur, jamais mis en cache, et vaut pour
+une approbation.&lt;/li&gt;
+&lt;li&gt;Sous Windows, un processus élevé peut tout approuver, puisqu&amp;rsquo;un administrateur peut de
+toute façon modifier le fichier.&lt;/li&gt;
+&lt;li&gt;Linux n&amp;rsquo;a pas non plus de cache : &lt;code&gt;auth_admin&lt;/code&gt; demande à chaque fois.&lt;/li&gt;
+&lt;/ul&gt;</description></item></channel></rss>

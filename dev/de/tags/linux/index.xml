@@ -279,4 +279,110 @@ Ersatzserver. &lt;strong&gt;Noch nicht geprüft&lt;/strong&gt;, laut README: ein
 Wayland, HiDPI, eine Anmeldung bei einem echten Identitätsanbieter und ein
 echter claimward-vpn-server.&lt;/div&gt;
 &lt;/div&gt;
-&lt;/div&gt;</description></item></channel></rss>
+&lt;/div&gt;</description></item><item><title>Server-Genehmigung</title><link>https://claimward.github.io/docs/dev/de/server-approval/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/de/server-approval/</guid><description>
+&lt;p&gt;Der Helper läuft als root (SYSTEM unter Windows), und ein Server, bei dem er sich
+registriert, bestimmt die Routen und den Peer des Tunnels der Maschine: Ein feindlicher
+Server ist jedes Paket der Maschine, dorthin geschickt. Seit &lt;strong&gt;Client v0.11.0&lt;/strong&gt; nimmt der
+Helper einen Server von der App nur an, wenn eine dieser Bedingungen gilt:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;die Konfiguration des Administrators nennt ihn (&lt;code&gt;servers&lt;/code&gt; in &lt;code&gt;helper.json&lt;/code&gt;, jetzt
+optional: die &lt;strong&gt;Vorab-Genehmigung&lt;/strong&gt;);&lt;/li&gt;
+&lt;li&gt;er wurde zuvor &lt;strong&gt;genehmigt&lt;/strong&gt; und sagt noch immer dasselbe wie damals;&lt;/li&gt;
+&lt;li&gt;er wird &lt;strong&gt;jetzt&lt;/strong&gt; genehmigt, mit der Zustimmung des Betriebssystems, die der Helper
+selbst einholt.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Ein App-Flag, ein Feld der Anfrage oder eine Behauptung jeder Art ist nie eine Zustimmung.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="was-vom-system-verlangt-wird"&gt;Was vom System verlangt wird&lt;span class="hx:absolute hx:-mt-20" id="was-vom-system-verlangt-wird"&gt;&lt;/span&gt;
+&lt;a href="#was-vom-system-verlangt-wird" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Plattform&lt;/th&gt;
+&lt;th&gt;Zustimmung&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;macOS&lt;/td&gt;
+&lt;td&gt;Authorization-Services-Recht &lt;code&gt;com.claimward.helper.approve-server&lt;/code&gt;, Regel &lt;code&gt;authenticate-admin-nonshared&lt;/code&gt;: Name und Passwort eines Administrators, jedes Mal. Die App holt die Autorisierung ein (&lt;code&gt;macauth.Obtain&lt;/code&gt;) und sendet ihre 32 Byte lange externe Form; der Helper lässt sie vom System prüfen und vernichtet sie, ein Token erkauft also eine Genehmigung. Ein gefälschtes Token bezeichnet nichts im System und wird abgelehnt&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Linux&lt;/td&gt;
+&lt;td&gt;polkit-Aktion &lt;code&gt;com.claimward.helper.approve-server&lt;/code&gt; (&lt;code&gt;auth_admin&lt;/code&gt;), beim Systembus für den Prozess hinter dem Socket erfragt: seine pid aus &lt;code&gt;SO_PEERCRED&lt;/code&gt; und seine Startzeit aus &lt;code&gt;/proc/&amp;lt;pid&amp;gt;/stat&lt;/code&gt;, was die Wiederverwendung von pids verhindert. Die Policy-Datei liegt in &lt;code&gt;packaging/polkit/&lt;/code&gt; und gehört nach &lt;code&gt;/usr/share/polkit-1/actions/&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Windows&lt;/td&gt;
+&lt;td&gt;ein zweiter Socket, &lt;code&gt;C:\ProgramData\Claimward\approve.sock&lt;/code&gt;, dessen ACL nur SYSTEM und Administratoren nennt: Ein Standardbenutzer kann sich ohne UAC-Erhöhung nicht verbinden. Nur eine Anfrage, die dort eingegangen ist, zählt&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Ohne konfigurierten Authorizer lehnt der Helper jede Genehmigung ab: Er schlägt
+geschlossen fehl. Eine Anfrage, die abgelehnt wird oder die das System nicht beantworten
+kann, ändert nichts.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="was-gespeichert-wird"&gt;Was gespeichert wird&lt;span class="hx:absolute hx:-mt-20" id="was-gespeichert-wird"&gt;&lt;/span&gt;
+&lt;a href="#was-gespeichert-wird" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Der Helper hält die genehmigten Server in einer Datei, die nur root schreiben kann:&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Plattform&lt;/th&gt;
+&lt;th&gt;Datei&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;macOS&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;/var/db/claimward/approved-servers.json&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Linux&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;/var/lib/claimward/approved-servers.json&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Windows&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;C:\ProgramData\Claimward\approved-servers.json&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Jeder Eintrag ist die kanonische URL des Servers und der SHA-256 seiner
+&lt;strong&gt;Discovery-Identität&lt;/strong&gt;: sein Name und seine Identitätsanbieter (id, Art, Issuer,
+Client-IDs). Ein Server, der eines davon ändert, ist nicht der genehmigte: Der Helper
+lehnt ihn ab (&lt;code&gt;server_identity_changed&lt;/code&gt;), bis er erneut genehmigt wird. Ob der Server
+exklusiv ist, sein Logo und die Anzeigenamen der Anbieter gehören nicht zur Identität,
+ebenso wenig sein TLS-Zertifikat, das alle paar Wochen erneuert wird (die Verbindung wird
+bei jeder Nutzung gegen das Web-PKI geprüft).&lt;/p&gt;
+&lt;p&gt;Die Datei wird bei jeder Nutzung neu gelesen, &lt;strong&gt;Löschen oder Entfernen einer Zeile
+widerruft also sofort&lt;/strong&gt;; die Aktion &lt;code&gt;revoke&lt;/code&gt; tut dasselbe für einen Server. Die
+&lt;code&gt;servers&lt;/code&gt;-Liste des Administrators wird vom Helper nie bearbeitet.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="fehler-die-die-app-sieht"&gt;Fehler, die die App sieht&lt;span class="hx:absolute hx:-mt-20" id="fehler-die-die-app-sieht"&gt;&lt;/span&gt;
+&lt;a href="#fehler-die-die-app-sieht" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Code&lt;/th&gt;
+&lt;th&gt;Bedeutung&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;server_not_approved&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;der Server ist weder vorab genehmigt noch genehmigt: die Person bitten, ihn zu genehmigen&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;server_identity_changed&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;er war genehmigt und sagt nicht mehr dasselbe: erneut genehmigen&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;approval_denied&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;die Zustimmung des Systems wurde nicht erteilt&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 data-hextra-search-id="grenzen-offen-gesagt"&gt;Grenzen, offen gesagt&lt;span class="hx:absolute hx:-mt-20" id="grenzen-offen-gesagt"&gt;&lt;/span&gt;
+&lt;a href="#grenzen-offen-gesagt" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;Unter macOS wird der &lt;strong&gt;Text der Abfrage von der App geliefert&lt;/strong&gt;, die fragt; ein
+feindlicher Prozess in der Gruppe des Sockets kann das System also bitten, einen
+Administrator den eigenen Server genehmigen zu lassen, und ein unaufmerksamer
+Administrator kann zustimmen. Die Berechtigung ist die eines Administrators, nie
+zwischengespeichert, und gilt für eine Genehmigung.&lt;/li&gt;
+&lt;li&gt;Unter Windows kann ein erhöhter Prozess alles genehmigen, wie ein Administrator die
+Datei ohnehin bearbeiten kann.&lt;/li&gt;
+&lt;li&gt;Auch Linux hat keinen Cache: &lt;code&gt;auth_admin&lt;/code&gt; fragt jedes Mal.&lt;/li&gt;
+&lt;/ul&gt;</description></item></channel></rss>

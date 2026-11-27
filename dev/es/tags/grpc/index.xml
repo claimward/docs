@@ -984,7 +984,7 @@ dé al RouteService un certificado para que los dispositivos reciban actualizaci
 &lt;/div&gt;
 &lt;/div&gt;</description></item><item><title>Biblioteca cliente</title><link>https://claimward.github.io/docs/dev/es/components/client/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/es/components/client/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-client" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-client&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.7.0&lt;/strong&gt; es una &lt;strong&gt;biblioteca&lt;/strong&gt; Go. No incluye ningún binario: los programas ejecutables
+&lt;strong&gt;v0.11.0&lt;/strong&gt; es una &lt;strong&gt;biblioteca&lt;/strong&gt; Go. No incluye ningún binario: los programas ejecutables
 son los de las aplicaciones (&lt;code&gt;cmd/claimward-app&lt;/code&gt; y &lt;code&gt;cmd/claimward-helper&lt;/code&gt; en el repositorio
 de cada aplicación). El servidor también la importa, por los tipos de red y los stubs gRPC.&lt;/p&gt;
 &lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-blue-200 hx:bg-blue-100 hx:text-blue-900 hx:dark:border-blue-200/30 hx:dark:bg-blue-900/30 hx:dark:text-blue-200"&gt;
@@ -1054,11 +1054,15 @@ el módulo que solo contiene la biblioteca es la base sobre la que se construyen
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;pkg/helper&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;el helper con privilegios, compartido por las tres aplicaciones: registra el dispositivo, es dueño del túnel, observa las rutas enviadas&lt;/td&gt;
+&lt;td&gt;el helper con privilegios, compartido por las tres aplicaciones: registra el dispositivo, es dueño del túnel, observa las rutas enviadas y aprueba servidores con el consentimiento del sistema (&lt;a href="../../server-approval/"&gt;Aprobación de servidores&lt;/a&gt;)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;pkg/hproto&lt;/code&gt;, &lt;code&gt;pkg/helperclient&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;el protocolo de socket del helper, y el cliente de la aplicación para él&lt;/td&gt;
+&lt;td&gt;el protocolo de socket del helper, y el cliente de la aplicación para él: &lt;code&gt;Approve&lt;/code&gt;, &lt;code&gt;ApproveElevated&lt;/code&gt;, &lt;code&gt;Revoke&lt;/code&gt;, &lt;code&gt;Approved&lt;/code&gt; y los errores tipados &lt;code&gt;*NotApprovedError&lt;/code&gt; y &lt;code&gt;ErrApprovalDenied&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pkg/macauth&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Authorization Services de macOS para la aprobación de servidores: &lt;code&gt;Obtain(prompt)&lt;/code&gt; en la aplicación, &lt;code&gt;Verify&lt;/code&gt; en el helper&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;pkg/tokenstore&lt;/code&gt;&lt;/td&gt;
@@ -1142,8 +1146,12 @@ data-copied-label="¡Copiado!"
 &lt;code&gt;CLAIMWARD_AUTH_PROVIDER&lt;/code&gt;, &lt;code&gt;CLAIMWARD_GITHUB_CLIENT_ID&lt;/code&gt;, &lt;code&gt;CLAIMWARD_OIDC_*&lt;/code&gt;) se migra
 una vez en la primera carga. Un servidor &lt;strong&gt;exclusivo&lt;/strong&gt; se rechaza mientras haya otro
 conectado, y cualquier otro se rechaza mientras haya uno exclusivo conectado; el
-rechazo nombra el servidor que bloquea. Linux y Windows mantienen por ahora un solo
-túnel a la vez; macOS mantiene uno por servidor.&lt;/p&gt;
+rechazo nombra el servidor que bloquea. Desde &lt;strong&gt;v0.11.0&lt;/strong&gt; todas las plataformas
+mantienen un túnel por servidor, cada uno en su propia interfaz determinista (abajo).&lt;/p&gt;
+&lt;p&gt;Desde v0.11.0 el &lt;code&gt;servers&lt;/code&gt; del helper es opcional (la preaprobación del administrador)
+y un servidor que la persona añade solo es de confianza cuando el sistema ha dado su
+consentimiento: véase &lt;a href="../../server-approval/"&gt;Aprobación de servidores&lt;/a&gt;. El &lt;code&gt;helper.json&lt;/code&gt;
+del helper incorpora &lt;code&gt;approvals&lt;/code&gt;, el archivo de servidores aprobados.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="use-in-your-own-tooling"&gt;Uso en sus propias herramientas&lt;span class="hx:absolute hx:-mt-20" id="use-in-your-own-tooling"&gt;&lt;/span&gt;
 &lt;a href="#use-in-your-own-tooling" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-go" data-lang="go"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nx"&gt;ctx&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;context&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Background&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="w"&gt;
@@ -1214,7 +1222,13 @@ y Linux viajan en el protocolo, pero &lt;code&gt;pkg/wgtun&lt;/code&gt; todavía
 los aplica.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;Rutas enviadas&lt;/strong&gt;: sustituyen las IP permitidas y las rutas; los cambios de DNS de un
 envío no se aplican.&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Windows.&lt;/strong&gt; El dispositivo es un adaptador Wintun llamado &lt;code&gt;Claimward&lt;/code&gt;: &lt;code&gt;wintun.dll&lt;/code&gt;
+&lt;li&gt;&lt;strong&gt;Nombres de interfaz.&lt;/strong&gt; Una interfaz por servidor, nombrada a partir de la URL del
+servidor por &lt;code&gt;wgtun.InterfaceName&lt;/code&gt;: macOS &lt;code&gt;utunN&lt;/code&gt; (numerada por el kernel), Linux &lt;code&gt;cw-&lt;/code&gt;
+y diez dígitos hexadecimales del SHA-256 de la URL (13 bytes, dentro de los 15 de
+&lt;code&gt;IFNAMSIZ&lt;/code&gt;), Windows &lt;code&gt;Claimward &amp;lt;host&amp;gt; &amp;lt;6 hex&amp;gt;&lt;/code&gt;. Reconectar sustituye la interfaz; un
+resto con ese nombre se elimina antes, y un dispositivo TUN de Linux desaparece con su
+proceso, así que un helper que se cuelga no deja ninguno.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Windows.&lt;/strong&gt; El dispositivo es un adaptador Wintun, uno por servidor (véase arriba): &lt;code&gt;wintun.dll&lt;/code&gt;
 (de &lt;a href="https://www.wintun.net" target="_blank" rel="noopener"&gt;https://www.wintun.net&lt;/a&gt;, firmado por WireGuard LLC) debe estar junto al
 ejecutable que llama a &lt;code&gt;wgtun.Up&lt;/code&gt;, de lo cual se encarga el empaquetado de la aplicación
 de Windows. La dirección, las rutas, el DNS y la MTU se configuran mediante &lt;code&gt;winipcfg&lt;/code&gt; (la API IP

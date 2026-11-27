@@ -302,4 +302,110 @@ store on first start, or deleted if that fails.&lt;/p&gt;
 (the interface MTU towards its endpoint, minus 60 for IPv4 or 80 for IPv6) and
 never below 1280 (client v0.6.0, &lt;code&gt;pkg/pathmtu&lt;/code&gt;).&lt;/p&gt;
 &lt;p&gt;The server must be an &lt;strong&gt;https&lt;/strong&gt; URL. Since v0.7.0 there is no loopback UI API
-and no launch token: the window and the logic share one process.&lt;/p&gt;</description></item></channel></rss>
+and no launch token: the window and the logic share one process.&lt;/p&gt;</description></item><item><title>Server approval</title><link>https://claimward.github.io/docs/dev/server-approval/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/server-approval/</guid><description>
+&lt;p&gt;The helper runs as root (SYSTEM on Windows) and a server it enrolls with
+chooses the routes and the peer of the machine&amp;rsquo;s tunnel: a hostile server is
+every packet of the machine, sent there. Since &lt;strong&gt;client v0.11.0&lt;/strong&gt; the helper
+takes a server from the app only if one of these holds:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;the administrator&amp;rsquo;s configuration names it (&lt;code&gt;servers&lt;/code&gt; in &lt;code&gt;helper.json&lt;/code&gt;,
+now optional: the &lt;strong&gt;pre-approval&lt;/strong&gt;);&lt;/li&gt;
+&lt;li&gt;it was &lt;strong&gt;approved&lt;/strong&gt; before, and still says what it said then;&lt;/li&gt;
+&lt;li&gt;it is approved &lt;strong&gt;now&lt;/strong&gt;, with the consent of the operating system,
+obtained by the helper itself.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;An app flag, a field of the request, or a claim of any kind is never consent.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="what-is-asked-of-the-system"&gt;What is asked of the system&lt;span class="hx:absolute hx:-mt-20" id="what-is-asked-of-the-system"&gt;&lt;/span&gt;
+&lt;a href="#what-is-asked-of-the-system" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Platform&lt;/th&gt;
+&lt;th&gt;Consent&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;macOS&lt;/td&gt;
+&lt;td&gt;Authorization Services right &lt;code&gt;com.claimward.helper.approve-server&lt;/code&gt;, rule &lt;code&gt;authenticate-admin-nonshared&lt;/code&gt;: an administrator&amp;rsquo;s name and password, every time. The app obtains the authorization (&lt;code&gt;macauth.Obtain&lt;/code&gt;) and sends its 32-byte external form; the helper has the system verify it and destroys it, so one token buys one approval. A forged token names nothing in the system and is refused&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Linux&lt;/td&gt;
+&lt;td&gt;polkit action &lt;code&gt;com.claimward.helper.approve-server&lt;/code&gt; (&lt;code&gt;auth_admin&lt;/code&gt;), asked of the system bus for the process behind the socket: its pid from &lt;code&gt;SO_PEERCRED&lt;/code&gt; and its start time from &lt;code&gt;/proc/&amp;lt;pid&amp;gt;/stat&lt;/code&gt;, which defeats pid reuse. The policy file ships in &lt;code&gt;packaging/polkit/&lt;/code&gt; and goes in &lt;code&gt;/usr/share/polkit-1/actions/&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Windows&lt;/td&gt;
+&lt;td&gt;a second socket, &lt;code&gt;C:\ProgramData\Claimward\approve.sock&lt;/code&gt;, whose ACL names SYSTEM and Administrators only: a standard user cannot connect without UAC elevation. Only a request that came in on it counts&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;With no authorizer configured the helper refuses every approval: it fails
+closed. A request that is refused, or that the system cannot answer, changes
+nothing.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="what-is-remembered"&gt;What is remembered&lt;span class="hx:absolute hx:-mt-20" id="what-is-remembered"&gt;&lt;/span&gt;
+&lt;a href="#what-is-remembered" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;The helper keeps the approved servers in a file only root can write:&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Platform&lt;/th&gt;
+&lt;th&gt;File&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;macOS&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;/var/db/claimward/approved-servers.json&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Linux&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;/var/lib/claimward/approved-servers.json&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Windows&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;C:\ProgramData\Claimward\approved-servers.json&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Each entry is the server&amp;rsquo;s canonical URL and the SHA-256 of its &lt;strong&gt;discovery
+identity&lt;/strong&gt;: its name and its identity providers (id, kind, issuer, client
+ids). A server that changes one of those is not the one that was approved: the
+helper refuses it (&lt;code&gt;server_identity_changed&lt;/code&gt;) until it is approved again.
+Whether the server is exclusive, its logo and the providers&amp;rsquo; display names are
+not part of the identity, and neither is its TLS certificate, which is renewed
+every few weeks (the connection is verified against the web PKI at each use).&lt;/p&gt;
+&lt;p&gt;The file is read afresh at every use, so &lt;strong&gt;deleting it, or removing a line,
+revokes at once&lt;/strong&gt;; the &lt;code&gt;revoke&lt;/code&gt; action does the same for one server. An
+administrator&amp;rsquo;s &lt;code&gt;servers&lt;/code&gt; list is never edited by the helper.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="errors-the-app-sees"&gt;Errors the app sees&lt;span class="hx:absolute hx:-mt-20" id="errors-the-app-sees"&gt;&lt;/span&gt;
+&lt;a href="#errors-the-app-sees" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Code&lt;/th&gt;
+&lt;th&gt;Meaning&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;server_not_approved&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;the server is neither pre-approved nor approved: ask the person to approve it&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;server_identity_changed&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;it was approved, and no longer says the same: approve it again&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;approval_denied&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;the system&amp;rsquo;s consent was not given&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2 data-hextra-search-id="limits-stated"&gt;Limits, stated&lt;span class="hx:absolute hx:-mt-20" id="limits-stated"&gt;&lt;/span&gt;
+&lt;a href="#limits-stated" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;ul&gt;
+&lt;li&gt;On macOS the &lt;strong&gt;text of the prompt is supplied by the app&lt;/strong&gt; that asks, so a
+hostile process in the socket&amp;rsquo;s group can make the system ask an
+administrator to approve its own server, and a distracted administrator can
+say yes. The credential is an administrator&amp;rsquo;s, never cached, and good for one
+approval.&lt;/li&gt;
+&lt;li&gt;On Windows, an elevated process can approve anything, as an administrator
+can edit the file anyway.&lt;/li&gt;
+&lt;li&gt;Linux has no cache either: &lt;code&gt;auth_admin&lt;/code&gt; asks every time.&lt;/li&gt;
+&lt;/ul&gt;</description></item></channel></rss>

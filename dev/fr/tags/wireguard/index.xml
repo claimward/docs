@@ -692,7 +692,7 @@ donnez un certificat au RouteService afin que les appareils reçoivent les mises
 &lt;/div&gt;
 &lt;/div&gt;</description></item><item><title>Bibliothèque client</title><link>https://claimward.github.io/docs/dev/fr/components/client/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/fr/components/client/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-client" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-client&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.7.0&lt;/strong&gt; est une &lt;strong&gt;bibliothèque&lt;/strong&gt; Go. Elle ne fournit aucun binaire : les programmes exécutables
+&lt;strong&gt;v0.11.0&lt;/strong&gt; est une &lt;strong&gt;bibliothèque&lt;/strong&gt; Go. Elle ne fournit aucun binaire : les programmes exécutables
 sont ceux des applications (&lt;code&gt;cmd/claimward-app&lt;/code&gt; et &lt;code&gt;cmd/claimward-helper&lt;/code&gt; dans le dépôt
 de chaque application). Le serveur l&amp;rsquo;importe aussi, pour les types réseau et les stubs gRPC.&lt;/p&gt;
 &lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-blue-200 hx:bg-blue-100 hx:text-blue-900 hx:dark:border-blue-200/30 hx:dark:bg-blue-900/30 hx:dark:text-blue-200"&gt;
@@ -762,11 +762,15 @@ c&amp;rsquo;est sur le module réduit à la bibliothèque que s&amp;rsquo;appuie
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;pkg/helper&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;le helper privilégié, commun aux trois applications : enrôle, possède le tunnel, surveille les envois de routes&lt;/td&gt;
+&lt;td&gt;le helper privilégié, commun aux trois applications : enrôle, possède le tunnel, surveille les envois de routes et approuve les serveurs avec le consentement du système (&lt;a href="../../server-approval/"&gt;Approbation des serveurs&lt;/a&gt;)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;pkg/hproto&lt;/code&gt;, &lt;code&gt;pkg/helperclient&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;le protocole de socket du helper, et le client de l&amp;rsquo;application pour ce protocole&lt;/td&gt;
+&lt;td&gt;le protocole de socket du helper, et le client de l&amp;rsquo;application pour ce protocole : &lt;code&gt;Approve&lt;/code&gt;, &lt;code&gt;ApproveElevated&lt;/code&gt;, &lt;code&gt;Revoke&lt;/code&gt;, &lt;code&gt;Approved&lt;/code&gt; et les erreurs typées &lt;code&gt;*NotApprovedError&lt;/code&gt; et &lt;code&gt;ErrApprovalDenied&lt;/code&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;pkg/macauth&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;Authorization Services de macOS pour l&amp;rsquo;approbation des serveurs : &lt;code&gt;Obtain(prompt)&lt;/code&gt; dans l&amp;rsquo;application, &lt;code&gt;Verify&lt;/code&gt; dans le helper&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;pkg/tokenstore&lt;/code&gt;&lt;/td&gt;
@@ -850,8 +854,12 @@ data-copied-label="Copié !"
 &lt;code&gt;CLAIMWARD_AUTH_PROVIDER&lt;/code&gt;, &lt;code&gt;CLAIMWARD_GITHUB_CLIENT_ID&lt;/code&gt;, &lt;code&gt;CLAIMWARD_OIDC_*&lt;/code&gt;) est
 migré une fois au premier chargement. Un serveur &lt;strong&gt;exclusif&lt;/strong&gt; est refusé tant qu&amp;rsquo;un
 autre est connecté, et tout autre est refusé tant qu&amp;rsquo;un serveur exclusif l&amp;rsquo;est ; le
-refus nomme le serveur bloquant. Linux et Windows ne tiennent pour l&amp;rsquo;instant qu&amp;rsquo;un
-tunnel à la fois ; macOS en tient un par serveur.&lt;/p&gt;
+refus nomme le serveur bloquant. Depuis &lt;strong&gt;v0.11.0&lt;/strong&gt;, toutes les plateformes tiennent un
+tunnel par serveur, chacun sur sa propre interface déterministe (ci-dessous).&lt;/p&gt;
+&lt;p&gt;Depuis v0.11.0, le &lt;code&gt;servers&lt;/code&gt; du helper est facultatif (la pré-approbation de
+l&amp;rsquo;administrateur) et un serveur ajouté par la personne n&amp;rsquo;est de confiance qu&amp;rsquo;une fois le
+système consentant : voir &lt;a href="../../server-approval/"&gt;Approbation des serveurs&lt;/a&gt;. Le
+&lt;code&gt;helper.json&lt;/code&gt; du helper gagne &lt;code&gt;approvals&lt;/code&gt;, le fichier des serveurs approuvés.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="use-in-your-own-tooling"&gt;Utilisation dans vos propres outils&lt;span class="hx:absolute hx:-mt-20" id="use-in-your-own-tooling"&gt;&lt;/span&gt;
 &lt;a href="#use-in-your-own-tooling" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-go" data-lang="go"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nx"&gt;ctx&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;:=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nx"&gt;context&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nf"&gt;Background&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="w"&gt;
@@ -922,7 +930,13 @@ et Linux, ils sont transportés par le protocole mais &lt;code&gt;pkg/wgtun&lt;/
 pas encore.&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;Les envois de routes&lt;/strong&gt; remplacent les IP autorisées et les routes ; les changements DNS
 contenus dans un envoi ne sont pas appliqués.&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Windows.&lt;/strong&gt; Le périphérique est un adaptateur Wintun nommé &lt;code&gt;Claimward&lt;/code&gt; : &lt;code&gt;wintun.dll&lt;/code&gt;
+&lt;li&gt;&lt;strong&gt;Noms d&amp;rsquo;interface.&lt;/strong&gt; Une interface par serveur, nommée d&amp;rsquo;après l&amp;rsquo;URL du serveur par
+&lt;code&gt;wgtun.InterfaceName&lt;/code&gt; : macOS &lt;code&gt;utunN&lt;/code&gt; (numérotée par le noyau), Linux &lt;code&gt;cw-&lt;/code&gt; et dix
+chiffres hexadécimaux du SHA-256 de l&amp;rsquo;URL (13 octets, dans les 15 d&amp;rsquo;&lt;code&gt;IFNAMSIZ&lt;/code&gt;),
+Windows &lt;code&gt;Claimward &amp;lt;hôte&amp;gt; &amp;lt;6 hex&amp;gt;&lt;/code&gt;. Se reconnecter remplace l&amp;rsquo;interface ; un reste de
+ce nom est supprimé d&amp;rsquo;abord, et un périphérique TUN Linux disparaît avec son processus,
+donc un helper qui plante n&amp;rsquo;en laisse aucun.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Windows.&lt;/strong&gt; Le périphérique est un adaptateur Wintun, un par serveur (voir ci-dessus) : &lt;code&gt;wintun.dll&lt;/code&gt;
 (provenant de &lt;a href="https://www.wintun.net" target="_blank" rel="noopener"&gt;https://www.wintun.net&lt;/a&gt;, signé par WireGuard LLC) doit se trouver à côté de
 l&amp;rsquo;exécutable qui appelle &lt;code&gt;wgtun.Up&lt;/code&gt;, ce dont se charge le packaging de l&amp;rsquo;application
 Windows. L&amp;rsquo;adresse, les routes, le DNS et le MTU sont configurés via &lt;code&gt;winipcfg&lt;/code&gt; (l&amp;rsquo;API IP
