@@ -1,6 +1,6 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Claimward – App</title><link>https://claimward.github.io/docs/dev/tags/app/</link><description>Recent content in App on Claimward</description><generator>Hugo -- gohugo.io</generator><language>en</language><atom:link href="https://claimward.github.io/docs/dev/tags/app/index.xml" rel="self" type="application/rss+xml"/><item><title>macOS app</title><link>https://claimward.github.io/docs/dev/components/macos-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/components/macos-app/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-osx" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-osx&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.8.0&lt;/strong&gt; is a native app written in Go: one window and a menu-bar status
+&lt;strong&gt;v0.10.0&lt;/strong&gt; is a native app written in Go: one window and a menu-bar status
 item, drawn by &lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt;, with the system&amp;rsquo;s
 own &lt;code&gt;NSTextField&lt;/code&gt; and &lt;code&gt;NSPopUpButton&lt;/code&gt; for the inputs. There is no webview, no
 local web server and no JavaScript (before v0.7.0 the window was a Svelte page
@@ -29,19 +29,38 @@ data-copied-label="Copied!"
 &lt;/button&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;p&gt;The app is one unprivileged process that owns all state. The text inputs (server
-URL, client IDs) are the system&amp;rsquo;s text fields, with its input method and spell
+&lt;p&gt;The app is one unprivileged process that owns all state. The text input (the
+server URL) is the system&amp;rsquo;s text field, with its input method and spell
 checking; the provider and tenant choices are pop-up buttons. The
 &lt;a href="https://claimward.github.io/docs/dev/components/helper/"&gt;helper&lt;/a&gt; enrolls with the server and
-owns the tunnel. Closing the window quits the app, as on Linux and Windows.&lt;/p&gt;
-&lt;p&gt;The window has a header (the Claimward mark, the title and &lt;strong&gt;Settings&lt;/strong&gt;), a
-&lt;strong&gt;Servers&lt;/strong&gt; sidebar on the left with &lt;strong&gt;+&lt;/strong&gt;, &lt;strong&gt;−&lt;/strong&gt; and a gear (&lt;strong&gt;Edit server&lt;/strong&gt;) under the list, and the
-selected server&amp;rsquo;s detail panel on the right: its name, the &lt;strong&gt;Tenant&lt;/strong&gt; pop-up
-with &lt;strong&gt;Refresh&lt;/strong&gt;, the session state, sign-in, Connect and Disconnect, and the
-connection log. The settings form opens in a window of its own, so the status
-stays visible; it shows in the main window where a second window cannot open.
-The gear opens that settings form for the selected server; it is disabled, with
-the reason in its accessible label, while no server is selected.&lt;/p&gt;
+owns the tunnel. Closing the window hides it: the app keeps running in the
+status item and quits through its &lt;strong&gt;Quit&lt;/strong&gt; item.&lt;/p&gt;
+&lt;p&gt;The window opens at 800 x 480 points (the size of WireGuard&amp;rsquo;s macOS manager).
+The &lt;strong&gt;Servers&lt;/strong&gt; sidebar on the left lists the servers, each with its logo (a
+neutral mark when it has none), its name and its state; &lt;strong&gt;+&lt;/strong&gt;, &lt;strong&gt;−&lt;/strong&gt; and a gear
+are under the list. Several servers may be connected at once, and each row shows
+its own state.&lt;/p&gt;
+&lt;p&gt;The detail panel on the right is a key/value table with section titles, in the
+manner of WireGuard&amp;rsquo;s tunnel panel. It hides every empty field except &lt;strong&gt;Status&lt;/strong&gt;
+and refreshes every second. &lt;strong&gt;Server&lt;/strong&gt; holds the name and logo, the URL, the
+identity provider and the signed-in identity, the tenant, whether the server is
+&lt;em&gt;exclusive&lt;/em&gt;, and whether the helper has approved it. &lt;strong&gt;Status&lt;/strong&gt; has an icon and
+the &lt;strong&gt;Connect&lt;/strong&gt; / &lt;strong&gt;Disconnect&lt;/strong&gt; buttons. &lt;strong&gt;Interface&lt;/strong&gt; holds the address and
+the lease expiry in relative time. &lt;strong&gt;Edit&lt;/strong&gt; is at the bottom right. When the
+server lists several identity providers, sign-in shows one button per provider.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;+&lt;/strong&gt; opens a window of its own with only a URL field. &lt;strong&gt;Next&lt;/strong&gt; asks the server
+for its public discovery document and previews its name, logo, providers and
+whether it is exclusive; the person confirms before the server is added, and a
+server that does not answer as a Claimward server is told in plain words. The
+gear (or &lt;strong&gt;Edit&lt;/strong&gt;) opens the same window on the selected server, prefilled, and
+can change its identity provider; it is disabled, with the reason in its
+accessible label, while no server is selected.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Connect&lt;/strong&gt; on a server the helper has not approved asks macOS for an
+administrator&amp;rsquo;s authorization, naming the server&amp;rsquo;s host, then approves the
+server and connects (see &lt;a href="https://claimward.github.io/docs/dev/components/helper/"&gt;server approval&lt;/a&gt;).
+A refusal is shown as such. &lt;strong&gt;−&lt;/strong&gt; offers to revoke the approval with the
+removal. An &lt;em&gt;exclusive&lt;/em&gt; server, or a connection that blocks the others, disables
+&lt;strong&gt;Connect&lt;/strong&gt; and says why, for instance &amp;ldquo;Alpha is connected and exclusive&amp;rdquo;.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="build"&gt;Build&lt;span class="hx:absolute hx:-mt-20" id="build"&gt;&lt;/span&gt;
 &lt;a href="#build" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;With &lt;a href="https://taskfile.dev" target="_blank" rel="noopener"&gt;go-task&lt;/a&gt;:&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
@@ -77,8 +96,9 @@ data-copied-label="Copied!"
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;h2 data-hextra-search-id="configure"&gt;Configure&lt;span class="hx:absolute hx:-mt-20" id="configure"&gt;&lt;/span&gt;
-&lt;a href="#configure" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;~/Library/Application Support/Claimward/config.json&lt;/code&gt;, for builds on client
-v0.10.0 or later (the format is described on the client page):&lt;/p&gt;
+&lt;a href="#configure" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Nothing has to be written by hand: &lt;strong&gt;+&lt;/strong&gt; adds a server by its URL. The app keeps
+the list in &lt;code&gt;~/Library/Application Support/Claimward/config.json&lt;/code&gt; (app v0.10.0
+and later, client v0.11.0; the format is described on the client page):&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;version&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
@@ -101,7 +121,8 @@ data-copied-label="Copied!"
 GitHub and go-authn, clicking &lt;strong&gt;Connect&lt;/strong&gt; shows a code to enter at the displayed
 page; with OIDC the browser opens the provider&amp;rsquo;s sign-in page. Older builds
 (client v0.9.0 and earlier) read &lt;code&gt;server_url&lt;/code&gt;, &lt;code&gt;provider&lt;/code&gt;, &lt;code&gt;github_client_id&lt;/code&gt;,
-&lt;code&gt;oidc_issuer&lt;/code&gt; and &lt;code&gt;oidc_client_id&lt;/code&gt; instead.&lt;/p&gt;
+&lt;code&gt;oidc_issuer&lt;/code&gt; and &lt;code&gt;oidc_client_id&lt;/code&gt; instead; a file in that format is migrated
+once, on first start, and its session is adopted by the matching server.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="install-the-helper-and-run"&gt;Install the helper and run&lt;span class="hx:absolute hx:-mt-20" id="install-the-helper-and-run"&gt;&lt;/span&gt;
 &lt;a href="#install-the-helper-and-run" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo ./scripts/install-helper.sh https://vpn.example.org &lt;span class="c1"&gt;# more servers may follow&lt;/span&gt;

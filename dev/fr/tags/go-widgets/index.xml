@@ -1,6 +1,6 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Claimward – Go-Widgets</title><link>https://claimward.github.io/docs/dev/fr/tags/go-widgets/</link><description>Recent content in Go-Widgets on Claimward</description><generator>Hugo -- gohugo.io</generator><language>fr</language><atom:link href="https://claimward.github.io/docs/dev/fr/tags/go-widgets/index.xml" rel="self" type="application/rss+xml"/><item><title>Application macOS</title><link>https://claimward.github.io/docs/dev/fr/components/macos-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/fr/components/macos-app/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-osx" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-osx&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.8.0&lt;/strong&gt; est une application native écrite en Go : une fenêtre et une icône de la
+&lt;strong&gt;v0.10.0&lt;/strong&gt; est une application native écrite en Go : une fenêtre et une icône de la
 barre des menus, dessinées par &lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt;, avec les
 &lt;code&gt;NSTextField&lt;/code&gt; et &lt;code&gt;NSPopUpButton&lt;/code&gt; du système pour les saisies. Il n&amp;rsquo;y a ni webview, ni
 serveur web local, ni JavaScript (avant v0.7.0, la fenêtre était une page Svelte dans
@@ -30,19 +30,38 @@ data-copied-label="Copié !"
 &lt;/button&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;p&gt;L&amp;rsquo;application est un seul processus non privilégié qui détient tout l&amp;rsquo;état. Les saisies
-(URL du serveur, identifiants client) sont les champs de texte du système, avec sa méthode
+&lt;p&gt;L&amp;rsquo;application est un seul processus non privilégié qui détient tout l&amp;rsquo;état. La saisie
+(l&amp;rsquo;URL du serveur) est le champ de texte du système, avec sa méthode
 de saisie et sa correction orthographique ; les choix du fournisseur et du locataire sont
 des menus locaux. Le &lt;a href="https://claimward.github.io/docs/dev/fr/components/helper/"&gt;helper&lt;/a&gt; s&amp;rsquo;enrôle auprès du
-serveur et détient le tunnel. Fermer la fenêtre quitte l&amp;rsquo;application, comme sous Linux et Windows.&lt;/p&gt;
-&lt;p&gt;La fenêtre a un en-tête (le logo Claimward, le titre et &lt;strong&gt;Settings&lt;/strong&gt;), une barre latérale
-&lt;strong&gt;Servers&lt;/strong&gt; à gauche avec &lt;strong&gt;+&lt;/strong&gt;, &lt;strong&gt;−&lt;/strong&gt; et un engrenage (&lt;strong&gt;Edit server&lt;/strong&gt;) sous la liste, et à droite le panneau de détail du
-serveur sélectionné : son nom, le menu local &lt;strong&gt;Tenant&lt;/strong&gt; avec &lt;strong&gt;Refresh&lt;/strong&gt;, l&amp;rsquo;état de la
-session, la connexion, Connect et Disconnect, et le journal de connexion. Le formulaire de
-réglages s&amp;rsquo;ouvre dans une fenêtre à part, pour que l&amp;rsquo;état reste visible ; il s&amp;rsquo;affiche dans
-la fenêtre principale là où une seconde fenêtre ne peut pas s&amp;rsquo;ouvrir.
-L&amp;rsquo;engrenage ouvre ce formulaire pour le serveur sélectionné ; il est désactivé, avec la
-raison dans son libellé d&amp;rsquo;accessibilité, tant qu&amp;rsquo;aucun serveur n&amp;rsquo;est sélectionné.&lt;/p&gt;
+serveur et détient le tunnel. Fermer la fenêtre la masque : l&amp;rsquo;application continue de
+tourner dans l&amp;rsquo;icône de la barre des menus et se quitte par son élément &lt;strong&gt;Quit&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;La fenêtre s&amp;rsquo;ouvre à 800 x 480 points (la taille du gestionnaire macOS de WireGuard).
+La barre latérale &lt;strong&gt;Servers&lt;/strong&gt; à gauche liste les serveurs, chacun avec son logo (une
+marque neutre s&amp;rsquo;il n&amp;rsquo;en a pas), son nom et son état ; &lt;strong&gt;+&lt;/strong&gt;, &lt;strong&gt;−&lt;/strong&gt; et un engrenage
+sont sous la liste. Plusieurs serveurs peuvent être connectés à la fois, et chaque ligne
+affiche son propre état.&lt;/p&gt;
+&lt;p&gt;Le panneau de détail à droite est un tableau clé/valeur avec des titres de section, à la
+manière du panneau de tunnel de WireGuard. Il masque tous les champs vides sauf &lt;strong&gt;Status&lt;/strong&gt;
+et s&amp;rsquo;actualise chaque seconde. &lt;strong&gt;Server&lt;/strong&gt; contient le nom et le logo, l&amp;rsquo;URL, le
+fournisseur d&amp;rsquo;identité et l&amp;rsquo;identité connectée, le locataire, si le serveur est
+&lt;em&gt;exclusif&lt;/em&gt;, et si le helper l&amp;rsquo;a approuvé. &lt;strong&gt;Status&lt;/strong&gt; a une icône et les boutons
+&lt;strong&gt;Connect&lt;/strong&gt; / &lt;strong&gt;Disconnect&lt;/strong&gt;. &lt;strong&gt;Interface&lt;/strong&gt; contient l&amp;rsquo;adresse et
+l&amp;rsquo;expiration du bail en temps relatif. &lt;strong&gt;Edit&lt;/strong&gt; est en bas à droite. Lorsque le
+serveur liste plusieurs fournisseurs d&amp;rsquo;identité, la connexion affiche un bouton par fournisseur.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;+&lt;/strong&gt; ouvre une fenêtre à part avec seulement un champ URL. &lt;strong&gt;Next&lt;/strong&gt; demande au serveur
+son document de découverte public et affiche un aperçu de son nom, de son logo, de ses
+fournisseurs et de son caractère exclusif ; la personne confirme avant l&amp;rsquo;ajout du serveur,
+et un serveur qui ne répond pas comme un serveur Claimward en est informé en termes
+simples. L&amp;rsquo;engrenage (ou &lt;strong&gt;Edit&lt;/strong&gt;) ouvre la même fenêtre sur le serveur sélectionné,
+préremplie, et peut changer son fournisseur d&amp;rsquo;identité ; il est désactivé, avec la raison
+dans son libellé d&amp;rsquo;accessibilité, tant qu&amp;rsquo;aucun serveur n&amp;rsquo;est sélectionné.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Connect&lt;/strong&gt; sur un serveur que le helper n&amp;rsquo;a pas approuvé demande à macOS l&amp;rsquo;autorisation
+d&amp;rsquo;un administrateur, en nommant l&amp;rsquo;hôte du serveur, puis approuve le serveur et se connecte
+(voir &lt;a href="https://claimward.github.io/docs/dev/fr/components/helper/"&gt;l&amp;rsquo;approbation du serveur&lt;/a&gt;).
+Un refus est affiché comme tel. &lt;strong&gt;−&lt;/strong&gt; propose de révoquer l&amp;rsquo;approbation avec la
+suppression. Un serveur &lt;em&gt;exclusif&lt;/em&gt;, ou une connexion qui bloque les autres, désactive
+&lt;strong&gt;Connect&lt;/strong&gt; et en donne la raison, par exemple « Alpha is connected and exclusive ».&lt;/p&gt;
 &lt;h2 data-hextra-search-id="build"&gt;Compilation&lt;span class="hx:absolute hx:-mt-20" id="build"&gt;&lt;/span&gt;
 &lt;a href="#build" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Avec &lt;a href="https://taskfile.dev" target="_blank" rel="noopener"&gt;go-task&lt;/a&gt; :&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
@@ -78,8 +97,9 @@ data-copied-label="Copié !"
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;h2 data-hextra-search-id="configure"&gt;Configuration&lt;span class="hx:absolute hx:-mt-20" id="configure"&gt;&lt;/span&gt;
-&lt;a href="#configure" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;~/Library/Application Support/Claimward/config.json&lt;/code&gt;, pour les versions fondées sur le
-client v0.10.0 ou ultérieur (le format est décrit sur la page du client) :&lt;/p&gt;
+&lt;a href="#configure" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Rien n&amp;rsquo;est à écrire à la main : &lt;strong&gt;+&lt;/strong&gt; ajoute un serveur par son URL. L&amp;rsquo;application garde
+la liste dans &lt;code&gt;~/Library/Application Support/Claimward/config.json&lt;/code&gt; (application v0.10.0
+et ultérieure, client v0.11.0 ; le format est décrit sur la page du client) :&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;version&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
@@ -102,7 +122,8 @@ data-copied-label="Copié !"
 GitHub et go-authn, un clic sur &lt;strong&gt;Connect&lt;/strong&gt; affiche un code à saisir sur la page
 indiquée ; avec OIDC, le navigateur ouvre la page de connexion du fournisseur. Les
 versions plus anciennes (client v0.9.0 et antérieur) lisaient &lt;code&gt;server_url&lt;/code&gt;, &lt;code&gt;provider&lt;/code&gt;,
-&lt;code&gt;github_client_id&lt;/code&gt;, &lt;code&gt;oidc_issuer&lt;/code&gt; et &lt;code&gt;oidc_client_id&lt;/code&gt;.&lt;/p&gt;
+&lt;code&gt;github_client_id&lt;/code&gt;, &lt;code&gt;oidc_issuer&lt;/code&gt; et &lt;code&gt;oidc_client_id&lt;/code&gt; ; un fichier de ce format est migré
+une fois, au premier démarrage, et sa session est reprise par le serveur correspondant.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="install-the-helper-and-run"&gt;Installer le helper et lancer l&amp;rsquo;application&lt;span class="hx:absolute hx:-mt-20" id="install-the-helper-and-run"&gt;&lt;/span&gt;
 &lt;a href="#install-the-helper-and-run" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo ./scripts/install-helper.sh https://vpn.example.org &lt;span class="c1"&gt;# more servers may follow&lt;/span&gt;

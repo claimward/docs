@@ -181,7 +181,7 @@ Frente a un servidor cuyo RouteService no usa TLS, el handshake falla antes de q
 se envíe el token, y el túnel sigue activo sin actualizaciones de rutas en vivo.&lt;/p&gt;
 &lt;p&gt;Detener el helper baja el túnel.&lt;/p&gt;</description></item><item><title>Aplicación macOS</title><link>https://claimward.github.io/docs/dev/es/components/macos-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/es/components/macos-app/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-osx" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-osx&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.8.0&lt;/strong&gt; es una aplicación nativa escrita en Go: una ventana y un icono de la barra
+&lt;strong&gt;v0.10.0&lt;/strong&gt; es una aplicación nativa escrita en Go: una ventana y un icono de la barra
 de menús, dibujados con &lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt;, con los
 &lt;code&gt;NSTextField&lt;/code&gt; y &lt;code&gt;NSPopUpButton&lt;/code&gt; del sistema para las entradas. No hay webview, ni
 servidor web local, ni JavaScript (antes de v0.7.0 la ventana era una página Svelte en
@@ -211,19 +211,38 @@ data-copied-label="¡Copiado!"
 &lt;/button&gt;
 &lt;/div&gt;
 &lt;/div&gt;
-&lt;p&gt;La aplicación es un único proceso sin privilegios que posee todo el estado. Las entradas
-(URL del servidor, identificadores de cliente) son los campos de texto del sistema, con su
+&lt;p&gt;La aplicación es un único proceso sin privilegios que posee todo el estado. La entrada
+(la URL del servidor) es el campo de texto del sistema, con su
 método de entrada y su corrector ortográfico; las elecciones de proveedor e inquilino son
 menús emergentes. El &lt;a href="https://claimward.github.io/docs/dev/es/components/helper/"&gt;helper&lt;/a&gt; se registra en el
-servidor y gestiona el túnel. Cerrar la ventana cierra la aplicación, como en Linux y Windows.&lt;/p&gt;
-&lt;p&gt;La ventana tiene una cabecera (la marca Claimward, el título y &lt;strong&gt;Settings&lt;/strong&gt;), una barra
-lateral &lt;strong&gt;Servers&lt;/strong&gt; a la izquierda con &lt;strong&gt;+&lt;/strong&gt;, &lt;strong&gt;−&lt;/strong&gt; y un engranaje (&lt;strong&gt;Edit server&lt;/strong&gt;) bajo la lista, y a la derecha el panel
-de detalle del servidor seleccionado: su nombre, el menú emergente &lt;strong&gt;Tenant&lt;/strong&gt; con
-&lt;strong&gt;Refresh&lt;/strong&gt;, el estado de la sesión, el inicio de sesión, Connect y Disconnect, y el
-registro de conexión. El formulario de ajustes se abre en una ventana propia, para que el
-estado siga visible; se muestra en la ventana principal donde no se puede abrir una segunda.
-El engranaje abre ese formulario para el servidor seleccionado; está desactivado, con el
+servidor y gestiona el túnel. Cerrar la ventana la oculta: la aplicación sigue en
+marcha en el icono de la barra de menús y se cierra con su elemento &lt;strong&gt;Quit&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;La ventana se abre a 800 x 480 puntos (el tamaño del gestor de macOS de WireGuard).
+La barra lateral &lt;strong&gt;Servers&lt;/strong&gt; a la izquierda lista los servidores, cada uno con su logo (una
+marca neutra si no tiene), su nombre y su estado; &lt;strong&gt;+&lt;/strong&gt;, &lt;strong&gt;−&lt;/strong&gt; y un engranaje
+están bajo la lista. Varios servidores pueden estar conectados a la vez, y cada fila
+muestra su propio estado.&lt;/p&gt;
+&lt;p&gt;El panel de detalle a la derecha es una tabla clave/valor con títulos de sección, a la
+manera del panel de túnel de WireGuard. Oculta todos los campos vacíos salvo &lt;strong&gt;Status&lt;/strong&gt;
+y se actualiza cada segundo. &lt;strong&gt;Server&lt;/strong&gt; contiene el nombre y el logo, la URL, el
+proveedor de identidad y la identidad con la sesión iniciada, el inquilino, si el servidor
+es &lt;em&gt;exclusivo&lt;/em&gt;, y si el helper lo ha aprobado. &lt;strong&gt;Status&lt;/strong&gt; tiene un icono y los botones
+&lt;strong&gt;Connect&lt;/strong&gt; / &lt;strong&gt;Disconnect&lt;/strong&gt;. &lt;strong&gt;Interface&lt;/strong&gt; contiene la dirección y
+la caducidad de la concesión en tiempo relativo. &lt;strong&gt;Edit&lt;/strong&gt; está abajo a la derecha. Cuando el
+servidor lista varios proveedores de identidad, el inicio de sesión muestra un botón por proveedor.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;+&lt;/strong&gt; abre una ventana propia con solo un campo de URL. &lt;strong&gt;Next&lt;/strong&gt; pide al servidor
+su documento de descubrimiento público y muestra una vista previa de su nombre, su logo,
+sus proveedores y si es exclusivo; la persona confirma antes de añadir el servidor,
+y a un servidor que no responde como un servidor Claimward se le avisa en palabras
+sencillas. El engranaje (o &lt;strong&gt;Edit&lt;/strong&gt;) abre la misma ventana sobre el servidor seleccionado,
+rellenada de antemano, y puede cambiar su proveedor de identidad; está desactivado, con el
 motivo en su etiqueta de accesibilidad, mientras no haya ningún servidor seleccionado.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Connect&lt;/strong&gt; en un servidor que el helper no ha aprobado pide a macOS la autorización de
+un administrador, indicando el host del servidor, y después aprueba el servidor y se conecta
+(véase &lt;a href="https://claimward.github.io/docs/dev/es/components/helper/"&gt;aprobación del servidor&lt;/a&gt;).
+Una denegación se muestra como tal. &lt;strong&gt;−&lt;/strong&gt; ofrece revocar la aprobación junto con la
+eliminación. Un servidor &lt;em&gt;exclusivo&lt;/em&gt;, o una conexión que bloquea a las demás, desactiva
+&lt;strong&gt;Connect&lt;/strong&gt; e indica el motivo, por ejemplo «Alpha is connected and exclusive».&lt;/p&gt;
 &lt;h2 data-hextra-search-id="build"&gt;Compilación&lt;span class="hx:absolute hx:-mt-20" id="build"&gt;&lt;/span&gt;
 &lt;a href="#build" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Con &lt;a href="https://taskfile.dev" target="_blank" rel="noopener"&gt;go-task&lt;/a&gt;:&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
@@ -259,8 +278,9 @@ data-copied-label="¡Copiado!"
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;h2 data-hextra-search-id="configure"&gt;Configuración&lt;span class="hx:absolute hx:-mt-20" id="configure"&gt;&lt;/span&gt;
-&lt;a href="#configure" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;~/Library/Application Support/Claimward/config.json&lt;/code&gt;, para las compilaciones basadas en
-el cliente v0.10.0 o posterior (el formato se describe en la página del cliente):&lt;/p&gt;
+&lt;a href="#configure" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;No hay que escribir nada a mano: &lt;strong&gt;+&lt;/strong&gt; añade un servidor por su URL. La aplicación guarda
+la lista en &lt;code&gt;~/Library/Application Support/Claimward/config.json&lt;/code&gt; (aplicación v0.10.0
+y posteriores, cliente v0.11.0; el formato se describe en la página del cliente):&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;version&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
@@ -283,7 +303,9 @@ data-copied-label="¡Copiado!"
 y go-authn, al hacer clic en &lt;strong&gt;Connect&lt;/strong&gt; se muestra un código que se debe introducir en
 la página indicada; con OIDC el navegador abre la página de inicio de sesión del
 proveedor. Las compilaciones anteriores (cliente v0.9.0 y anteriores) leían
-&lt;code&gt;server_url&lt;/code&gt;, &lt;code&gt;provider&lt;/code&gt;, &lt;code&gt;github_client_id&lt;/code&gt;, &lt;code&gt;oidc_issuer&lt;/code&gt; y &lt;code&gt;oidc_client_id&lt;/code&gt;.&lt;/p&gt;
+&lt;code&gt;server_url&lt;/code&gt;, &lt;code&gt;provider&lt;/code&gt;, &lt;code&gt;github_client_id&lt;/code&gt;, &lt;code&gt;oidc_issuer&lt;/code&gt; y &lt;code&gt;oidc_client_id&lt;/code&gt;; un archivo
+con ese formato se migra una vez, en el primer arranque, y su sesión la adopta el
+servidor correspondiente.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="install-the-helper-and-run"&gt;Instalar el helper y ejecutar&lt;span class="hx:absolute hx:-mt-20" id="install-the-helper-and-run"&gt;&lt;/span&gt;
 &lt;a href="#install-the-helper-and-run" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo ./scripts/install-helper.sh https://vpn.example.org &lt;span class="c1"&gt;# more servers may follow&lt;/span&gt;

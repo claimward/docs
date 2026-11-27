@@ -181,7 +181,7 @@ Gegenüber einem Server, dessen RouteService kein TLS spricht, scheitert der Han
 Token gesendet wird, und der Tunnel bleibt ohne Live-Aktualisierungen der Routen bestehen.&lt;/p&gt;
 &lt;p&gt;Das Beenden des Helpers baut den Tunnel ab.&lt;/p&gt;</description></item><item><title>macOS-App</title><link>https://claimward.github.io/docs/dev/de/components/macos-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/de/components/macos-app/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-osx" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-osx&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.8.0&lt;/strong&gt; ist eine native, in Go geschriebene App: ein Fenster und ein Menüleisten-Symbol,
+&lt;strong&gt;v0.10.0&lt;/strong&gt; ist eine native, in Go geschriebene App: ein Fenster und ein Menüleisten-Symbol,
 mit &lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt; gezeichnet, mit den &lt;code&gt;NSTextField&lt;/code&gt; und
 &lt;code&gt;NSPopUpButton&lt;/code&gt; des Systems für die Eingaben. Es gibt keine Webview, keinen lokalen
 Webserver und kein JavaScript (vor v0.7.0 war das Fenster eine Svelte-Seite in einer
@@ -211,19 +211,37 @@ data-copied-label="Kopiert!"
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;p&gt;Die App ist ein einziger, nicht privilegierter Prozess, der den gesamten Zustand besitzt.
-Die Eingaben (Server-URL, Client-IDs) sind die Textfelder des Systems, mit seiner
+Die Eingabe (die Server-URL) ist das Textfeld des Systems, mit seiner
 Eingabemethode und Rechtschreibprüfung; die Wahl von Anbieter und Mandant sind
 Popup-Menüs. Der &lt;a href="https://claimward.github.io/docs/dev/de/components/helper/"&gt;Helper&lt;/a&gt; registriert sich beim
-Server und besitzt den Tunnel. Das Schließen des Fensters beendet die App, wie unter Linux
-und Windows.&lt;/p&gt;
-&lt;p&gt;Das Fenster hat eine Kopfzeile (das Claimward-Zeichen, den Titel und &lt;strong&gt;Settings&lt;/strong&gt;), links
-eine Seitenleiste &lt;strong&gt;Servers&lt;/strong&gt; mit &lt;strong&gt;+&lt;/strong&gt;, &lt;strong&gt;−&lt;/strong&gt; und einem Zahnrad (&lt;strong&gt;Edit server&lt;/strong&gt;) unter der Liste und rechts den
-Detailbereich des gewählten Servers: Name, das Popup-Menü &lt;strong&gt;Tenant&lt;/strong&gt; mit &lt;strong&gt;Refresh&lt;/strong&gt;, den
-Sitzungsstatus, Anmeldung, Connect und Disconnect sowie das Verbindungsprotokoll. Das
-Einstellungsformular öffnet sich in einem eigenen Fenster, damit der Status sichtbar bleibt;
-wo kein zweites Fenster geöffnet werden kann, erscheint es im Hauptfenster.
-Das Zahnrad öffnet dieses Formular für den gewählten Server; ist kein Server gewählt, ist es
+Server und besitzt den Tunnel. Das Schließen des Fensters blendet es aus: Die App läuft
+im Statussymbol weiter und wird über dessen Eintrag &lt;strong&gt;Quit&lt;/strong&gt; beendet.&lt;/p&gt;
+&lt;p&gt;Das Fenster öffnet sich mit 800 x 480 Punkten (der Größe des macOS-Managers von WireGuard).
+Die Seitenleiste &lt;strong&gt;Servers&lt;/strong&gt; links listet die Server, jeweils mit Logo (einem neutralen
+Zeichen, wenn es keines hat), Name und Zustand; &lt;strong&gt;+&lt;/strong&gt;, &lt;strong&gt;−&lt;/strong&gt; und ein Zahnrad
+stehen unter der Liste. Mehrere Server können gleichzeitig verbunden sein, und jede Zeile
+zeigt ihren eigenen Zustand.&lt;/p&gt;
+&lt;p&gt;Der Detailbereich rechts ist eine Schlüssel/Wert-Tabelle mit Abschnittstiteln, nach Art
+des Tunnel-Bereichs von WireGuard. Er blendet jedes leere Feld außer &lt;strong&gt;Status&lt;/strong&gt; aus
+und aktualisiert sich jede Sekunde. &lt;strong&gt;Server&lt;/strong&gt; enthält Name und Logo, die URL, den
+Identitätsanbieter und die angemeldete Identität, den Mandanten, ob der Server
+&lt;em&gt;exklusiv&lt;/em&gt; ist, und ob der Helper ihn genehmigt hat. &lt;strong&gt;Status&lt;/strong&gt; hat ein Symbol und die
+Schaltflächen &lt;strong&gt;Connect&lt;/strong&gt; / &lt;strong&gt;Disconnect&lt;/strong&gt;. &lt;strong&gt;Interface&lt;/strong&gt; enthält die Adresse und
+den Ablauf der Lease in relativer Zeit. &lt;strong&gt;Edit&lt;/strong&gt; steht unten rechts. Listet der
+Server mehrere Identitätsanbieter, zeigt die Anmeldung eine Schaltfläche je Anbieter.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;+&lt;/strong&gt; öffnet ein eigenes Fenster mit nur einem URL-Feld. &lt;strong&gt;Next&lt;/strong&gt; fragt beim Server
+sein öffentliches Discovery-Dokument ab und zeigt eine Vorschau auf Name, Logo, Anbieter
+und darauf, ob er exklusiv ist; die Person bestätigt, bevor der Server hinzugefügt wird,
+und einem Server, der nicht als Claimward-Server antwortet, wird das in einfachen Worten
+mitgeteilt. Das Zahnrad (oder &lt;strong&gt;Edit&lt;/strong&gt;) öffnet dasselbe Fenster für den gewählten Server,
+vorausgefüllt, und kann dessen Identitätsanbieter ändern; ist kein Server gewählt, ist es
 deaktiviert, und der Grund steht in seiner Bedienungshilfe-Beschriftung.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Connect&lt;/strong&gt; auf einem Server, den der Helper nicht genehmigt hat, fragt macOS nach der
+Autorisierung eines Administrators und nennt dabei den Host des Servers; danach genehmigt
+es den Server und verbindet (siehe &lt;a href="https://claimward.github.io/docs/dev/de/components/helper/"&gt;Genehmigung des Servers&lt;/a&gt;).
+Eine Ablehnung wird als solche angezeigt. &lt;strong&gt;−&lt;/strong&gt; bietet an, die Genehmigung mit dem
+Entfernen zu widerrufen. Ein &lt;em&gt;exklusiver&lt;/em&gt; Server oder eine Verbindung, die die anderen
+blockiert, deaktiviert &lt;strong&gt;Connect&lt;/strong&gt; und nennt den Grund, etwa „Alpha is connected and exclusive“.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="build"&gt;Build&lt;span class="hx:absolute hx:-mt-20" id="build"&gt;&lt;/span&gt;
 &lt;a href="#build" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Mit &lt;a href="https://taskfile.dev" target="_blank" rel="noopener"&gt;go-task&lt;/a&gt;:&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
@@ -259,8 +277,9 @@ data-copied-label="Kopiert!"
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;h2 data-hextra-search-id="configure"&gt;Konfiguration&lt;span class="hx:absolute hx:-mt-20" id="configure"&gt;&lt;/span&gt;
-&lt;a href="#configure" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;&lt;code&gt;~/Library/Application Support/Claimward/config.json&lt;/code&gt;, für Builds auf Basis des Clients
-ab v0.10.0 (das Format steht auf der Seite des Clients):&lt;/p&gt;
+&lt;a href="#configure" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Von Hand ist nichts zu schreiben: &lt;strong&gt;+&lt;/strong&gt; fügt einen Server über seine URL hinzu. Die App führt
+die Liste in &lt;code&gt;~/Library/Application Support/Claimward/config.json&lt;/code&gt; (App ab v0.10.0,
+Client v0.11.0; das Format steht auf der Seite des Clients):&lt;/p&gt;
 &lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-json" data-lang="json"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nt"&gt;&amp;#34;version&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
@@ -283,7 +302,8 @@ data-copied-label="Kopiert!"
 und go-authn zeigt ein Klick auf &lt;strong&gt;Connect&lt;/strong&gt; einen Code an, der auf der angezeigten Seite
 einzugeben ist; bei OIDC öffnet der Browser die Anmeldeseite des Anbieters. Ältere
 Builds (Client v0.9.0 und früher) lasen stattdessen &lt;code&gt;server_url&lt;/code&gt;, &lt;code&gt;provider&lt;/code&gt;,
-&lt;code&gt;github_client_id&lt;/code&gt;, &lt;code&gt;oidc_issuer&lt;/code&gt; und &lt;code&gt;oidc_client_id&lt;/code&gt;.&lt;/p&gt;
+&lt;code&gt;github_client_id&lt;/code&gt;, &lt;code&gt;oidc_issuer&lt;/code&gt; und &lt;code&gt;oidc_client_id&lt;/code&gt;; eine Datei in diesem Format wird
+beim ersten Start einmalig migriert, und ihre Sitzung wird vom passenden Server übernommen.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="install-the-helper-and-run"&gt;Den Helper installieren und starten&lt;span class="hx:absolute hx:-mt-20" id="install-the-helper-and-run"&gt;&lt;/span&gt;
 &lt;a href="#install-the-helper-and-run" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code"&gt;
 &lt;div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-sh" data-lang="sh"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo ./scripts/install-helper.sh https://vpn.example.org &lt;span class="c1"&gt;# more servers may follow&lt;/span&gt;
