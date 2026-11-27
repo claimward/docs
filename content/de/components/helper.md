@@ -28,16 +28,28 @@ Eine JSON-Anfrage pro Verbindung, eine JSON-Antwort (`pkg/hproto`):
 | `tenants` | fragt den Server, mit welchen Mandanten sich das Bearer-Token verbinden darf |
 | `down` | baut den Tunnel ab |
 | `status` | verbunden oder nicht, die Schnittstelle, die Adresse, der Mandant |
+| `approve` | seit v0.11.0: genehmigt den in der Anfrage genannten Server, wenn das Betriebssystem zustimmt (siehe [Server-Genehmigung](../../server-approval/)) |
+| `revoke` | entfernt einen Server aus den genehmigten |
+| `approved` | listet die genehmigten Server auf |
+
+Seit v0.11.0 hält der Helper **einen Tunnel pro Server**, jeden auf einer eigenen
+Schnittstelle, benannt nach der URL des Servers: Unter Windows heißt der Adapter nicht mehr
+`Claimward`, sondern `Claimward <Host> <6 Hex>` (eine **inkompatible Änderung** für alles, was
+den Adapter unter seinem alten Namen suchte).
 
 ## Durch die eigene Konfiguration begrenzt {#bounded-by-its-own-configuration}
 
 Jeder Prozess, der den Socket des Helpers erreichen kann, kann ihn zum Handeln bringen, daher ist das, was er
 tut, durch **seine eigene** Konfiguration begrenzt, niemals durch die Anfrage:
 
-- **Er registriert sich nur bei einem Server, den seine Konfiguration nennt.** Ein Helper, der
+- **Er registriert sich nur bei einem Server, den seine Konfiguration nennt, oder bei einem,
+  der mit Zustimmung des Systems genehmigt wurde.** Ein Helper, der
   den Server aus der Anfrage übernähme, ließe jeden lokalen Prozess ihn auf einen eigenen
   Server richten, der mit Routen für `0.0.0.0/0` antwortet: jedes Paket der
-  Maschine, dorthin gesendet, wohin dieser Prozess es wollte.
+  Maschine, dorthin gesendet, wohin dieser Prozess es wollte. Die Genehmigung ist die
+  Abfrage des Betriebssystems selbst (Authorization Services unter macOS, polkit unter Linux,
+  ein zweiter erhöhter Socket unter Windows), nie ein Feld der Anfrage: siehe
+  [Server-Genehmigung](../../server-approval/).
 - **Er übernimmt keine Tunnelkonfiguration aus einer Anfrage.** Der Tunnel ist das, was dieser
   Server bei der Registrierung geantwortet hat. Die früheren Aktionen `up` und `update-routes`,
   die eine übernahmen, gibt es nicht mehr.
@@ -55,7 +67,8 @@ tut, durch **seine eigene** Konfiguration begrenzt, niemals durch die Anfrage:
 
 | Schlüssel | |
 |---|---|
-| `servers` | **erforderlich**: die Server, bei denen sich der Helper registrieren darf. Die `server_url` der App muss einer davon sein (verglichen ohne abschließendes `/`) |
+| `servers` | seit v0.11.0 optional: die vom Administrator vorab genehmigten Server (verglichen ohne abschließendes `/`); andere brauchen eine Genehmigung |
+| `approvals` | optional: wo die genehmigten Server gespeichert werden (der Standard je Plattform steht unter [Server-Genehmigung](../../server-approval/)) |
 | `group` | wer den Socket neben root verwenden darf: standardmäßig `admin` unter macOS, `claimward` unter Linux, `Claimward Users` unter Windows |
 | `socket` | standardmäßig `/var/run/claimward-helper.sock`, unter Windows `C:\ProgramData\Claimward\helper.sock` |
 
@@ -96,6 +109,18 @@ statt darauf zu vertrauen, dass ein Installationsprogramm es getan hat:
 
 Die Regeln (`pkg/helper/acl.go`) sind reine Funktionen, auf jeder Plattform getestet;
 der Windows-Job der CI wendet sie auf echte Dateien an und liest sie zurück.
+
+Die Genehmigung hat unter Windows einen **zweiten Socket**, `C:\ProgramData\Claimward\approve.sock`
+(`helper.ListenElevated`, bedient von `Server.ServeElevated`), dessen ACL nur SYSTEM und
+Administratoren nennt: Ein Standardbenutzer kann sich ohne UAC-Erhöhung nicht verbinden, und
+nur ein dort eingegangenes `approve` zählt. Die App erreicht ihn über
+`Client.ElevatedSocketPath` und `ApproveElevated`.
+
+## Die polkit-Policy paketieren (Linux) {#packaging-the-polkit-policy}
+
+Das Linux-Paket installiert `packaging/polkit/com.claimward.helper.approve-server.policy`
+des Client-Repositorys nach `/usr/share/polkit-1/actions/`. Ohne sie kennt polkit die
+Aktion nicht, und jede Genehmigung wird abgelehnt.
 
 ## Beobachtung der Routen über TLS {#route-watches-over-tls}
 
