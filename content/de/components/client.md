@@ -7,7 +7,7 @@ tags: [client, go, wireguard, grpc]
 ---
 
 [`claimward-vpn-client`](https://github.com/claimward/claimward-vpn-client)
-**v0.11.0** ist eine Go-**Bibliothek**. Sie liefert kein Binary aus: Die ausführbaren Programme sind
+**v0.12.0** ist eine Go-**Bibliothek**. Sie liefert kein Binary aus: Die ausführbaren Programme sind
 die der Apps (`cmd/claimward-app` und `cmd/claimward-helper` in jedem App-Repository).
 Auch der Server importiert sie, für die Wire-Typen und die gRPC-Stubs.
 
@@ -32,7 +32,7 @@ das reine Bibliotheksmodul ist die Grundlage der Apps.
 | `pkg/wgtun` | WireGuard-Tunnel im Userspace mit `wireguard-go`, dazu Adresse und Routen: `ifconfig`/`route` unter macOS, `ip` unter Linux, ein Wintun-Adapter über `winipcfg` unter Windows (mit DNS und MTU); benötigt Privilegien |
 | `pkg/routeclient` | beobachtet den RouteService des Servers und meldet Aktualisierungen der Routen; TLS, außer zu Loopback |
 | `pkg/appcore` | die Logik der Apps, gemeinsam für alle drei: Anmeldung, der für die Sitzung gewählte Mandant, Verbinden und Trennen über den Helper, Status für die Oberfläche |
-| `pkg/appvm` | das View-Model der Apps, ohne Oberfläche: welcher Bildschirm gezeigt wird, was jeder Befehl darf, die Statusabfrage und die Ereignisse (Tunnel getrennt, Sitzung abgelaufen); jede App passt es an ihre Widgets an |
+| `pkg/appvm` | das View-Model der Apps, ohne Oberfläche: welcher Bildschirm gezeigt wird, was jeder Befehl darf, die Statusabfrage, die Ereignisse (Tunnel getrennt, Sitzung abgelaufen) und, seit v0.12.0, die Daten jedes Tunnels (`State.Tunnel`: Schnittstelle, Adresse, Endpunkt, erlaubte IPs, DNS, MTU, empfangene und gesendete Bytes, letzter Handshake); jede App passt es an ihre Widgets an |
 | `pkg/helper` | der privilegierte Helper, gemeinsam für die drei Apps: registriert, besitzt den Tunnel, beobachtet gepushte Routen und genehmigt Server mit der Zustimmung des Systems ([Server-Genehmigung](../../server-approval/)) |
 | `pkg/hproto`, `pkg/helperclient` | das Socket-Protokoll des Helpers und der Client der App dafür: `Approve`, `ApproveElevated`, `Revoke`, `Approved` und die typisierten Fehler `*NotApprovedError` und `ErrApprovalDenied` |
 | `pkg/macauth` | Authorization Services von macOS für die Server-Genehmigung: `Obtain(prompt)` in der App, `Verify` im Helper |

@@ -27,7 +27,7 @@ Une requête JSON par connexion, une réponse JSON (`pkg/hproto`) :
 | `connect` | s'enrôle auprès du serveur nommé dans la requête, si sa configuration l'autorise, avec le bearer, la clé privée, le nom d'appareil et le locataire fournis ; monte le tunnel ; surveille le RouteService |
 | `tenants` | demande au serveur à quels locataires le bearer peut se connecter |
 | `down` | démonte le tunnel |
-| `status` | connecté ou non, l'interface, l'adresse, le locataire |
+| `status` | pour chaque tunnel : l'interface, l'adresse, le locataire et, depuis v0.12.0, ses données en direct (voir plus bas) |
 | `approve` | depuis v0.11.0 : approuve le serveur nommé dans la requête, si le système d'exploitation y consent (voir [Approbation des serveurs](../../server-approval/)) |
 | `revoke` | retire un serveur des serveurs approuvés |
 | `approved` | liste les serveurs approuvés |
@@ -36,6 +36,30 @@ Depuis v0.11.0, le helper tient **un tunnel par serveur**, chacun sur sa propre
 interface, nommée d'après l'URL du serveur : sous Windows, l'adaptateur ne s'appelle plus
 `Claimward` mais `Claimward <hôte> <6 hex>` (un **changement incompatible** pour tout ce
 qui cherchait l'adaptateur sous son ancien nom).
+
+## Ce que `status` rapporte par tunnel
+
+Depuis v0.12.0, chaque tunnel de la réponse porte, en lecture seule, ce qu'un
+panneau de détail affiche (les champs vides sont omis) :
+
+| Champ | Sens |
+|---|---|
+| `interface`, `assigned_ip` | le nom de l'interface et l'adresse, séparément |
+| `endpoint` | le `hôte:port` du pair, tel que l'appareil le tient maintenant |
+| `allowed_ips` | les CIDR routés dans le tunnel (ils suivent une poussée de routes) |
+| `dns`, `mtu` | les serveurs DNS attribués par le serveur, et le MTU de l'interface |
+| `rx_bytes`, `tx_bytes` | octets que l'appareil a reçus du pair et lui a envoyés depuis l'ouverture du tunnel |
+| `last_handshake` | la dernière poignée de main achevée (absent tant qu'il n'y en a pas eu) |
+
+Les valeurs en direct sont lues sur l'appareil WireGuard lui-même (l'opération
+`get` de l'UAPI multiplateforme) : un point d'accès qui change ou une nouvelle
+route se voient aussitôt ; si l'appareil ne peut pas être lu, ce sont les
+valeurs de l'inscription qui sont rapportées et les compteurs restent à zéro.
+La réponse ne contient jamais de clé ni de jeton. Comme avant, `status` liste
+tous les tunnels de la machine à tout processus autorisé à utiliser la socket :
+il y a un seul ensemble de tunnels, pas un par utilisateur, donc les nouveaux
+champs n'élargissent rien. Les applications l'interrogent une fois par seconde
+tant qu'un panneau de détail est ouvert.
 
 ## Borné par sa propre configuration {#bounded-by-its-own-configuration}
 

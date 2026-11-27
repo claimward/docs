@@ -27,7 +27,7 @@ One JSON request per connection, one JSON response (`pkg/hproto`):
 | `connect` | enrolls with the server named in the request, if its configuration allows it, with the bearer, private key, device name and tenant given; brings the tunnel up; watches the RouteService |
 | `tenants` | asks the server which tenants the bearer may connect to |
 | `down` | takes the tunnel down |
-| `status` | connected or not, the interface, the address, the tenant |
+| `status` | for each tunnel: the interface, the address, the tenant and, since v0.12.0, its live facts (see below) |
 | `approve` | since v0.11.0: approves the server named in the request, if the operating system consents (see [Server approval](../../server-approval/)) |
 | `revoke` | removes a server from the approved ones |
 | `approved` | lists the approved servers |
@@ -36,6 +36,28 @@ Since v0.11.0 the helper holds **one tunnel per server**, each on its own
 interface, named from the server's URL: on Windows the adapter is no longer
 called `Claimward` but `Claimward <host> <6 hex>` (a **breaking change** for
 anything that looked the adapter up by its old name).
+
+## What `status` reports per tunnel
+
+Since v0.12.0 each tunnel in the answer carries, read-only, what a detail panel
+shows (the fields are omitted when empty):
+
+| Field | Meaning |
+|---|---|
+| `interface`, `assigned_ip` | the interface name and the address, apart from each other |
+| `endpoint` | the peer's `host:port`, as the device holds it now |
+| `allowed_ips` | the CIDRs routed into the tunnel (they follow a route push) |
+| `dns`, `mtu` | the DNS servers the server assigned, and the interface's MTU |
+| `rx_bytes`, `tx_bytes` | bytes the device received from and sent to the peer since the tunnel came up |
+| `last_handshake` | the last completed handshake (absent until there has been one) |
+
+The live values are read from the WireGuard device itself (the cross-platform
+UAPI `get` operation), so a roaming endpoint or a new route shows at once; if
+the device cannot be read, the enrollment's values are reported and the
+counters stay at zero. The answer never contains a key or a bearer. As before,
+`status` lists every tunnel of the machine to any process allowed to use the
+socket: there is one set of tunnels, not one per user, so the new fields widen
+nothing. The apps poll it, once a second while a detail panel is open.
 
 ## Bounded by its own configuration
 
