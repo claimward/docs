@@ -28,16 +28,27 @@ One JSON request per connection, one JSON response (`pkg/hproto`):
 | `tenants` | asks the server which tenants the bearer may connect to |
 | `down` | takes the tunnel down |
 | `status` | connected or not, the interface, the address, the tenant |
+| `approve` | since v0.11.0: approves the server named in the request, if the operating system consents (see [Server approval](../../server-approval/)) |
+| `revoke` | removes a server from the approved ones |
+| `approved` | lists the approved servers |
+
+Since v0.11.0 the helper holds **one tunnel per server**, each on its own
+interface, named from the server's URL: on Windows the adapter is no longer
+called `Claimward` but `Claimward <host> <6 hex>` (a **breaking change** for
+anything that looked the adapter up by its old name).
 
 ## Bounded by its own configuration
 
 Any process that can reach the helper's socket can make it act, so what it
 does is bounded by **its own** configuration, never by the request:
 
-- **It enrolls only with a server its configuration names.** A helper that
-  took the server from the request would let any local process point it at a
-  server of its own, answering with routes for `0.0.0.0/0`: every packet of
-  the machine, sent where that process chose.
+- **It enrolls only with a server its configuration names, or one that was
+  approved with the system's consent.** A helper that took the server from the
+  request would let any local process point it at a server of its own,
+  answering with routes for `0.0.0.0/0`: every packet of the machine, sent
+  where that process chose. Approval is the operating system's own prompt
+  (macOS Authorization Services, polkit on Linux, an elevated second socket on
+  Windows), never a field of the request: see [Server approval](../../server-approval/).
 - **It takes no tunnel configuration from a request.** The tunnel is what that
   server answered at enrollment. The earlier `up` and `update-routes` actions,
   which took one, are gone.
@@ -55,7 +66,8 @@ does is bounded by **its own** configuration, never by the request:
 
 | Key | |
 |---|---|
-| `servers` | **required**: the servers the helper may enroll with. The app's `server_url` must be one of them (compared without a trailing `/`) |
+| `servers` | optional since v0.11.0: the servers pre-approved by the administrator (compared without a trailing `/`); others need approval |
+| `approvals` | optional: where the approved servers are kept (the default per platform is in [Server approval](../../server-approval/)) |
 | `group` | who may use the socket beside root: `admin` on macOS, `claimward` on Linux, `Claimward Users` on Windows by default |
 | `socket` | `/var/run/claimward-helper.sock` by default, `C:\ProgramData\Claimward\helper.sock` on Windows |
 
@@ -96,6 +108,18 @@ itself rather than trusting an installer to have done it:
 
 The rules (`pkg/helper/acl.go`) are pure functions, tested on every platform;
 the Windows CI job applies them to real files and reads them back.
+
+Approval has a **second socket** on Windows, `C:\ProgramData\Claimward\approve.sock`
+(`helper.ListenElevated`, served by `Server.ServeElevated`), whose ACL names
+SYSTEM and Administrators only: a standard user cannot connect without UAC
+elevation, and only an `approve` that arrived there counts. The app reaches it
+through `Client.ElevatedSocketPath` and `ApproveElevated`.
+
+## Packaging the polkit policy (Linux)
+
+The Linux package installs `packaging/polkit/com.claimward.helper.approve-server.policy`
+of the client repository into `/usr/share/polkit-1/actions/`. Without it
+polkit does not know the action and every approval is refused.
 
 ## Route watches over TLS
 

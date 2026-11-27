@@ -28,16 +28,28 @@ Une requête JSON par connexion, une réponse JSON (`pkg/hproto`) :
 | `tenants` | demande au serveur à quels locataires le bearer peut se connecter |
 | `down` | démonte le tunnel |
 | `status` | connecté ou non, l'interface, l'adresse, le locataire |
+| `approve` | depuis v0.11.0 : approuve le serveur nommé dans la requête, si le système d'exploitation y consent (voir [Approbation des serveurs](../../server-approval/)) |
+| `revoke` | retire un serveur des serveurs approuvés |
+| `approved` | liste les serveurs approuvés |
+
+Depuis v0.11.0, le helper tient **un tunnel par serveur**, chacun sur sa propre
+interface, nommée d'après l'URL du serveur : sous Windows, l'adaptateur ne s'appelle plus
+`Claimward` mais `Claimward <hôte> <6 hex>` (un **changement incompatible** pour tout ce
+qui cherchait l'adaptateur sous son ancien nom).
 
 ## Borné par sa propre configuration {#bounded-by-its-own-configuration}
 
 Tout processus capable d'atteindre la socket du helper peut le faire agir ; ce qu'il
 fait est donc borné par **sa propre** configuration, jamais par la requête :
 
-- **Il ne s'enrôle qu'auprès d'un serveur que nomme sa configuration.** Un helper qui
+- **Il ne s'enrôle qu'auprès d'un serveur que nomme sa configuration, ou qui a été
+  approuvé avec le consentement du système.** Un helper qui
   prendrait le serveur dans la requête laisserait n'importe quel processus local le diriger vers
   un serveur de son choix, répondant avec des routes pour `0.0.0.0/0` : chaque paquet de
-  la machine, envoyé là où ce processus l'aurait décidé.
+  la machine, envoyé là où ce processus l'aurait décidé. L'approbation est l'invite du
+  système d'exploitation lui-même (Authorization Services sur macOS, polkit sur Linux, une
+  seconde socket élevée sous Windows), jamais un champ de la requête : voir
+  [Approbation des serveurs](../../server-approval/).
 - **Il n'accepte aucune configuration de tunnel venant d'une requête.** Le tunnel est ce que ce
   serveur a répondu lors de l'enrôlement. Les anciennes actions `up` et `update-routes`,
   qui en acceptaient une, ont disparu.
@@ -55,7 +67,8 @@ fait est donc borné par **sa propre** configuration, jamais par la requête :
 
 | Clé | |
 |---|---|
-| `servers` | **obligatoire** : les serveurs auprès desquels le helper peut s'enrôler. Le `server_url` de l'application doit en faire partie (comparaison sans `/` final) |
+| `servers` | facultatif depuis v0.11.0 : les serveurs pré-approuvés par l'administrateur (comparaison sans `/` final) ; les autres demandent une approbation |
+| `approvals` | facultatif : où sont gardés les serveurs approuvés (le défaut par plateforme est dans [Approbation des serveurs](../../server-approval/)) |
 | `group` | qui peut utiliser la socket en plus de root : `admin` sur macOS, `claimward` sur Linux, `Claimward Users` sur Windows par défaut |
 | `socket` | `/var/run/claimward-helper.sock` par défaut, `C:\ProgramData\Claimward\helper.sock` sur Windows |
 
@@ -96,6 +109,18 @@ lui-même plutôt que de compter sur un installateur pour l'avoir fait :
 
 Les règles (`pkg/helper/acl.go`) sont des fonctions pures, testées sur toutes les plateformes ;
 le job de CI Windows les applique à de vrais fichiers et les relit.
+
+L'approbation a sous Windows une **seconde socket**, `C:\ProgramData\Claimward\approve.sock`
+(`helper.ListenElevated`, servie par `Server.ServeElevated`), dont l'ACL ne nomme que SYSTEM et
+les Administrateurs : un utilisateur standard ne peut s'y connecter sans élévation UAC, et
+seul compte un `approve` arrivé par là. L'application l'atteint par
+`Client.ElevatedSocketPath` et `ApproveElevated`.
+
+## Livrer la politique polkit (Linux) {#packaging-the-polkit-policy}
+
+Le paquet Linux installe `packaging/polkit/com.claimward.helper.approve-server.policy`
+du dépôt du client dans `/usr/share/polkit-1/actions/`. Sans elle, polkit ne connaît pas
+l'action et toute approbation est refusée.
 
 ## Surveillance des routes sur TLS {#route-watches-over-tls}
 
