@@ -29,11 +29,11 @@ gleich verhalten.&lt;/p&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;down&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;baut den Tunnel ab&lt;/td&gt;
+&lt;td&gt;baut den Tunnel ab: den des genannten Servers oder, ohne Server, die des Aufrufers (siehe &lt;a href="#whose-tunnels"&gt;Wem die Tunnel gehören&lt;/a&gt;)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;status&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;je Tunnel: die Schnittstelle, die Adresse, der Mandant und, seit v0.12.0, seine Live-Daten (siehe unten)&lt;/td&gt;
+&lt;td&gt;für jeden Tunnel des Aufrufers: die Schnittstelle, die Adresse, der Mandant und, seit v0.12.0, seine Live-Daten (siehe unten)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;approve&lt;/code&gt;&lt;/td&gt;
@@ -94,10 +94,37 @@ Detailbereich anzeigt (leere Felder entfallen):&lt;/p&gt;
 UAPI-Operation &lt;code&gt;get&lt;/code&gt;): Ein wechselnder Endpunkt oder eine neue Route zeigt sich
 sofort; lässt sich das Gerät nicht lesen, werden die Werte der Anmeldung gemeldet
 und die Zähler bleiben bei null. Die Antwort enthält nie einen Schlüssel oder ein
-Token. Wie bisher listet &lt;code&gt;status&lt;/code&gt; jedem Prozess, der den Socket benutzen darf, alle
-Tunnel der Maschine auf: Es gibt einen Satz Tunnel, keinen pro Benutzer, die neuen
-Felder erweitern also nichts. Die Apps fragen es einmal pro Sekunde ab, solange ein
+Token. Seit v0.12.1 listet &lt;code&gt;status&lt;/code&gt; nur die Tunnel auf, die dem Aufrufer gehören
+(nächster Abschnitt). Die Apps fragen es einmal pro Sekunde ab, solange ein
 Detailbereich offen ist.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="whose-tunnels"&gt;Wem die Tunnel gehören&lt;span class="hx:absolute hx:-mt-20" id="whose-tunnels"&gt;&lt;/span&gt;
+&lt;a href="#whose-tunnels" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Seit v0.12.1 gehört ein Tunnel dem Benutzer, der ihn aufgebaut hat, und &lt;code&gt;status&lt;/code&gt;
+(mit seinen &lt;code&gt;last_errors&lt;/code&gt;) zeigt einem Aufrufer nur dessen eigene Tunnel. Auf
+einer gemeinsam genutzten Maschine sieht ein Benutzer nicht mehr Endpunkt, Routen,
+Adresse oder Zähler eines anderen.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Der Eigentümer wird vom Kernel gelesen, nie aus der Anfrage.&lt;/strong&gt; Bei &lt;code&gt;connect&lt;/code&gt;
+fragt der Helper das Betriebssystem, wer am anderen Ende der Verbindung steht:
+die uid (&lt;code&gt;SO_PEERCRED&lt;/code&gt; unter Linux, &lt;code&gt;LOCAL_PEERCRED&lt;/code&gt; unter macOS und FreeBSD)
+oder unter Windows die Benutzer-SID des Tokens des aufrufenden Prozesses. Kein
+Feld einer Anfrage kann einen Eigentümer benennen.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;root sieht und darf alles&lt;/strong&gt;, ebenso SYSTEM, ein erhöhter Administrator und
+jeder Aufrufer des erhöhten Sockets unter Windows.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Der Zugriff auf den Tunnel eines anderen wird abgelehnt:&lt;/strong&gt; &lt;code&gt;down&lt;/code&gt; eines
+genannten Servers, &lt;code&gt;renew&lt;/code&gt;, &lt;code&gt;revoke&lt;/code&gt; und ein &lt;code&gt;connect&lt;/code&gt;, der ihn ersetzen würde,
+antworten mit dem &lt;code&gt;error_code&lt;/code&gt; &lt;code&gt;tunnel_not_owned&lt;/code&gt;. &lt;code&gt;down&lt;/code&gt; ohne Server baut die
+Tunnel des Aufrufers ab. Ein abgelehntes &lt;code&gt;connect&lt;/code&gt; fragt den Server nichts.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Ein Aufrufer, den das System nicht identifizieren kann,&lt;/strong&gt; wird abgelehnt.
+Unter Windows bleibt der Aufrufer unidentifiziert, wenn das System die Frage
+nach dem Peer-Prozess nicht beantwortet: Er sieht nur Tunnel, die
+unidentifizierte Aufrufer aufgebaut haben, nie die eines identifizierten
+Benutzers.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Grenze:&lt;/strong&gt; Ein exklusives &lt;code&gt;connect&lt;/code&gt;, das abgelehnt wird, weil ein anderer
+Tunnel die Maschine belegt, nennt diesen Server weiterhin (&lt;code&gt;blocked_by&lt;/code&gt;), da die
+Exklusivität maschinenweit gilt.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Das Drahtformat ist unverändert: Es wurde kein Feld hinzugefügt, Apps für v0.12.0
+funktionieren also unverändert.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="bounded-by-its-own-configuration"&gt;Durch die eigene Konfiguration begrenzt&lt;span class="hx:absolute hx:-mt-20" id="bounded-by-its-own-configuration"&gt;&lt;/span&gt;
 &lt;a href="#bounded-by-its-own-configuration" class="subheading-anchor" aria-label="Permalink für diesen Abschnitt"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Jeder Prozess, der den Socket des Helpers erreichen kann, kann ihn zum Handeln bringen, daher ist das, was er
 tut, durch &lt;strong&gt;seine eigene&lt;/strong&gt; Konfiguration begrenzt, niemals durch die Anfrage:&lt;/p&gt;

@@ -29,11 +29,11 @@ igual.&lt;/p&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;down&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;baja el túnel&lt;/td&gt;
+&lt;td&gt;baja el túnel: el del servidor nombrado o, sin servidor, los del llamante (véase &lt;a href="#whose-tunnels"&gt;De quién son los túneles&lt;/a&gt;)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;status&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;por cada túnel: la interfaz, la dirección, el inquilino y, desde v0.12.0, sus datos en vivo (véase más abajo)&lt;/td&gt;
+&lt;td&gt;por cada túnel del llamante: la interfaz, la dirección, el inquilino y, desde v0.12.0, sus datos en vivo (véase más abajo)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;approve&lt;/code&gt;&lt;/td&gt;
@@ -94,10 +94,36 @@ un panel de detalle (los campos vacíos se omiten):&lt;/p&gt;
 de la UAPI multiplataforma): un endpoint que cambia o una ruta nueva se ven al
 instante; si no se puede leer el dispositivo, se informa de los valores de la
 inscripción y los contadores se quedan en cero. La respuesta nunca contiene una
-clave ni un token. Como antes, &lt;code&gt;status&lt;/code&gt; lista todos los túneles de la máquina a
-cualquier proceso autorizado a usar el socket: hay un solo conjunto de túneles,
-no uno por usuario, así que los campos nuevos no amplían nada. Las aplicaciones lo
-consultan una vez por segundo mientras haya un panel de detalle abierto.&lt;/p&gt;
+clave ni un token. Desde v0.12.1, &lt;code&gt;status&lt;/code&gt; lista solo los túneles del llamante
+(sección siguiente). Las aplicaciones lo consultan una vez por segundo mientras
+haya un panel de detalle abierto.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="whose-tunnels"&gt;De quién son los túneles&lt;span class="hx:absolute hx:-mt-20" id="whose-tunnels"&gt;&lt;/span&gt;
+&lt;a href="#whose-tunnels" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Desde v0.12.1, un túnel pertenece al usuario que lo levantó, y &lt;code&gt;status&lt;/code&gt; (con sus
+&lt;code&gt;last_errors&lt;/code&gt;) solo muestra a un llamante sus propios túneles. En una máquina
+compartida, un usuario ya no ve el endpoint, las rutas, la dirección ni los
+contadores de otro.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;El propietario se lee del kernel, nunca de la solicitud.&lt;/strong&gt; En &lt;code&gt;connect&lt;/code&gt;, el
+helper pregunta al sistema operativo quién está al otro extremo de la conexión:
+el uid (&lt;code&gt;SO_PEERCRED&lt;/code&gt; en Linux, &lt;code&gt;LOCAL_PEERCRED&lt;/code&gt; en macOS y FreeBSD) o, en
+Windows, el SID de usuario del token del proceso que llama. Ningún campo de una
+solicitud puede nombrar un propietario.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;root lo ve y lo hace todo&lt;/strong&gt;, igual que SYSTEM, un administrador elevado y
+cualquier llamante del socket elevado en Windows.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Actuar sobre el túnel de otro se rechaza:&lt;/strong&gt; &lt;code&gt;down&lt;/code&gt; de un servidor nombrado,
+&lt;code&gt;renew&lt;/code&gt;, &lt;code&gt;revoke&lt;/code&gt; y un &lt;code&gt;connect&lt;/code&gt; que lo reemplazaría responden con el
+&lt;code&gt;error_code&lt;/code&gt; &lt;code&gt;tunnel_not_owned&lt;/code&gt;. &lt;code&gt;down&lt;/code&gt; sin servidor baja los túneles del
+llamante. Un &lt;code&gt;connect&lt;/code&gt; rechazado no pregunta nada al servidor.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Un llamante que el sistema no sabe identificar&lt;/strong&gt; se rechaza. En Windows, un
+sistema que no responde a la pregunta del proceso par deja al llamante sin
+identificar: solo ve los túneles que crearon llamantes sin identificar, nunca
+los de un usuario identificado.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Límite:&lt;/strong&gt; un &lt;code&gt;connect&lt;/code&gt; exclusivo rechazado porque otro túnel ocupa la máquina
+sigue nombrando ese servidor (&lt;code&gt;blocked_by&lt;/code&gt;), pues la exclusividad es de toda la
+máquina.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;El formato en el cable no cambia: no se añadió ningún campo, así que las
+aplicaciones construidas para v0.12.0 funcionan tal cual.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="bounded-by-its-own-configuration"&gt;Limitado por su propia configuración&lt;span class="hx:absolute hx:-mt-20" id="bounded-by-its-own-configuration"&gt;&lt;/span&gt;
 &lt;a href="#bounded-by-its-own-configuration" class="subheading-anchor" aria-label="Enlace permanente a esta sección"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Cualquier proceso que pueda acceder al socket del helper puede hacerlo actuar, así que lo que
 hace está limitado por &lt;strong&gt;su propia&lt;/strong&gt; configuración, nunca por la solicitud:&lt;/p&gt;

@@ -29,11 +29,11 @@ de la même façon.&lt;/p&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;down&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;démonte le tunnel&lt;/td&gt;
+&lt;td&gt;démonte le tunnel : celui du serveur nommé ou, sans serveur, ceux de l&amp;rsquo;appelant (voir &lt;a href="#whose-tunnels"&gt;À qui sont les tunnels&lt;/a&gt;)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;status&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;pour chaque tunnel : l&amp;rsquo;interface, l&amp;rsquo;adresse, le locataire et, depuis v0.12.0, ses données en direct (voir plus bas)&lt;/td&gt;
+&lt;td&gt;pour chacun des tunnels de l&amp;rsquo;appelant : l&amp;rsquo;interface, l&amp;rsquo;adresse, le locataire et, depuis v0.12.0, ses données en direct (voir plus bas)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;approve&lt;/code&gt;&lt;/td&gt;
@@ -94,11 +94,36 @@ panneau de détail affiche (les champs vides sont omis) :&lt;/p&gt;
 &lt;code&gt;get&lt;/code&gt; de l&amp;rsquo;UAPI multiplateforme) : un point d&amp;rsquo;accès qui change ou une nouvelle
 route se voient aussitôt ; si l&amp;rsquo;appareil ne peut pas être lu, ce sont les
 valeurs de l&amp;rsquo;inscription qui sont rapportées et les compteurs restent à zéro.
-La réponse ne contient jamais de clé ni de jeton. Comme avant, &lt;code&gt;status&lt;/code&gt; liste
-tous les tunnels de la machine à tout processus autorisé à utiliser la socket :
-il y a un seul ensemble de tunnels, pas un par utilisateur, donc les nouveaux
-champs n&amp;rsquo;élargissent rien. Les applications l&amp;rsquo;interrogent une fois par seconde
-tant qu&amp;rsquo;un panneau de détail est ouvert.&lt;/p&gt;
+La réponse ne contient jamais de clé ni de jeton. Depuis v0.12.1, &lt;code&gt;status&lt;/code&gt; ne
+liste que les tunnels de l&amp;rsquo;appelant (section suivante). Les applications
+l&amp;rsquo;interrogent une fois par seconde tant qu&amp;rsquo;un panneau de détail est ouvert.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="whose-tunnels"&gt;À qui sont les tunnels&lt;span class="hx:absolute hx:-mt-20" id="whose-tunnels"&gt;&lt;/span&gt;
+&lt;a href="#whose-tunnels" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Depuis v0.12.1, un tunnel appartient à l&amp;rsquo;utilisateur qui l&amp;rsquo;a monté, et &lt;code&gt;status&lt;/code&gt;
+(avec ses &lt;code&gt;last_errors&lt;/code&gt;) ne montre à un appelant que ses propres tunnels. Sur une
+machine partagée, un utilisateur ne voit plus le point d&amp;rsquo;accès, les routes,
+l&amp;rsquo;adresse ni les compteurs d&amp;rsquo;un autre.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Le propriétaire est lu auprès du noyau, jamais dans la requête.&lt;/strong&gt; Au
+&lt;code&gt;connect&lt;/code&gt;, le helper demande au système d&amp;rsquo;exploitation qui se trouve au bout de
+la connexion : l&amp;rsquo;uid (&lt;code&gt;SO_PEERCRED&lt;/code&gt; sous Linux, &lt;code&gt;LOCAL_PEERCRED&lt;/code&gt; sous macOS et
+FreeBSD) ou, sous Windows, le SID utilisateur du jeton du processus appelant.
+Aucun champ d&amp;rsquo;une requête ne peut désigner un propriétaire.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;root voit et fait tout&lt;/strong&gt;, ainsi que SYSTEM, un administrateur élevé et tout
+appelant de la socket élevée sous Windows.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Agir sur le tunnel d&amp;rsquo;un autre est refusé :&lt;/strong&gt; &lt;code&gt;down&lt;/code&gt; d&amp;rsquo;un serveur nommé,
+&lt;code&gt;renew&lt;/code&gt;, &lt;code&gt;revoke&lt;/code&gt; et un &lt;code&gt;connect&lt;/code&gt; qui le remplacerait répondent par l&amp;rsquo;&lt;code&gt;error_code&lt;/code&gt;
+&lt;code&gt;tunnel_not_owned&lt;/code&gt;. &lt;code&gt;down&lt;/code&gt; sans serveur démonte les tunnels de l&amp;rsquo;appelant. Un
+&lt;code&gt;connect&lt;/code&gt; refusé ne demande rien au serveur.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Un appelant que le système ne sait pas identifier&lt;/strong&gt; est refusé. Sous Windows,
+un système qui ne répond pas à la question du processus pair laisse l&amp;rsquo;appelant
+non identifié : il ne voit que les tunnels montés par des appelants non
+identifiés, jamais ceux d&amp;rsquo;un utilisateur identifié.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Limite :&lt;/strong&gt; un &lt;code&gt;connect&lt;/code&gt; exclusif refusé parce qu&amp;rsquo;un autre tunnel tient la
+machine nomme encore ce serveur (&lt;code&gt;blocked_by&lt;/code&gt;), l&amp;rsquo;exclusivité étant valable pour
+toute la machine.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Le format sur le fil est inchangé : aucun champ n&amp;rsquo;a été ajouté, les applications
+construites pour v0.12.0 fonctionnent donc telles quelles.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="bounded-by-its-own-configuration"&gt;Borné par sa propre configuration&lt;span class="hx:absolute hx:-mt-20" id="bounded-by-its-own-configuration"&gt;&lt;/span&gt;
 &lt;a href="#bounded-by-its-own-configuration" class="subheading-anchor" aria-label="Lien permanent vers cette section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Tout processus capable d&amp;rsquo;atteindre la socket du helper peut le faire agir ; ce qu&amp;rsquo;il
 fait est donc borné par &lt;strong&gt;sa propre&lt;/strong&gt; configuration, jamais par la requête :&lt;/p&gt;

@@ -29,11 +29,11 @@ alike.&lt;/p&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;down&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;takes the tunnel down&lt;/td&gt;
+&lt;td&gt;takes the tunnel down: the named server&amp;rsquo;s, or, with no server, the caller&amp;rsquo;s own (see &lt;a href="#whose-tunnels"&gt;Whose tunnels&lt;/a&gt;)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;status&lt;/code&gt;&lt;/td&gt;
-&lt;td&gt;for each tunnel: the interface, the address, the tenant and, since v0.12.0, its live facts (see below)&lt;/td&gt;
+&lt;td&gt;for each of the caller&amp;rsquo;s tunnels: the interface, the address, the tenant and, since v0.12.0, its live facts (see below)&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;&lt;code&gt;approve&lt;/code&gt;&lt;/td&gt;
@@ -93,10 +93,35 @@ shows (the fields are omitted when empty):&lt;/p&gt;
 &lt;p&gt;The live values are read from the WireGuard device itself (the cross-platform
 UAPI &lt;code&gt;get&lt;/code&gt; operation), so a roaming endpoint or a new route shows at once; if
 the device cannot be read, the enrollment&amp;rsquo;s values are reported and the
-counters stay at zero. The answer never contains a key or a bearer. As before,
-&lt;code&gt;status&lt;/code&gt; lists every tunnel of the machine to any process allowed to use the
-socket: there is one set of tunnels, not one per user, so the new fields widen
-nothing. The apps poll it, once a second while a detail panel is open.&lt;/p&gt;
+counters stay at zero. The answer never contains a key or a bearer. Since
+v0.12.1 &lt;code&gt;status&lt;/code&gt; lists only the tunnels the caller owns (next section). The
+apps poll it, once a second while a detail panel is open.&lt;/p&gt;
+&lt;h2 data-hextra-search-id="whose-tunnels"&gt;Whose tunnels&lt;span class="hx:absolute hx:-mt-20" id="whose-tunnels"&gt;&lt;/span&gt;
+&lt;a href="#whose-tunnels" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Since v0.12.1 a tunnel belongs to the user who connected it, and &lt;code&gt;status&lt;/code&gt; (with
+its &lt;code&gt;last_errors&lt;/code&gt;) shows a caller only its own tunnels. On a shared machine one
+user no longer sees another&amp;rsquo;s endpoint, routes, address or counters.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;The owner is read from the kernel, never from the request.&lt;/strong&gt; At &lt;code&gt;connect&lt;/code&gt;
+the helper asks the operating system who is on the other end of that
+connection: the uid (&lt;code&gt;SO_PEERCRED&lt;/code&gt; on Linux, &lt;code&gt;LOCAL_PEERCRED&lt;/code&gt; on macOS and
+FreeBSD), or on Windows the user SID of the token of the connecting process.
+No field of a request can name an owner.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;root sees and does everything&lt;/strong&gt;, and so do SYSTEM, an elevated
+Administrator and any caller of the elevated socket on Windows.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Acting on another user&amp;rsquo;s tunnel is refused:&lt;/strong&gt; &lt;code&gt;down&lt;/code&gt; of a named server,
+&lt;code&gt;renew&lt;/code&gt;, &lt;code&gt;revoke&lt;/code&gt;, and a &lt;code&gt;connect&lt;/code&gt; that would replace it answer with the
+&lt;code&gt;error_code&lt;/code&gt; &lt;code&gt;tunnel_not_owned&lt;/code&gt;. &lt;code&gt;down&lt;/code&gt; with no server takes down the
+caller&amp;rsquo;s own tunnels. A refused &lt;code&gt;connect&lt;/code&gt; asks the server nothing.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;A caller the system cannot identify&lt;/strong&gt; is refused. On Windows, a system that
+does not answer the peer-process question leaves the caller unidentified: it
+sees only the tunnels that unidentified callers made, never an identified
+user&amp;rsquo;s.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Limit:&lt;/strong&gt; an exclusive &lt;code&gt;connect&lt;/code&gt; that is refused because another tunnel
+holds the machine still names that server (&lt;code&gt;blocked_by&lt;/code&gt;), as exclusivity is
+machine-wide.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The wire format is unchanged: no field was added, so apps built against v0.12.0
+work as they are.&lt;/p&gt;
 &lt;h2 data-hextra-search-id="bounded-by-its-own-configuration"&gt;Bounded by its own configuration&lt;span class="hx:absolute hx:-mt-20" id="bounded-by-its-own-configuration"&gt;&lt;/span&gt;
 &lt;a href="#bounded-by-its-own-configuration" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;p&gt;Any process that can reach the helper&amp;rsquo;s socket can make it act, so what it
 does is bounded by &lt;strong&gt;its own&lt;/strong&gt; configuration, never by the request:&lt;/p&gt;
