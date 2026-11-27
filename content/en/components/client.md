@@ -7,7 +7,7 @@ tags: [client, go, wireguard, grpc]
 ---
 
 [`claimward-vpn-client`](https://github.com/claimward/claimward-vpn-client)
-**v0.11.0** is a Go **library**. It ships no binary: the runnable programs are
+**v0.12.0** is a Go **library**. It ships no binary: the runnable programs are
 the apps' (`cmd/claimward-app` and `cmd/claimward-helper` in each app
 repository). The server imports it too, for the wire types and the gRPC stubs.
 
@@ -32,7 +32,7 @@ the library-only module is what the apps build on.
 | `pkg/wgtun` | userspace WireGuard tunnel with `wireguard-go`, plus address and routes: `ifconfig`/`route` on macOS, `ip` on Linux, a Wintun adapter through `winipcfg` on Windows (with DNS and MTU); needs privileges |
 | `pkg/routeclient` | watches the server's RouteService and reports route updates; TLS except to loopback |
 | `pkg/appcore` | the apps' logic, shared by the three: sign-in, the tenant chosen for the session, connect and disconnect through the helper, status for the UI |
-| `pkg/appvm` | the apps' view model, with no UI in it: the screen to show, what each command may do, the status poll, and the events (tunnel dropped, session expired); each app adapts it to its own widgets |
+| `pkg/appvm` | the apps' view model, with no UI in it: the screen to show, what each command may do, the status poll, the events (tunnel dropped, session expired) and, since v0.12.0, each tunnel's facts (`State.Tunnel`: interface, address, endpoint, allowed IPs, DNS, MTU, bytes received and sent, last handshake); each app adapts it to its own widgets |
 | `pkg/helper` | the privileged helper, shared by the three apps: enrolls, owns the tunnel, watches route pushes, and approves servers with the system's consent ([Server approval](../../server-approval/)) |
 | `pkg/hproto`, `pkg/helperclient` | the helper's socket protocol, and the app's client for it: `Approve`, `ApproveElevated`, `Revoke`, `Approved`, and the typed errors `*NotApprovedError` and `ErrApprovalDenied` |
 | `pkg/macauth` | macOS Authorization Services for server approval: `Obtain(prompt)` in the app, `Verify` in the helper |

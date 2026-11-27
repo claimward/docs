@@ -7,7 +7,7 @@ tags: [client, go, wireguard, grpc]
 ---
 
 [`claimward-vpn-client`](https://github.com/claimward/claimward-vpn-client)
-**v0.11.0** es una **biblioteca** Go. No incluye ningún binario: los programas ejecutables
+**v0.12.0** es una **biblioteca** Go. No incluye ningún binario: los programas ejecutables
 son los de las aplicaciones (`cmd/claimward-app` y `cmd/claimward-helper` en el repositorio
 de cada aplicación). El servidor también la importa, por los tipos de red y los stubs gRPC.
 
@@ -32,7 +32,7 @@ el módulo que solo contiene la biblioteca es la base sobre la que se construyen
 | `pkg/wgtun` | túnel WireGuard en espacio de usuario con `wireguard-go`, más dirección y rutas: `ifconfig`/`route` en macOS, `ip` en Linux, un adaptador Wintun mediante `winipcfg` en Windows (con DNS y MTU); requiere privilegios |
 | `pkg/routeclient` | observa el RouteService del servidor y notifica las actualizaciones de rutas; TLS salvo hacia loopback |
 | `pkg/appcore` | la lógica de las aplicaciones, compartida por las tres: inicio de sesión, el inquilino elegido para la sesión, conexión y desconexión a través del helper, estado para la interfaz |
-| `pkg/appvm` | el modelo de vista de las aplicaciones, sin interfaz: la pantalla que se muestra, lo que puede hacer cada orden, la consulta del estado y los eventos (túnel caído, sesión caducada); cada aplicación lo adapta a sus widgets |
+| `pkg/appvm` | el modelo de vista de las aplicaciones, sin interfaz: la pantalla que se muestra, lo que puede hacer cada orden, la consulta del estado, los eventos (túnel caído, sesión caducada) y, desde v0.12.0, los datos de cada túnel (`State.Tunnel`: interfaz, dirección, endpoint, IP permitidas, DNS, MTU, bytes recibidos y enviados, último handshake); cada aplicación lo adapta a sus widgets |
 | `pkg/helper` | el helper con privilegios, compartido por las tres aplicaciones: registra el dispositivo, es dueño del túnel, observa las rutas enviadas y aprueba servidores con el consentimiento del sistema ([Aprobación de servidores](../../server-approval/)) |
 | `pkg/hproto`, `pkg/helperclient` | el protocolo de socket del helper, y el cliente de la aplicación para él: `Approve`, `ApproveElevated`, `Revoke`, `Approved` y los errores tipados `*NotApprovedError` y `ErrApprovalDenied` |
 | `pkg/macauth` | Authorization Services de macOS para la aprobación de servidores: `Obtain(prompt)` en la aplicación, `Verify` en el helper |

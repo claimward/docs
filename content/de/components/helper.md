@@ -27,7 +27,7 @@ Eine JSON-Anfrage pro Verbindung, eine JSON-Antwort (`pkg/hproto`):
 | `connect` | registriert sich beim in der Anfrage genannten Server, sofern seine Konfiguration es erlaubt, mit dem übergebenen Bearer-Token, privaten Schlüssel, Gerätenamen und Mandanten; baut den Tunnel auf; beobachtet den RouteService |
 | `tenants` | fragt den Server, mit welchen Mandanten sich das Bearer-Token verbinden darf |
 | `down` | baut den Tunnel ab |
-| `status` | verbunden oder nicht, die Schnittstelle, die Adresse, der Mandant |
+| `status` | je Tunnel: die Schnittstelle, die Adresse, der Mandant und, seit v0.12.0, seine Live-Daten (siehe unten) |
 | `approve` | seit v0.11.0: genehmigt den in der Anfrage genannten Server, wenn das Betriebssystem zustimmt (siehe [Server-Genehmigung](../../server-approval/)) |
 | `revoke` | entfernt einen Server aus den genehmigten |
 | `approved` | listet die genehmigten Server auf |
@@ -36,6 +36,29 @@ Seit v0.11.0 hält der Helper **einen Tunnel pro Server**, jeden auf einer eigen
 Schnittstelle, benannt nach der URL des Servers: Unter Windows heißt der Adapter nicht mehr
 `Claimward`, sondern `Claimward <Host> <6 Hex>` (eine **inkompatible Änderung** für alles, was
 den Adapter unter seinem alten Namen suchte).
+
+## Was `status` je Tunnel meldet
+
+Seit v0.12.0 trägt jeder Tunnel der Antwort schreibgeschützt das, was ein
+Detailbereich anzeigt (leere Felder entfallen):
+
+| Feld | Bedeutung |
+|---|---|
+| `interface`, `assigned_ip` | der Schnittstellenname und die Adresse, getrennt |
+| `endpoint` | das `Host:Port` des Peers, wie das Gerät es jetzt hält |
+| `allowed_ips` | die in den Tunnel geleiteten CIDRs (sie folgen einer Routen-Übermittlung) |
+| `dns`, `mtu` | die vom Server zugewiesenen DNS-Server und die MTU der Schnittstelle |
+| `rx_bytes`, `tx_bytes` | Bytes, die das Gerät seit dem Aufbau des Tunnels vom Peer empfangen und an ihn gesendet hat |
+| `last_handshake` | der letzte abgeschlossene Handshake (fehlt, bis es einen gab) |
+
+Die Live-Werte werden vom WireGuard-Gerät selbst gelesen (die plattformübergreifende
+UAPI-Operation `get`): Ein wechselnder Endpunkt oder eine neue Route zeigt sich
+sofort; lässt sich das Gerät nicht lesen, werden die Werte der Anmeldung gemeldet
+und die Zähler bleiben bei null. Die Antwort enthält nie einen Schlüssel oder ein
+Token. Wie bisher listet `status` jedem Prozess, der den Socket benutzen darf, alle
+Tunnel der Maschine auf: Es gibt einen Satz Tunnel, keinen pro Benutzer, die neuen
+Felder erweitern also nichts. Die Apps fragen es einmal pro Sekunde ab, solange ein
+Detailbereich offen ist.
 
 ## Durch die eigene Konfiguration begrenzt {#bounded-by-its-own-configuration}
 

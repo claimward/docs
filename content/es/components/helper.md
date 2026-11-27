@@ -27,7 +27,7 @@ Una solicitud JSON por conexión, una respuesta JSON (`pkg/hproto`):
 | `connect` | registra el dispositivo en el servidor nombrado en la solicitud, si su configuración lo permite, con el bearer, la clave privada, el nombre del dispositivo y el inquilino indicados; levanta el túnel; observa el RouteService |
 | `tenants` | pregunta al servidor a qué inquilinos puede conectarse el bearer |
 | `down` | baja el túnel |
-| `status` | conectado o no, la interfaz, la dirección, el inquilino |
+| `status` | por cada túnel: la interfaz, la dirección, el inquilino y, desde v0.12.0, sus datos en vivo (véase más abajo) |
 | `approve` | desde v0.11.0: aprueba el servidor nombrado en la solicitud, si el sistema operativo da su consentimiento (véase [Aprobación de servidores](../../server-approval/)) |
 | `revoke` | quita un servidor de los aprobados |
 | `approved` | lista los servidores aprobados |
@@ -36,6 +36,29 @@ Desde v0.11.0 el helper mantiene **un túnel por servidor**, cada uno en su prop
 interfaz, nombrada a partir de la URL del servidor: en Windows el adaptador ya no se llama
 `Claimward` sino `Claimward <host> <6 hex>` (un **cambio incompatible** para todo lo que
 buscara el adaptador por su nombre antiguo).
+
+## Lo que `status` informa por túnel
+
+Desde v0.12.0, cada túnel de la respuesta lleva, de solo lectura, lo que muestra
+un panel de detalle (los campos vacíos se omiten):
+
+| Campo | Significado |
+|---|---|
+| `interface`, `assigned_ip` | el nombre de la interfaz y la dirección, por separado |
+| `endpoint` | el `host:puerto` del par, tal como lo tiene ahora el dispositivo |
+| `allowed_ips` | los CIDR enrutados al túnel (siguen un envío de rutas) |
+| `dns`, `mtu` | los servidores DNS asignados por el servidor y la MTU de la interfaz |
+| `rx_bytes`, `tx_bytes` | bytes que el dispositivo ha recibido del par y le ha enviado desde que el túnel subió |
+| `last_handshake` | el último handshake completado (ausente hasta que haya habido uno) |
+
+Los valores en vivo se leen del propio dispositivo WireGuard (la operación `get`
+de la UAPI multiplataforma): un endpoint que cambia o una ruta nueva se ven al
+instante; si no se puede leer el dispositivo, se informa de los valores de la
+inscripción y los contadores se quedan en cero. La respuesta nunca contiene una
+clave ni un token. Como antes, `status` lista todos los túneles de la máquina a
+cualquier proceso autorizado a usar el socket: hay un solo conjunto de túneles,
+no uno por usuario, así que los campos nuevos no amplían nada. Las aplicaciones lo
+consultan una vez por segundo mientras haya un panel de detalle abierto.
 
 ## Limitado por su propia configuración {#bounded-by-its-own-configuration}
 
