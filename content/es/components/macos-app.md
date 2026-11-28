@@ -7,7 +7,7 @@ tags: [macos, aplicación, helper, go-widgets]
 ---
 
 [`claimward-vpn-app-osx`](https://github.com/claimward/claimward-vpn-app-osx)
-**v0.10.0** es una aplicación nativa escrita en Go: una ventana y un icono de la barra
+**v0.11.0** es una aplicación nativa escrita en Go: una ventana y un icono de la barra
 de menús, dibujados con [go-widgets](https://github.com/go-widgets), con los
 `NSTextField` y `NSPopUpButton` del sistema para las entradas. No hay webview, ni
 servidor web local, ni JavaScript (antes de v0.7.0 la ventana era una página Svelte en
@@ -48,9 +48,20 @@ manera del panel de túnel de WireGuard. Oculta todos los campos vacíos salvo *
 y se actualiza cada segundo. **Server** contiene el nombre y el logo, la URL, el
 proveedor de identidad y la identidad con la sesión iniciada, el inquilino, si el servidor
 es *exclusivo*, y si el helper lo ha aprobado. **Status** tiene un icono y los botones
-**Connect** / **Disconnect**. **Interface** contiene la dirección y
-la caducidad de la concesión en tiempo relativo. **Edit** está abajo a la derecha. Cuando el
+**Connect** / **Disconnect**. **Interface** contiene el estado, la dirección, los servidores DNS, la MTU y
+la caducidad de la concesión en tiempo relativo. **Peer** contiene el endpoint, las IP permitidas,
+el último handshake como «12 s ago» y la transferencia como
+«3.50 MiB received, 900 B sent» (requiere el cliente v0.12.0); cada sección se oculta
+mientras está vacía. **Edit** está abajo a la derecha. Cuando el
 servidor lista varios proveedores de identidad, el inicio de sesión muestra un botón por proveedor.
+
+Cada botón lleva un icono Tabler
+([go-widgets/tabler-icons](https://github.com/go-widgets), MIT), y los logos de los
+servidores los dibuja el widget de logo SVG del toolkit. A diferencia de las filas de
+WireGuard, que truncan, todo texto más ancho que su caja **se ajusta en varias líneas**:
+URL, identidades, rutas, motivos de rechazo y el registro de conexión. Las filas crecen
+para contener sus líneas, y el panel de detalle se desplaza cuando es más alto que la
+ventana de 800 x 480, de modo que nada se corta.
 
 **+** abre una ventana propia con solo un campo de URL. **Next** pide al servidor
 su documento de descubrimiento público y muestra una vista previa de su nombre, su logo,

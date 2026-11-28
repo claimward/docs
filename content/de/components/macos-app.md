@@ -7,7 +7,7 @@ tags: [macos, app, helper, go-widgets]
 ---
 
 [`claimward-vpn-app-osx`](https://github.com/claimward/claimward-vpn-app-osx)
-**v0.10.0** ist eine native, in Go geschriebene App: ein Fenster und ein Menüleisten-Symbol,
+**v0.11.0** ist eine native, in Go geschriebene App: ein Fenster und ein Menüleisten-Symbol,
 mit [go-widgets](https://github.com/go-widgets) gezeichnet, mit den `NSTextField` und
 `NSPopUpButton` des Systems für die Eingaben. Es gibt keine Webview, keinen lokalen
 Webserver und kein JavaScript (vor v0.7.0 war das Fenster eine Svelte-Seite in einer
@@ -47,9 +47,20 @@ des Tunnel-Bereichs von WireGuard. Er blendet jedes leere Feld außer **Status**
 und aktualisiert sich jede Sekunde. **Server** enthält Name und Logo, die URL, den
 Identitätsanbieter und die angemeldete Identität, den Mandanten, ob der Server
 *exklusiv* ist, und ob der Helper ihn genehmigt hat. **Status** hat ein Symbol und die
-Schaltflächen **Connect** / **Disconnect**. **Interface** enthält die Adresse und
-den Ablauf der Lease in relativer Zeit. **Edit** steht unten rechts. Listet der
+Schaltflächen **Connect** / **Disconnect**. **Interface** enthält den Status, die Adresse, die DNS-Server, die MTU und
+den Ablauf der Lease in relativer Zeit. **Peer** enthält den Endpoint, die erlaubten IPs,
+den letzten Handshake als „12 s ago“ und die Übertragung als
+„3.50 MiB received, 900 B sent“ (erfordert Client v0.12.0); jeder Abschnitt wird
+ausgeblendet, solange er leer ist. **Edit** steht unten rechts. Listet der
 Server mehrere Identitätsanbieter, zeigt die Anmeldung eine Schaltfläche je Anbieter.
+
+Jede Schaltfläche trägt ein Tabler-Symbol
+([go-widgets/tabler-icons](https://github.com/go-widgets), MIT), und die Logos der
+Server zeichnet das SVG-Logo-Widget des Toolkits. Anders als die Zeilen von WireGuard,
+die abschneiden, **umbricht** jeder Text, der breiter als sein Feld ist: URLs,
+Identitäten, Routen, Ablehnungsgründe und das Verbindungsprotokoll. Die Zeilen wachsen
+mit ihrem Text, und der Detailbereich scrollt, wenn er höher als das Fenster mit
+800 x 480 Punkten ist, sodass nichts abgeschnitten wird.
 
 **+** öffnet ein eigenes Fenster mit nur einem URL-Feld. **Next** fragt beim Server
 sein öffentliches Discovery-Dokument ab und zeigt eine Vorschau auf Name, Logo, Anbieter

@@ -7,7 +7,7 @@ tags: [macos, app, helper, go-widgets]
 ---
 
 [`claimward-vpn-app-osx`](https://github.com/claimward/claimward-vpn-app-osx)
-**v0.10.0** is a native app written in Go: one window and a menu-bar status
+**v0.11.0** is a native app written in Go: one window and a menu-bar status
 item, drawn by [go-widgets](https://github.com/go-widgets), with the system's
 own `NSTextField` and `NSPopUpButton` for the inputs. There is no webview, no
 local web server and no JavaScript (before v0.7.0 the window was a Svelte page
@@ -47,9 +47,20 @@ manner of WireGuard's tunnel panel. It hides every empty field except **Status**
 and refreshes every second. **Server** holds the name and logo, the URL, the
 identity provider and the signed-in identity, the tenant, whether the server is
 *exclusive*, and whether the helper has approved it. **Status** has an icon and
-the **Connect** / **Disconnect** buttons. **Interface** holds the address and
-the lease expiry in relative time. **Edit** is at the bottom right. When the
-server lists several identity providers, sign-in shows one button per provider.
+the **Connect** / **Disconnect** buttons. **Interface** holds the status, the address, the DNS servers, the MTU and the lease
+expiry in relative time. **Peer** holds the endpoint, the allowed IPs, the latest
+handshake as "12 s ago" and the transfer as "3.50 MiB received, 900 B sent"
+(needs client v0.12.0); each section is hidden while it is empty. **Edit** is at
+the bottom right. When the server lists several identity providers, sign-in
+shows one button per provider.
+
+Every button carries a Tabler icon
+([go-widgets/tabler-icons](https://github.com/go-widgets), MIT), and the
+servers' logos are drawn by the toolkit's SVG logo widget. Unlike WireGuard's
+rows, which truncate, any text wider than its box **wraps**: URLs, identities,
+routes, refusal reasons and the connection log. Rows grow to hold their lines,
+and the detail panel scrolls when it is taller than the 800 x 480 window, so
+nothing is clipped.
 
 **+** opens a window of its own with only a URL field. **Next** asks the server
 for its public discovery document and previews its name, logo, providers and

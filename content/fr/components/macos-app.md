@@ -7,7 +7,7 @@ tags: [macos, application, helper, go-widgets]
 ---
 
 [`claimward-vpn-app-osx`](https://github.com/claimward/claimward-vpn-app-osx)
-**v0.10.0** est une application native écrite en Go : une fenêtre et une icône de la
+**v0.11.0** est une application native écrite en Go : une fenêtre et une icône de la
 barre des menus, dessinées par [go-widgets](https://github.com/go-widgets), avec les
 `NSTextField` et `NSPopUpButton` du système pour les saisies. Il n'y a ni webview, ni
 serveur web local, ni JavaScript (avant v0.7.0, la fenêtre était une page Svelte dans
@@ -48,9 +48,20 @@ manière du panneau de tunnel de WireGuard. Il masque tous les champs vides sauf
 et s'actualise chaque seconde. **Server** contient le nom et le logo, l'URL, le
 fournisseur d'identité et l'identité connectée, le locataire, si le serveur est
 *exclusif*, et si le helper l'a approuvé. **Status** a une icône et les boutons
-**Connect** / **Disconnect**. **Interface** contient l'adresse et
-l'expiration du bail en temps relatif. **Edit** est en bas à droite. Lorsque le
+**Connect** / **Disconnect**. **Interface** contient l'état, l'adresse, les serveurs DNS, le MTU et
+l'expiration du bail en temps relatif. **Peer** contient le point d'accès (endpoint), les IP autorisées,
+le dernier échange (handshake) sous la forme « 12 s ago » et le trafic sous la forme
+« 3.50 MiB received, 900 B sent » (nécessite le client v0.12.0) ; chaque section est masquée
+tant qu'elle est vide. **Edit** est en bas à droite. Lorsque le
 serveur liste plusieurs fournisseurs d'identité, la connexion affiche un bouton par fournisseur.
+
+Chaque bouton porte une icône Tabler
+([go-widgets/tabler-icons](https://github.com/go-widgets), MIT), et les logos des
+serveurs sont dessinés par le widget de logo SVG de la boîte à outils. Contrairement aux
+lignes de WireGuard, qui tronquent, tout texte plus large que sa zone **passe à la ligne** :
+URL, identités, routes, motifs de refus et journal de connexion. Les lignes grandissent
+pour contenir leur texte, et le panneau de détail défile lorsqu'il est plus haut que la
+fenêtre de 800 x 480, de sorte que rien n'est coupé.
 
 **+** ouvre une fenêtre à part avec seulement un champ URL. **Next** demande au serveur
 son document de découverte public et affiche un aperçu de son nom, de son logo, de ses
