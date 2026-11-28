@@ -253,7 +253,7 @@ Face à un serveur dont le RouteService n&amp;rsquo;est pas en TLS, la négociat
 jeton, et le tunnel reste monté sans mises à jour des routes en direct.&lt;/p&gt;
 &lt;p&gt;L&amp;rsquo;arrêt du helper démonte le tunnel.&lt;/p&gt;</description></item><item><title>Application macOS</title><link>https://claimward.github.io/docs/dev/fr/components/macos-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/fr/components/macos-app/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-osx" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-osx&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.10.0&lt;/strong&gt; est une application native écrite en Go : une fenêtre et une icône de la
+&lt;strong&gt;v0.11.0&lt;/strong&gt; est une application native écrite en Go : une fenêtre et une icône de la
 barre des menus, dessinées par &lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt;, avec les
 &lt;code&gt;NSTextField&lt;/code&gt; et &lt;code&gt;NSPopUpButton&lt;/code&gt; du système pour les saisies. Il n&amp;rsquo;y a ni webview, ni
 serveur web local, ni JavaScript (avant v0.7.0, la fenêtre était une page Svelte dans
@@ -299,9 +299,19 @@ manière du panneau de tunnel de WireGuard. Il masque tous les champs vides sauf
 et s&amp;rsquo;actualise chaque seconde. &lt;strong&gt;Server&lt;/strong&gt; contient le nom et le logo, l&amp;rsquo;URL, le
 fournisseur d&amp;rsquo;identité et l&amp;rsquo;identité connectée, le locataire, si le serveur est
 &lt;em&gt;exclusif&lt;/em&gt;, et si le helper l&amp;rsquo;a approuvé. &lt;strong&gt;Status&lt;/strong&gt; a une icône et les boutons
-&lt;strong&gt;Connect&lt;/strong&gt; / &lt;strong&gt;Disconnect&lt;/strong&gt;. &lt;strong&gt;Interface&lt;/strong&gt; contient l&amp;rsquo;adresse et
-l&amp;rsquo;expiration du bail en temps relatif. &lt;strong&gt;Edit&lt;/strong&gt; est en bas à droite. Lorsque le
+&lt;strong&gt;Connect&lt;/strong&gt; / &lt;strong&gt;Disconnect&lt;/strong&gt;. &lt;strong&gt;Interface&lt;/strong&gt; contient l&amp;rsquo;état, l&amp;rsquo;adresse, les serveurs DNS, le MTU et
+l&amp;rsquo;expiration du bail en temps relatif. &lt;strong&gt;Peer&lt;/strong&gt; contient le point d&amp;rsquo;accès (endpoint), les IP autorisées,
+le dernier échange (handshake) sous la forme « 12 s ago » et le trafic sous la forme
+« 3.50 MiB received, 900 B sent » (nécessite le client v0.12.0) ; chaque section est masquée
+tant qu&amp;rsquo;elle est vide. &lt;strong&gt;Edit&lt;/strong&gt; est en bas à droite. Lorsque le
 serveur liste plusieurs fournisseurs d&amp;rsquo;identité, la connexion affiche un bouton par fournisseur.&lt;/p&gt;
+&lt;p&gt;Chaque bouton porte une icône Tabler
+(&lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets/tabler-icons&lt;/a&gt;, MIT), et les logos des
+serveurs sont dessinés par le widget de logo SVG de la boîte à outils. Contrairement aux
+lignes de WireGuard, qui tronquent, tout texte plus large que sa zone &lt;strong&gt;passe à la ligne&lt;/strong&gt; :
+URL, identités, routes, motifs de refus et journal de connexion. Les lignes grandissent
+pour contenir leur texte, et le panneau de détail défile lorsqu&amp;rsquo;il est plus haut que la
+fenêtre de 800 x 480, de sorte que rien n&amp;rsquo;est coupé.&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;+&lt;/strong&gt; ouvre une fenêtre à part avec seulement un champ URL. &lt;strong&gt;Next&lt;/strong&gt; demande au serveur
 son document de découverte public et affiche un aperçu de son nom, de son logo, de ses
 fournisseurs et de son caractère exclusif ; la personne confirme avant l&amp;rsquo;ajout du serveur,

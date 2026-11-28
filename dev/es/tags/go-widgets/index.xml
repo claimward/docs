@@ -1,6 +1,6 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Claimward – Go-Widgets</title><link>https://claimward.github.io/docs/dev/es/tags/go-widgets/</link><description>Recent content in Go-Widgets on Claimward</description><generator>Hugo -- gohugo.io</generator><language>es</language><atom:link href="https://claimward.github.io/docs/dev/es/tags/go-widgets/index.xml" rel="self" type="application/rss+xml"/><item><title>Aplicación macOS</title><link>https://claimward.github.io/docs/dev/es/components/macos-app/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://claimward.github.io/docs/dev/es/components/macos-app/</guid><description>
 &lt;p&gt;&lt;a href="https://github.com/claimward/claimward-vpn-app-osx" target="_blank" rel="noopener"&gt;&lt;code&gt;claimward-vpn-app-osx&lt;/code&gt;&lt;/a&gt;
-&lt;strong&gt;v0.10.0&lt;/strong&gt; es una aplicación nativa escrita en Go: una ventana y un icono de la barra
+&lt;strong&gt;v0.11.0&lt;/strong&gt; es una aplicación nativa escrita en Go: una ventana y un icono de la barra
 de menús, dibujados con &lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets&lt;/a&gt;, con los
 &lt;code&gt;NSTextField&lt;/code&gt; y &lt;code&gt;NSPopUpButton&lt;/code&gt; del sistema para las entradas. No hay webview, ni
 servidor web local, ni JavaScript (antes de v0.7.0 la ventana era una página Svelte en
@@ -46,9 +46,19 @@ manera del panel de túnel de WireGuard. Oculta todos los campos vacíos salvo &
 y se actualiza cada segundo. &lt;strong&gt;Server&lt;/strong&gt; contiene el nombre y el logo, la URL, el
 proveedor de identidad y la identidad con la sesión iniciada, el inquilino, si el servidor
 es &lt;em&gt;exclusivo&lt;/em&gt;, y si el helper lo ha aprobado. &lt;strong&gt;Status&lt;/strong&gt; tiene un icono y los botones
-&lt;strong&gt;Connect&lt;/strong&gt; / &lt;strong&gt;Disconnect&lt;/strong&gt;. &lt;strong&gt;Interface&lt;/strong&gt; contiene la dirección y
-la caducidad de la concesión en tiempo relativo. &lt;strong&gt;Edit&lt;/strong&gt; está abajo a la derecha. Cuando el
+&lt;strong&gt;Connect&lt;/strong&gt; / &lt;strong&gt;Disconnect&lt;/strong&gt;. &lt;strong&gt;Interface&lt;/strong&gt; contiene el estado, la dirección, los servidores DNS, la MTU y
+la caducidad de la concesión en tiempo relativo. &lt;strong&gt;Peer&lt;/strong&gt; contiene el endpoint, las IP permitidas,
+el último handshake como «12 s ago» y la transferencia como
+«3.50 MiB received, 900 B sent» (requiere el cliente v0.12.0); cada sección se oculta
+mientras está vacía. &lt;strong&gt;Edit&lt;/strong&gt; está abajo a la derecha. Cuando el
 servidor lista varios proveedores de identidad, el inicio de sesión muestra un botón por proveedor.&lt;/p&gt;
+&lt;p&gt;Cada botón lleva un icono Tabler
+(&lt;a href="https://github.com/go-widgets" target="_blank" rel="noopener"&gt;go-widgets/tabler-icons&lt;/a&gt;, MIT), y los logos de los
+servidores los dibuja el widget de logo SVG del toolkit. A diferencia de las filas de
+WireGuard, que truncan, todo texto más ancho que su caja &lt;strong&gt;se ajusta en varias líneas&lt;/strong&gt;:
+URL, identidades, rutas, motivos de rechazo y el registro de conexión. Las filas crecen
+para contener sus líneas, y el panel de detalle se desplaza cuando es más alto que la
+ventana de 800 x 480, de modo que nada se corta.&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;+&lt;/strong&gt; abre una ventana propia con solo un campo de URL. &lt;strong&gt;Next&lt;/strong&gt; pide al servidor
 su documento de descubrimiento público y muestra una vista previa de su nombre, su logo,
 sus proveedores y si es exclusivo; la persona confirma antes de añadir el servidor,
